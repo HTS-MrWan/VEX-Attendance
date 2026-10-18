@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VEX Robotics Attendance</title>
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col font-sans select-none">
@@ -23,25 +21,34 @@
     </button>
   </header>
 
-  <!-- Hidden input to capture iPad/Hardware Scans reliably -->
-  <input id="hiddenInput" type="text" class="absolute opacity-0 pointer-events-none" autocomplete="off" />
-
   <!-- ================= KIOSK VIEW ================= -->
-  <main id="kioskView" class="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-2xl mx-auto w-full">
-    <!-- 3-Second Confirmation Banner -->
-    <div id="statusBanner" class="hidden w-full mb-8 p-5 rounded-xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg transition-all">
+  <main id="kioskView" class="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-xl mx-auto w-full">
+    <!-- Status Banner -->
+    <div id="statusBanner" class="hidden w-full mb-6 p-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg">
       <i id="bannerIcon" data-lucide="check-circle" class="w-6 h-6"></i>
       <span id="bannerText"></span>
     </div>
 
     <!-- Scanner Target Display -->
-    <div class="w-full bg-gray-800 border-2 border-dashed border-gray-600 rounded-2xl p-12 flex flex-col items-center gap-5 shadow-2xl">
-      <div class="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center text-red-500">
-        <i data-lucide="scan" class="w-10 h-10"></i>
+    <div class="w-full bg-gray-800 border-2 border-dashed border-gray-600 rounded-2xl p-8 flex flex-col items-center gap-4 shadow-xl">
+      <div class="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center text-red-500">
+        <i data-lucide="scan" class="w-8 h-8"></i>
       </div>
       <div>
-        <h2 class="text-2xl font-bold mb-2">Tap Student Badge</h2>
-        <p class="text-gray-400 text-sm">Hold your card against the reader to check in.</p>
+        <h2 class="text-xl font-bold mb-1">Tap Student Badge</h2>
+        <p class="text-gray-400 text-sm">Hold card near the reader or type ID manually to test.</p>
+      </div>
+
+      <!-- Live Input Box (Supports Scanners & Manual Entry) -->
+      <form id="scanForm" class="w-full mt-2 flex gap-2">
+        <input id="cardInput" type="text" placeholder="Scanning card..." autocomplete="off"
+          class="flex-1 bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 text-center text-lg font-mono tracking-widest text-white focus:outline-none focus:border-red-500" />
+        <button type="submit" class="bg-red-600 hover:bg-red-500 text-white px-5 py-3 rounded-lg font-semibold text-sm">Submit</button>
+      </form>
+
+      <!-- Real-time Diagnostics Line -->
+      <div class="text-xs text-gray-500 mt-2 font-mono" id="debugStatus">
+        Status: Ready & Listening
       </div>
     </div>
   </main>
@@ -98,11 +105,11 @@
     <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-gray-700 shadow-2xl">
       <h3 class="text-xl font-bold mb-2">New Card Detected</h3>
       <p class="text-gray-400 text-sm mb-4">
-        Card <strong id="modalCardId" class="text-white font-mono"></strong> is not registered. Enter the student's name:
+        Card <strong id="modalCardId" class="text-white font-mono"></strong> is not registered. Enter student name:
       </p>
       <form id="registerForm">
         <input id="newStudentName" type="text" placeholder="e.g. John Doe" required
-          class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 mb-4" />
+          class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 mb-4 text-white" />
         <div class="flex justify-end gap-3">
           <button type="button" id="cancelRegisterBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Cancel</button>
           <button type="submit" class="bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-lg text-sm">Register & Check In</button>
@@ -111,7 +118,6 @@
     </div>
   </div>
 
-  <!-- Firebase Modular SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
     import {
@@ -119,8 +125,267 @@
       query, where, orderBy, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
-    // Your actual Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyBp5weR493oNyMAqqVJ29ephpOE6ZuOGEE",
       authDomain: "vex-sign-in.firebaseapp.com",
-      projectId: "vex-sign
+      projectId: "vex-sign-in",
+      storageBucket: "vex-sign-in.firebasestorage.app",
+      messagingSenderId: "937126385405",
+      appId: "1:937126385405:web:319142911247e2ce1c1094",
+      measurementId: "G-SPCRBPF386"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let currentView = "kiosk";
+    let pendingCardId = null;
+    let cachedLogs = [];
+    let cachedStudents = [];
+
+    const kioskView = document.getElementById("kioskView");
+    const adminView = document.getElementById("adminView");
+    const toggleViewBtn = document.getElementById("toggleViewBtn");
+    const toggleViewText = document.getElementById("toggleViewText");
+    const statusBanner = document.getElementById("statusBanner");
+    const bannerText = document.getElementById("bannerText");
+    const registerModal = document.getElementById("registerModal");
+    const modalCardId = document.getElementById("modalCardId");
+    const registerForm = document.getElementById("registerForm");
+    const newStudentNameInput = document.getElementById("newStudentName");
+    const cancelRegisterBtn = document.getElementById("cancelRegisterBtn");
+    const cardInput = document.getElementById("cardInput");
+    const scanForm = document.getElementById("scanForm");
+    const debugStatus = document.getElementById("debugStatus");
+    const tabLogsBtn = document.getElementById("tabLogsBtn");
+    const tabStudentsBtn = document.getElementById("tabStudentsBtn");
+    const logsSection = document.getElementById("logsSection");
+    const studentsSection = document.getElementById("studentsSection");
+    const logsTableBody = document.getElementById("logsTableBody");
+    const studentsTableBody = document.getElementById("studentsTableBody");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+
+    lucide.createIcons();
+
+    // Auto-focus input
+    function focusInput() {
+      if (currentView === "kiosk" && registerModal.classList.contains("hidden")) {
+        cardInput.focus();
+      }
+    }
+    document.addEventListener("click", focusInput);
+    focusInput();
+
+    // Auto-submit if 10 characters are typed/scanned
+    cardInput.addEventListener("input", (e) => {
+      const val = e.target.value.trim();
+      debugStatus.textContent = `Buffer: ${val}`;
+      if (val.length >= 10) {
+        processScan(val);
+      }
+    });
+
+    scanForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const val = cardInput.value.trim();
+      if (val) processScan(val);
+    });
+
+    async function processScan(cardId) {
+      cardInput.value = "";
+      debugStatus.textContent = `Processing Card: ${cardId}...`;
+
+      try {
+        const q = query(collection(db, "students"), where("cardId", "==", cardId));
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+          pendingCardId = cardId;
+          modalCardId.textContent = cardId;
+          registerModal.classList.remove("hidden");
+          newStudentNameInput.focus();
+          debugStatus.textContent = `Card ${cardId} is unregistered.`;
+        } else {
+          const student = snap.docs[0].data();
+          await recordAttendance(cardId, student.name);
+        }
+      } catch (err) {
+        console.error("Firestore read error:", err);
+        showBanner(false, "Firestore Error: Make sure your Firestore Database is created in Test Mode.");
+        debugStatus.textContent = `Error: ${err.message}`;
+      }
+    }
+
+    async function recordAttendance(cardId, name) {
+      const now = new Date();
+      await addDoc(collection(db, "attendance"), {
+        cardId: cardId,
+        studentName: name,
+        timestamp: serverTimestamp(),
+        localDate: now.toLocaleDateString('en-CA'),
+        localTime: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      });
+      showBanner(true, `${name} has checked into VEX robotics today!`);
+      debugStatus.textContent = `Successfully checked in: ${name}`;
+    }
+
+    let bannerTimer = null;
+    function showBanner(success, message) {
+      clearTimeout(bannerTimer);
+      statusBanner.className = `w-full mb-6 p-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg ${
+        success ? "bg-emerald-700 text-white" : "bg-red-700 text-white"
+      }`;
+      bannerText.textContent = message;
+      statusBanner.classList.remove("hidden");
+      bannerTimer = setTimeout(() => {
+        statusBanner.classList.add("hidden");
+        focusInput();
+      }, 3000);
+    }
+
+    registerForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = newStudentNameInput.value.trim();
+      const card = pendingCardId;
+      if (!name || !card) return;
+
+      try {
+        await addDoc(collection(db, "students"), {
+          cardId: card,
+          name: name,
+          registeredAt: serverTimestamp()
+        });
+
+        await recordAttendance(card, name);
+        registerModal.classList.add("hidden");
+        newStudentNameInput.value = "";
+        pendingCardId = null;
+        focusInput();
+      } catch (err) {
+        showBanner(false, "Error registering student.");
+        debugStatus.textContent = `Registration error: ${err.message}`;
+      }
+    });
+
+    cancelRegisterBtn.addEventListener("click", () => {
+      registerModal.classList.add("hidden");
+      newStudentNameInput.value = "";
+      pendingCardId = null;
+      focusInput();
+    });
+
+    toggleViewBtn.addEventListener("click", () => {
+      if (currentView === "kiosk") {
+        currentView = "admin";
+        kioskView.classList.add("hidden");
+        adminView.classList.remove("hidden");
+        adminView.classList.add("flex");
+        toggleViewText.textContent = "Kiosk Mode";
+        loadAdminData();
+      } else {
+        currentView = "kiosk";
+        adminView.classList.add("hidden");
+        adminView.classList.remove("flex");
+        kioskView.classList.remove("hidden");
+        toggleViewText.textContent = "Admin Dashboard";
+        focusInput();
+      }
+    });
+
+    tabLogsBtn.addEventListener("click", () => {
+      tabLogsBtn.className = "bg-red-600 px-4 py-2 rounded-md text-sm font-semibold";
+      tabStudentsBtn.className = "bg-gray-700 px-4 py-2 rounded-md text-sm font-semibold";
+      logsSection.classList.remove("hidden");
+      studentsSection.classList.add("hidden");
+    });
+
+    tabStudentsBtn.addEventListener("click", () => {
+      tabStudentsBtn.className = "bg-red-600 px-4 py-2 rounded-md text-sm font-semibold";
+      tabLogsBtn.className = "bg-gray-700 px-4 py-2 rounded-md text-sm font-semibold";
+      studentsSection.classList.remove("hidden");
+      logsSection.classList.add("hidden");
+    });
+
+    async function loadAdminData() {
+      const logsSnap = await getDocs(query(collection(db, "attendance"), orderBy("timestamp", "desc")));
+      cachedLogs = logsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderLogs();
+
+      const stuSnap = await getDocs(query(collection(db, "students"), orderBy("name", "asc")));
+      cachedStudents = stuSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderStudents();
+    }
+
+    function renderLogs() {
+      if (cachedLogs.length === 0) {
+        logsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-400">No logs found.</td></tr>`;
+        return;
+      }
+      logsTableBody.innerHTML = cachedLogs.map(log => `
+        <tr class="hover:bg-gray-750">
+          <td class="p-3.5 font-semibold text-white">${log.studentName}</td>
+          <td class="p-3.5 font-mono text-gray-400">${log.cardId}</td>
+          <td class="p-3.5 text-gray-300">${log.localDate || ""}</td>
+          <td class="p-3.5 text-gray-300">${log.localTime || ""}</td>
+          <td class="p-3.5 text-right">
+            <button onclick="window.editLog('${log.id}', '${log.studentName}')" class="text-blue-400 hover:text-blue-300 mr-3">Edit</button>
+            <button onclick="window.deleteLog('${log.id}')" class="text-red-400 hover:text-red-300">Delete</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function renderStudents() {
+      if (cachedStudents.length === 0) {
+        studentsTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-400">No registered students.</td></tr>`;
+        return;
+      }
+      studentsTableBody.innerHTML = cachedStudents.map(s => `
+        <tr class="hover:bg-gray-750">
+          <td class="p-3.5 font-semibold text-white">${s.name}</td>
+          <td class="p-3.5 font-mono text-gray-400">${s.cardId}</td>
+          <td class="p-3.5 text-right">
+            <button onclick="window.deleteStudent('${s.id}')" class="text-red-400 hover:text-red-300">Delete</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    window.deleteLog = async (id) => {
+      if (!confirm("Delete this log?")) return;
+      await deleteDoc(doc(db, "attendance", id));
+      cachedLogs = cachedLogs.filter(l => l.id !== id);
+      renderLogs();
+    };
+
+    window.editLog = async (id, currentName) => {
+      const newName = prompt("Update student name:", currentName);
+      if (!newName || newName === currentName) return;
+      await updateDoc(doc(db, "attendance", id), { studentName: newName });
+      const item = cachedLogs.find(l => l.id === id);
+      if (item) item.studentName = newName;
+      renderLogs();
+    };
+
+    window.deleteStudent = async (id) => {
+      if (!confirm("Delete student profile?")) return;
+      await deleteDoc(doc(db, "students", id));
+      cachedStudents = cachedStudents.filter(s => s.id !== id);
+      renderStudents();
+    };
+
+    exportCsvBtn.addEventListener("click", () => {
+      const headers = ["Card ID", "Student Name", "Date", "Time"];
+      const rows = cachedLogs.map(l => [l.cardId, `"${l.studentName}"`, l.localDate, l.localTime]);
+      const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `vex_attendance_${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
