@@ -11,7 +11,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col font-sans select-none">
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col font-sans select-none relative">
 
   <!-- Header -->
   <header class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex justify-between items-center">
@@ -51,19 +51,34 @@
   <!-- ================= ADMIN VIEW ================= -->
   <main id="adminView" class="hidden flex-1 max-w-5xl w-full mx-auto p-6 flex-col gap-6">
     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-gray-700 pb-4">
+      
+      <!-- Tab Controls -->
       <div class="flex gap-2">
-        <button id="tabLogsBtn" class="bg-red-600 px-4 py-2 rounded-md text-sm font-semibold">Attendance Logs</button>
-        <button id="tabStudentsBtn" class="bg-gray-700 px-4 py-2 rounded-md text-sm font-semibold">Registered Students</button>
+        <button id="tabLogsBtn" class="bg-red-600 px-4 py-2 rounded-md text-sm font-semibold transition">Attendance Logs</button>
+        <button id="tabStudentsBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md text-sm font-semibold transition">Registered Students</button>
       </div>
-      <button id="exportCsvBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-2">
-        <i data-lucide="download" class="w-4 h-4"></i> Export CSV
-      </button>
+      
+      <!-- Action Buttons -->
+      <div class="flex gap-2 flex-wrap justify-end">
+        <button id="deleteAllLogsBtn" class="bg-red-950 hover:bg-red-900 border border-red-800 text-red-300 px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-2 transition">
+          <i data-lucide="trash-2" class="w-4 h-4"></i> Delete All Logs
+        </button>
+        <button id="deleteAllStudentsBtn" class="hidden bg-red-950 hover:bg-red-900 border border-red-800 text-red-300 px-4 py-2 rounded-md text-sm font-semibold items-center gap-2 transition">
+          <i data-lucide="trash-2" class="w-4 h-4"></i> Delete All Students
+        </button>
+        <button id="exportCsvBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-2 transition">
+          <i data-lucide="download" class="w-4 h-4"></i> Export CSV
+        </button>
+      </div>
+
     </div>
 
+    <!-- Tab 1: Logs Section -->
     <div id="logsSection" class="flex flex-col gap-8">
       <div class="text-center text-gray-400 py-8">Loading attendance records...</div>
     </div>
 
+    <!-- Tab 2: Students Section -->
     <div id="studentsSection" class="hidden bg-gray-800 rounded-xl overflow-x-auto border border-gray-700">
       <table class="w-full text-left text-sm">
         <thead class="bg-gray-700 text-gray-300">
@@ -133,6 +148,11 @@
     </div>
   </div>
 
+  <!-- Version Indicator -->
+  <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
+    v1.3.0
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
     import {
@@ -182,12 +202,17 @@
     const passwordError = document.getElementById("passwordError");
     const cancelPasswordBtn = document.getElementById("cancelPasswordBtn");
     const cardInput = document.getElementById("cardInput");
+    
+    // Tab and Action Buttons
     const tabLogsBtn = document.getElementById("tabLogsBtn");
     const tabStudentsBtn = document.getElementById("tabStudentsBtn");
+    const deleteAllLogsBtn = document.getElementById("deleteAllLogsBtn");
+    const deleteAllStudentsBtn = document.getElementById("deleteAllStudentsBtn");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+
     const logsSection = document.getElementById("logsSection");
     const studentsSection = document.getElementById("studentsSection");
     const studentsTableBody = document.getElementById("studentsTableBody");
-    const exportCsvBtn = document.getElementById("exportCsvBtn");
 
     lucide.createIcons();
 
@@ -203,12 +228,10 @@
     document.addEventListener("click", focusScannerInput);
     focusScannerInput();
 
-    // Robust wedge scanner listener: waits for silence or Enter, handles any digit length
     let scanTimer = null;
     cardInput.addEventListener("input", () => {
       if (isProcessing) return;
       clearTimeout(scanTimer);
-      // Wait 120ms of silence after burst typing before dispatching
       scanTimer = setTimeout(() => {
         triggerScan();
       }, 120);
@@ -225,7 +248,6 @@
     function triggerScan() {
       const val = cardInput.value.trim();
       cardInput.value = "";
-      // Validate: must be at least 4 alphanumeric chars
       if (val.length >= 4 && !isProcessing) {
         processScan(val);
       }
@@ -243,13 +265,10 @@
         if (snap.empty) {
           pendingCardId = cardId;
           modalCardId.textContent = cardId;
-          
-          // Clear input fields completely before showing modal
           firstNameInput.value = "";
           lastNameInput.value = "";
           
           registerModal.classList.remove("hidden");
-          // Short delay prevents trailing hardware keystrokes from landing in first name
           setTimeout(() => {
             firstNameInput.focus();
             isProcessing = false;
@@ -345,6 +364,7 @@
       focusScannerInput();
     });
 
+    // Authentication
     toggleViewBtn.addEventListener("click", () => {
       if (currentView === "kiosk") {
         passwordError.classList.add("hidden");
@@ -385,18 +405,84 @@
       focusScannerInput();
     });
 
+    // Tab Switching Logic
     tabLogsBtn.addEventListener("click", () => {
-      tabLogsBtn.className = "bg-red-600 px-4 py-2 rounded-md text-sm font-semibold";
-      tabStudentsBtn.className = "bg-gray-700 px-4 py-2 rounded-md text-sm font-semibold";
+      tabLogsBtn.className = "bg-red-600 px-4 py-2 rounded-md text-sm font-semibold transition";
+      tabStudentsBtn.className = "bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md text-sm font-semibold transition";
+      
       logsSection.classList.remove("hidden");
       studentsSection.classList.add("hidden");
+      
+      deleteAllLogsBtn.classList.remove("hidden");
+      deleteAllLogsBtn.classList.add("flex");
+      
+      exportCsvBtn.classList.remove("hidden");
+      exportCsvBtn.classList.add("flex");
+      
+      deleteAllStudentsBtn.classList.add("hidden");
+      deleteAllStudentsBtn.classList.remove("flex");
     });
 
     tabStudentsBtn.addEventListener("click", () => {
-      tabStudentsBtn.className = "bg-red-600 px-4 py-2 rounded-md text-sm font-semibold";
-      tabLogsBtn.className = "bg-gray-700 px-4 py-2 rounded-md text-sm font-semibold";
+      tabStudentsBtn.className = "bg-red-600 px-4 py-2 rounded-md text-sm font-semibold transition";
+      tabLogsBtn.className = "bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md text-sm font-semibold transition";
+      
       studentsSection.classList.remove("hidden");
       logsSection.classList.add("hidden");
+
+      deleteAllStudentsBtn.classList.remove("hidden");
+      deleteAllStudentsBtn.classList.add("flex");
+
+      deleteAllLogsBtn.classList.add("hidden");
+      deleteAllLogsBtn.classList.remove("flex");
+      
+      exportCsvBtn.classList.add("hidden");
+      exportCsvBtn.classList.remove("flex");
+    });
+
+    // Delete All Operations
+    deleteAllLogsBtn.addEventListener("click", async () => {
+      if (!confirm("⚠️ WARNING: This will permanently delete ALL attendance logs for ALL days. Are you sure?")) return;
+      if (!confirm("Are you ABSOLUTELY sure? This cannot be undone.")) return;
+
+      const originalText = deleteAllLogsBtn.innerHTML;
+      deleteAllLogsBtn.innerHTML = "Deleting...";
+      deleteAllLogsBtn.disabled = true;
+
+      try {
+        const snap = await getDocs(collection(db, "attendance"));
+        await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "attendance", d.id))));
+        cachedLogs = [];
+        renderDailyLogs();
+      } catch (err) {
+        alert("Error deleting logs: " + err.message);
+      } finally {
+        deleteAllLogsBtn.innerHTML = originalText;
+        deleteAllLogsBtn.disabled = false;
+        lucide.createIcons();
+      }
+    });
+
+    deleteAllStudentsBtn.addEventListener("click", async () => {
+      if (!confirm("⚠️ WARNING: This will permanently delete ALL registered students. They will need to re-register upon their next scan. Are you sure?")) return;
+      if (!confirm("Are you ABSOLUTELY sure? This cannot be undone.")) return;
+
+      const originalText = deleteAllStudentsBtn.innerHTML;
+      deleteAllStudentsBtn.innerHTML = "Deleting...";
+      deleteAllStudentsBtn.disabled = true;
+
+      try {
+        const snap = await getDocs(collection(db, "students"));
+        await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "students", d.id))));
+        cachedStudents = [];
+        renderStudents();
+      } catch (err) {
+        alert("Error deleting students: " + err.message);
+      } finally {
+        deleteAllStudentsBtn.innerHTML = originalText;
+        deleteAllStudentsBtn.disabled = false;
+        lucide.createIcons();
+      }
     });
 
     async function loadAdminData() {
