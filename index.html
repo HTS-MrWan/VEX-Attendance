@@ -45,8 +45,8 @@
     </div>
   </main>
 
-  <!-- Hidden Input to secretly capture Scanner output -->
-  <input id="cardInput" type="text" class="absolute opacity-0 pointer-events-none w-0 h-0" autocomplete="off" />
+  <!-- Hidden Scanner Input -->
+  <input id="cardInput" type="text" class="fixed -top-96 left-0 opacity-0" autocomplete="off" />
 
   <!-- ================= ADMIN VIEW ================= -->
   <main id="adminView" class="hidden flex-1 max-w-5xl w-full mx-auto p-6 flex-col gap-6">
@@ -60,12 +60,10 @@
       </button>
     </div>
 
-    <!-- Logs Container (Renders a separate table per day) -->
     <div id="logsSection" class="flex flex-col gap-8">
       <div class="text-center text-gray-400 py-8">Loading attendance records...</div>
     </div>
 
-    <!-- Students Table -->
     <div id="studentsSection" class="hidden bg-gray-800 rounded-xl overflow-x-auto border border-gray-700">
       <table class="w-full text-left text-sm">
         <thead class="bg-gray-700 text-gray-300">
@@ -120,9 +118,9 @@
 
       <form id="registerForm">
         <div class="flex gap-3 mb-4">
-          <input id="firstNameInput" type="text" placeholder="First Name" required
+          <input id="firstNameInput" type="text" placeholder="First Name" required autocomplete="off"
             class="w-1/2 px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white" />
-          <input id="lastNameInput" type="text" placeholder="Last Name" required
+          <input id="lastNameInput" type="text" placeholder="Last Name" required autocomplete="off"
             class="w-1/2 px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white" />
         </div>
         <div class="flex justify-end gap-3">
@@ -162,6 +160,7 @@
     let cachedLogs = [];
     let cachedStudents = [];
     let edvanceStatusMap = {};
+    let isProcessing = false;
 
     const kioskView = document.getElementById("kioskView");
     const adminView = document.getElementById("adminView");
@@ -192,8 +191,7 @@
 
     lucide.createIcons();
 
-    // Auto-focus management
-    function focusInput() {
+    function focusScannerInput() {
       if (
         currentView === "kiosk" &&
         registerModal.classList.contains("hidden") &&
@@ -202,27 +200,40 @@
         cardInput.focus();
       }
     }
-    document.addEventListener("click", focusInput);
-    focusInput();
+    document.addEventListener("click", focusScannerInput);
+    focusScannerInput();
 
-    // Hardware Scanner Wedge Listener
-    cardInput.addEventListener("input", (e) => {
-      const val = e.target.value.trim();
-      if (val.length >= 10) {
-        processScan(val);
-      }
+    // Robust wedge scanner listener: waits for silence or Enter, handles any digit length
+    let scanTimer = null;
+    cardInput.addEventListener("input", () => {
+      if (isProcessing) return;
+      clearTimeout(scanTimer);
+      // Wait 120ms of silence after burst typing before dispatching
+      scanTimer = setTimeout(() => {
+        triggerScan();
+      }, 120);
     });
 
     cardInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        const val = cardInput.value.trim();
-        if (val) processScan(val);
+        clearTimeout(scanTimer);
+        triggerScan();
       }
     });
 
-    async function processScan(cardId) {
+    function triggerScan() {
+      const val = cardInput.value.trim();
       cardInput.value = "";
+      // Validate: must be at least 4 alphanumeric chars
+      if (val.length >= 4 && !isProcessing) {
+        processScan(val);
+      }
+    }
+
+    async function processScan(cardId) {
+      isProcessing = true;
+      cardInput.blur();
       modalError.classList.add("hidden");
 
       try {
@@ -232,15 +243,28 @@
         if (snap.empty) {
           pendingCardId = cardId;
           modalCardId.textContent = cardId;
+          
+          // Clear input fields completely before showing modal
+          firstNameInput.value = "";
+          lastNameInput.value = "";
+          
           registerModal.classList.remove("hidden");
-          firstNameInput.focus();
+          // Short delay prevents trailing hardware keystrokes from landing in first name
+          setTimeout(() => {
+            firstNameInput.focus();
+            isProcessing = false;
+          }, 150);
         } else {
           const student = snap.docs[0].data();
           await recordAttendance(cardId, student.name);
+          isProcessing = false;
+          focusScannerInput();
         }
       } catch (err) {
         console.error("Firestore read error:", err);
         showBanner(false, `Read Error: ${err.message}`);
+        isProcessing = false;
+        focusScannerInput();
       }
     }
 
@@ -266,11 +290,10 @@
       statusBanner.classList.remove("hidden");
       bannerTimer = setTimeout(() => {
         statusBanner.classList.add("hidden");
-        focusInput();
+        focusScannerInput();
       }, 3000);
     }
 
-    // Modal Events: Student Registration
     registerForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const fName = firstNameInput.value.trim();
@@ -300,7 +323,8 @@
         firstNameInput.value = "";
         lastNameInput.value = "";
         pendingCardId = null;
-        focusInput();
+        isProcessing = false;
+        focusScannerInput();
       } catch (err) {
         console.error("Registration write error:", err);
         modalError.textContent = `Database Error: ${err.message}`;
@@ -317,10 +341,10 @@
       firstNameInput.value = "";
       lastNameInput.value = "";
       pendingCardId = null;
-      focusInput();
+      isProcessing = false;
+      focusScannerInput();
     });
 
-    // Password Protected View Navigation
     toggleViewBtn.addEventListener("click", () => {
       if (currentView === "kiosk") {
         passwordError.classList.add("hidden");
@@ -333,7 +357,7 @@
         adminView.classList.remove("flex");
         kioskView.classList.remove("hidden");
         toggleViewText.textContent = "Admin Dashboard";
-        focusInput();
+        focusScannerInput();
       }
     });
 
@@ -358,7 +382,7 @@
     cancelPasswordBtn.addEventListener("click", () => {
       passwordModal.classList.add("hidden");
       adminPasswordInput.value = "";
-      focusInput();
+      focusScannerInput();
     });
 
     tabLogsBtn.addEventListener("click", () => {
@@ -375,13 +399,10 @@
       logsSection.classList.add("hidden");
     });
 
-    // Admin Data Loading
     async function loadAdminData() {
-      // 1. Fetch Logs
       const logsSnap = await getDocs(query(collection(db, "attendance"), orderBy("timestamp", "desc")));
       cachedLogs = logsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      // 2. Fetch Edvance Sync States
       const syncSnap = await getDocs(collection(db, "edvance_sync"));
       edvanceStatusMap = {};
       syncSnap.docs.forEach(d => {
@@ -390,13 +411,11 @@
 
       renderDailyLogs();
 
-      // 3. Fetch Students
       const stuSnap = await getDocs(query(collection(db, "students"), orderBy("name", "asc")));
       cachedStudents = stuSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderStudents();
     }
 
-    // Name sorting helpers
     function getLastName(fullName) {
       if (!fullName) return "";
       const parts = fullName.trim().split(/\s+/);
@@ -423,14 +442,12 @@
       }
     }
 
-    // Render Grouped, Aggregated, and Sorted Daily Logs
     function renderDailyLogs() {
       if (cachedLogs.length === 0) {
         logsSection.innerHTML = `<div class="p-8 text-center bg-gray-800 rounded-xl text-gray-400 border border-gray-700">No attendance logs found.</div>`;
         return;
       }
 
-      // Group logs by localDate
       const groupedByDate = {};
       cachedLogs.forEach(log => {
         const dateKey = log.localDate || "Unknown Date";
@@ -438,7 +455,6 @@
         groupedByDate[dateKey].push(log);
       });
 
-      // Sort dates in descending order (most recent first)
       const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
 
       let html = "";
@@ -447,7 +463,6 @@
         const dayLogs = groupedByDate[dateKey];
         const isSynced = edvanceStatusMap[dateKey] === true;
 
-        // Aggregate multiple scans by cardId / studentName
         const studentMap = {};
         dayLogs.forEach(log => {
           const key = log.cardId || log.studentName;
@@ -464,7 +479,6 @@
           }
         });
 
-        // Convert to array and sort alphabetically by LAST name
         const aggregatedStudents = Object.values(studentMap).sort((a, b) => {
           const lastA = getLastName(a.studentName);
           const lastB = getLastName(b.studentName);
@@ -473,9 +487,7 @@
           return getFirstName(a.studentName).localeCompare(getFirstName(b.studentName));
         });
 
-        // Build Table rows
         const rowsHtml = aggregatedStudents.map(student => {
-          // Format multiple check-in times
           const timeDisplay = student.times.length > 1
             ? `${student.times[student.times.length - 1]} <span class="text-xs text-red-400 font-sans ml-1">(${student.times.length} taps: ${student.times.join(", ")})</span>`
             : student.times[0];
@@ -495,12 +507,10 @@
           `;
         }).join("");
 
-        // Build Daily Card with Edvance Checkbox
         html += `
           <div class="rounded-xl overflow-hidden border border-gray-700 bg-gray-800 transition-all duration-300 ${
             isSynced ? "opacity-50 grayscale" : ""
           }">
-            <!-- Day Header Bar -->
             <div class="bg-gray-750 px-5 py-3.5 flex flex-wrap items-center justify-between gap-4 border-b border-gray-700">
               <div class="flex items-center gap-3">
                 <div class="p-1.5 bg-red-600/20 text-red-400 rounded">
@@ -512,7 +522,6 @@
                 </span>
               </div>
 
-              <!-- Edvance Checkbox -->
               <label class="flex items-center gap-2 cursor-pointer bg-gray-900/60 px-3 py-1.5 rounded-lg border border-gray-600 hover:border-gray-500 transition select-none">
                 <input 
                   type="checkbox" 
@@ -526,7 +535,6 @@
               </label>
             </div>
 
-            <!-- Table of Students -->
             <div class="overflow-x-auto">
               <table class="w-full text-left text-sm">
                 <thead class="bg-gray-700 text-gray-300">
@@ -550,10 +558,9 @@
       lucide.createIcons();
     }
 
-    // Toggle and persist the Edvance checkbox
     window.toggleEdvanceSync = async (dateKey, isChecked) => {
       edvanceStatusMap[dateKey] = isChecked;
-      renderDailyLogs(); // Apply the grayscale & opacity immediately
+      renderDailyLogs();
 
       try {
         await setDoc(doc(db, "edvance_sync", dateKey), {
@@ -562,11 +569,9 @@
         }, { merge: true });
       } catch (err) {
         console.error("Error saving Edvance sync state:", err);
-        alert("Failed to save Edvance status: " + err.message);
       }
     };
 
-    // Delete aggregated logs for a student on that day
     window.deleteDailyStudentLogs = async (logIdsJson) => {
       const logIds = JSON.parse(logIdsJson);
       if (!confirm(`Delete this student's attendance records (${logIds.length} entry/entries) for this day?`)) return;
@@ -580,7 +585,6 @@
       }
     };
 
-    // Edit aggregated name across their daily logs
     window.editDailyStudentName = async (logIdsJson, currentName) => {
       const logIds = JSON.parse(logIdsJson);
       const newName = prompt("Update student name:", currentName);
@@ -597,7 +601,6 @@
       }
     };
 
-    // Registered Students View
     function renderStudents() {
       if (cachedStudents.length === 0) {
         studentsTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-400">No registered students.</td></tr>`;
@@ -621,10 +624,8 @@
       renderStudents();
     };
 
-    // CSV Download
     exportCsvBtn.addEventListener("click", () => {
       const headers = ["Date", "Student Name", "Card ID", "Time(s)", "Translated to Edvance"];
-      
       const rows = [];
       const groupedByDate = {};
       cachedLogs.forEach(log => {
@@ -653,13 +654,7 @@
         });
 
         students.forEach(s => {
-          rows.push([
-            dateKey,
-            `"${s.name}"`,
-            s.cardId,
-            `"${s.times.join(", ")}"`,
-            isSynced
-          ]);
+          rows.push([dateKey, `"${s.name}"`, s.cardId, `"${s.times.join(", ")}"`, isSynced]);
         });
       });
 
