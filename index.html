@@ -23,7 +23,7 @@
 
   <!-- ================= KIOSK VIEW ================= -->
   <main id="kioskView" class="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-xl mx-auto w-full">
-    <!-- Status Banner -->
+    <!-- 3-Second Confirmation Banner -->
     <div id="statusBanner" class="hidden w-full mb-6 p-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg">
       <i id="bannerIcon" data-lucide="check-circle" class="w-6 h-6"></i>
       <span id="bannerText"></span>
@@ -36,20 +36,15 @@
       </div>
       <div>
         <h2 class="text-xl font-bold mb-1">Tap Student Badge</h2>
-        <p class="text-gray-400 text-sm">Hold card near the reader or type ID manually to test.</p>
+        <p class="text-gray-400 text-sm">Hold card near the reader to check in.</p>
       </div>
 
-      <!-- Live Input Box (Supports Scanners & Manual Entry) -->
+      <!-- Live Input Box -->
       <form id="scanForm" class="w-full mt-2 flex gap-2">
         <input id="cardInput" type="text" placeholder="Scanning card..." autocomplete="off"
           class="flex-1 bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 text-center text-lg font-mono tracking-widest text-white focus:outline-none focus:border-red-500" />
         <button type="submit" class="bg-red-600 hover:bg-red-500 text-white px-5 py-3 rounded-lg font-semibold text-sm">Submit</button>
       </form>
-
-      <!-- Real-time Diagnostics Line -->
-      <div class="text-xs text-gray-500 mt-2 font-mono" id="debugStatus">
-        Status: Ready & Listening
-      </div>
     </div>
   </main>
 
@@ -107,12 +102,17 @@
       <p class="text-gray-400 text-sm mb-4">
         Card <strong id="modalCardId" class="text-white font-mono"></strong> is not registered. Enter student name:
       </p>
+      
+      <div id="modalError" class="hidden mb-4 p-3 bg-red-950/80 border border-red-700 text-red-200 text-xs rounded-lg"></div>
+
       <form id="registerForm">
-        <input id="newStudentName" type="text" placeholder="e.g. John Doe" required
+        <input id="newStudentName" type="text" placeholder="e.g. Ronny Wan" required
           class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 mb-4 text-white" />
         <div class="flex justify-end gap-3">
           <button type="button" id="cancelRegisterBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Cancel</button>
-          <button type="submit" class="bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-lg text-sm">Register & Check In</button>
+          <button type="submit" id="submitRegisterBtn" class="bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-lg text-sm">
+            Register & Check In
+          </button>
         </div>
       </form>
     </div>
@@ -151,12 +151,13 @@
     const bannerText = document.getElementById("bannerText");
     const registerModal = document.getElementById("registerModal");
     const modalCardId = document.getElementById("modalCardId");
+    const modalError = document.getElementById("modalError");
     const registerForm = document.getElementById("registerForm");
     const newStudentNameInput = document.getElementById("newStudentName");
     const cancelRegisterBtn = document.getElementById("cancelRegisterBtn");
+    const submitRegisterBtn = document.getElementById("submitRegisterBtn");
     const cardInput = document.getElementById("cardInput");
     const scanForm = document.getElementById("scanForm");
-    const debugStatus = document.getElementById("debugStatus");
     const tabLogsBtn = document.getElementById("tabLogsBtn");
     const tabStudentsBtn = document.getElementById("tabStudentsBtn");
     const logsSection = document.getElementById("logsSection");
@@ -167,7 +168,6 @@
 
     lucide.createIcons();
 
-    // Auto-focus input
     function focusInput() {
       if (currentView === "kiosk" && registerModal.classList.contains("hidden")) {
         cardInput.focus();
@@ -176,10 +176,8 @@
     document.addEventListener("click", focusInput);
     focusInput();
 
-    // Auto-submit if 10 characters are typed/scanned
     cardInput.addEventListener("input", (e) => {
       const val = e.target.value.trim();
-      debugStatus.textContent = `Buffer: ${val}`;
       if (val.length >= 10) {
         processScan(val);
       }
@@ -193,7 +191,7 @@
 
     async function processScan(cardId) {
       cardInput.value = "";
-      debugStatus.textContent = `Processing Card: ${cardId}...`;
+      modalError.classList.add("hidden");
 
       try {
         const q = query(collection(db, "students"), where("cardId", "==", cardId));
@@ -204,15 +202,13 @@
           modalCardId.textContent = cardId;
           registerModal.classList.remove("hidden");
           newStudentNameInput.focus();
-          debugStatus.textContent = `Card ${cardId} is unregistered.`;
         } else {
           const student = snap.docs[0].data();
           await recordAttendance(cardId, student.name);
         }
       } catch (err) {
         console.error("Firestore read error:", err);
-        showBanner(false, "Firestore Error: Make sure your Firestore Database is created in Test Mode.");
-        debugStatus.textContent = `Error: ${err.message}`;
+        showBanner(false, `Read Error: ${err.message}`);
       }
     }
 
@@ -226,7 +222,6 @@
         localTime: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
       });
       showBanner(true, `${name} has checked into VEX robotics today!`);
-      debugStatus.textContent = `Successfully checked in: ${name}`;
     }
 
     let bannerTimer = null;
@@ -249,6 +244,10 @@
       const card = pendingCardId;
       if (!name || !card) return;
 
+      submitRegisterBtn.disabled = true;
+      submitRegisterBtn.textContent = "Saving...";
+      modalError.classList.add("hidden");
+
       try {
         await addDoc(collection(db, "students"), {
           cardId: card,
@@ -262,13 +261,18 @@
         pendingCardId = null;
         focusInput();
       } catch (err) {
-        showBanner(false, "Error registering student.");
-        debugStatus.textContent = `Registration error: ${err.message}`;
+        console.error("Registration write error:", err);
+        modalError.textContent = `Database Error: ${err.message}`;
+        modalError.classList.remove("hidden");
+      } finally {
+        submitRegisterBtn.disabled = false;
+        submitRegisterBtn.textContent = "Register & Check In";
       }
     });
 
     cancelRegisterBtn.addEventListener("click", () => {
       registerModal.classList.add("hidden");
+      modalError.classList.add("hidden");
       newStudentNameInput.value = "";
       pendingCardId = null;
       focusInput();
@@ -325,67 +329,3 @@
         <tr class="hover:bg-gray-750">
           <td class="p-3.5 font-semibold text-white">${log.studentName}</td>
           <td class="p-3.5 font-mono text-gray-400">${log.cardId}</td>
-          <td class="p-3.5 text-gray-300">${log.localDate || ""}</td>
-          <td class="p-3.5 text-gray-300">${log.localTime || ""}</td>
-          <td class="p-3.5 text-right">
-            <button onclick="window.editLog('${log.id}', '${log.studentName}')" class="text-blue-400 hover:text-blue-300 mr-3">Edit</button>
-            <button onclick="window.deleteLog('${log.id}')" class="text-red-400 hover:text-red-300">Delete</button>
-          </td>
-        </tr>
-      `).join("");
-    }
-
-    function renderStudents() {
-      if (cachedStudents.length === 0) {
-        studentsTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-400">No registered students.</td></tr>`;
-        return;
-      }
-      studentsTableBody.innerHTML = cachedStudents.map(s => `
-        <tr class="hover:bg-gray-750">
-          <td class="p-3.5 font-semibold text-white">${s.name}</td>
-          <td class="p-3.5 font-mono text-gray-400">${s.cardId}</td>
-          <td class="p-3.5 text-right">
-            <button onclick="window.deleteStudent('${s.id}')" class="text-red-400 hover:text-red-300">Delete</button>
-          </td>
-        </tr>
-      `).join("");
-    }
-
-    window.deleteLog = async (id) => {
-      if (!confirm("Delete this log?")) return;
-      await deleteDoc(doc(db, "attendance", id));
-      cachedLogs = cachedLogs.filter(l => l.id !== id);
-      renderLogs();
-    };
-
-    window.editLog = async (id, currentName) => {
-      const newName = prompt("Update student name:", currentName);
-      if (!newName || newName === currentName) return;
-      await updateDoc(doc(db, "attendance", id), { studentName: newName });
-      const item = cachedLogs.find(l => l.id === id);
-      if (item) item.studentName = newName;
-      renderLogs();
-    };
-
-    window.deleteStudent = async (id) => {
-      if (!confirm("Delete student profile?")) return;
-      await deleteDoc(doc(db, "students", id));
-      cachedStudents = cachedStudents.filter(s => s.id !== id);
-      renderStudents();
-    };
-
-    exportCsvBtn.addEventListener("click", () => {
-      const headers = ["Card ID", "Student Name", "Date", "Time"];
-      const rows = cachedLogs.map(l => [l.cardId, `"${l.studentName}"`, l.localDate, l.localTime]);
-      const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `vex_attendance_${new Date().toISOString().split('T')[0]}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    });
-  </script>
-</body>
-</html>
