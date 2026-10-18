@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VEX Robotics Attendance</title>
+  
+  <!-- Red V Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='15' fill='%23dc2626'/><text x='50' y='55' font-family='sans-serif' font-weight='bold' font-size='70' fill='%23ffffff' text-anchor='middle' dominant-baseline='middle'>V</text></svg>">
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -24,29 +28,25 @@
   <!-- ================= KIOSK VIEW ================= -->
   <main id="kioskView" class="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-xl mx-auto w-full">
     <!-- 3-Second Confirmation Banner -->
-    <div id="statusBanner" class="hidden w-full mb-6 p-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg">
+    <div id="statusBanner" class="hidden w-full mb-6 p-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg transition-all">
       <i id="bannerIcon" data-lucide="check-circle" class="w-6 h-6"></i>
       <span id="bannerText"></span>
     </div>
 
     <!-- Scanner Target Display -->
-    <div class="w-full bg-gray-800 border-2 border-dashed border-gray-600 rounded-2xl p-8 flex flex-col items-center gap-4 shadow-xl">
-      <div class="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center text-red-500">
-        <i data-lucide="scan" class="w-8 h-8"></i>
+    <div class="w-full bg-gray-800 border-2 border-dashed border-gray-600 rounded-2xl p-12 flex flex-col items-center gap-5 shadow-xl">
+      <div class="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center text-red-500">
+        <i data-lucide="scan" class="w-10 h-10"></i>
       </div>
       <div>
-        <h2 class="text-xl font-bold mb-1">Tap Student Badge</h2>
-        <p class="text-gray-400 text-sm">Hold card near the reader to check in.</p>
+        <h2 class="text-2xl font-bold mb-2">Tap Student Badge</h2>
+        <p class="text-gray-400 text-sm">Hold card against the reader to check in.</p>
       </div>
-
-      <!-- Live Input Box -->
-      <form id="scanForm" class="w-full mt-2 flex gap-2">
-        <input id="cardInput" type="text" placeholder="Scanning card..." autocomplete="off"
-          class="flex-1 bg-gray-950 border border-gray-700 rounded-lg px-4 py-3 text-center text-lg font-mono tracking-widest text-white focus:outline-none focus:border-red-500" />
-        <button type="submit" class="bg-red-600 hover:bg-red-500 text-white px-5 py-3 rounded-lg font-semibold text-sm">Submit</button>
-      </form>
     </div>
   </main>
+
+  <!-- Hidden Input to secretly capture Scanner output -->
+  <input id="cardInput" type="text" class="absolute opacity-0 pointer-events-none w-0 h-0" autocomplete="off" />
 
   <!-- ================= ADMIN VIEW ================= -->
   <main id="adminView" class="hidden flex-1 max-w-5xl w-full mx-auto p-6 flex-col gap-6">
@@ -190,7 +190,6 @@
     const passwordError = document.getElementById("passwordError");
     const cancelPasswordBtn = document.getElementById("cancelPasswordBtn");
     const cardInput = document.getElementById("cardInput");
-    const scanForm = document.getElementById("scanForm");
     const tabLogsBtn = document.getElementById("tabLogsBtn");
     const tabStudentsBtn = document.getElementById("tabStudentsBtn");
     const logsSection = document.getElementById("logsSection");
@@ -201,6 +200,7 @@
 
     lucide.createIcons();
 
+    // Enforce focus so the invisible scanner input always catches taps
     function focusInput() {
       if (
         currentView === "kiosk" &&
@@ -213,17 +213,22 @@
     document.addEventListener("click", focusInput);
     focusInput();
 
+    // Listen to the hidden input for scanner data
     cardInput.addEventListener("input", (e) => {
       const val = e.target.value.trim();
+      // Auto-trigger if card ID hits 10 characters (adjust if your IDs are shorter/longer)
       if (val.length >= 10) {
         processScan(val);
       }
     });
 
-    scanForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const val = cardInput.value.trim();
-      if (val) processScan(val);
+    // Fallback: If the scanner sends an 'Enter' key before 10 chars
+    cardInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const val = cardInput.value.trim();
+        if (val) processScan(val);
+      }
     });
 
     async function processScan(cardId) {
@@ -324,7 +329,6 @@
         passwordModal.classList.remove("hidden");
         adminPasswordInput.focus();
       } else {
-        // Return to Kiosk
         currentView = "kiosk";
         adminView.classList.add("hidden");
         adminView.classList.remove("flex");
