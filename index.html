@@ -60,22 +60,9 @@
       </button>
     </div>
 
-    <!-- Logs Table -->
-    <div id="logsSection" class="bg-gray-800 rounded-xl overflow-x-auto border border-gray-700">
-      <table class="w-full text-left text-sm">
-        <thead class="bg-gray-700 text-gray-300">
-          <tr>
-            <th class="p-3.5">Student Name</th>
-            <th class="p-3.5">Card ID</th>
-            <th class="p-3.5">Date</th>
-            <th class="p-3.5">Time</th>
-            <th class="p-3.5 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="logsTableBody" class="divide-y divide-gray-700">
-          <tr><td colspan="5" class="p-4 text-center text-gray-400">Loading records...</td></tr>
-        </tbody>
-      </table>
+    <!-- Logs Container (Renders a separate table per day) -->
+    <div id="logsSection" class="flex flex-col gap-8">
+      <div class="text-center text-gray-400 py-8">Loading attendance records...</div>
     </div>
 
     <!-- Students Table -->
@@ -126,14 +113,18 @@
     <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-gray-700 shadow-2xl">
       <h3 class="text-xl font-bold mb-2">New Card Detected</h3>
       <p class="text-gray-400 text-sm mb-4">
-        Card <strong id="modalCardId" class="text-white font-mono"></strong> is not registered. Enter student name:
+        Card <strong id="modalCardId" class="text-white font-mono"></strong> is not registered.
       </p>
       
       <div id="modalError" class="hidden mb-4 p-3 bg-red-950/80 border border-red-700 text-red-200 text-xs rounded-lg"></div>
 
       <form id="registerForm">
-        <input id="newStudentName" type="text" placeholder="e.g. Ronny Wan" required
-          class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 mb-4 text-white" />
+        <div class="flex gap-3 mb-4">
+          <input id="firstNameInput" type="text" placeholder="First Name" required
+            class="w-1/2 px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white" />
+          <input id="lastNameInput" type="text" placeholder="Last Name" required
+            class="w-1/2 px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white" />
+        </div>
         <div class="flex justify-end gap-3">
           <button type="button" id="cancelRegisterBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Cancel</button>
           <button type="submit" id="submitRegisterBtn" class="bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-lg text-sm">
@@ -147,7 +138,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
     import {
-      getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc,
+      getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, setDoc,
       query, where, orderBy, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
 
@@ -170,6 +161,7 @@
     let pendingCardId = null;
     let cachedLogs = [];
     let cachedStudents = [];
+    let edvanceStatusMap = {};
 
     const kioskView = document.getElementById("kioskView");
     const adminView = document.getElementById("adminView");
@@ -181,7 +173,8 @@
     const modalCardId = document.getElementById("modalCardId");
     const modalError = document.getElementById("modalError");
     const registerForm = document.getElementById("registerForm");
-    const newStudentNameInput = document.getElementById("newStudentName");
+    const firstNameInput = document.getElementById("firstNameInput");
+    const lastNameInput = document.getElementById("lastNameInput");
     const cancelRegisterBtn = document.getElementById("cancelRegisterBtn");
     const submitRegisterBtn = document.getElementById("submitRegisterBtn");
     const passwordModal = document.getElementById("passwordModal");
@@ -194,13 +187,12 @@
     const tabStudentsBtn = document.getElementById("tabStudentsBtn");
     const logsSection = document.getElementById("logsSection");
     const studentsSection = document.getElementById("studentsSection");
-    const logsTableBody = document.getElementById("logsTableBody");
     const studentsTableBody = document.getElementById("studentsTableBody");
     const exportCsvBtn = document.getElementById("exportCsvBtn");
 
     lucide.createIcons();
 
-    // Enforce focus so the invisible scanner input always catches taps
+    // Auto-focus management
     function focusInput() {
       if (
         currentView === "kiosk" &&
@@ -213,16 +205,14 @@
     document.addEventListener("click", focusInput);
     focusInput();
 
-    // Listen to the hidden input for scanner data
+    // Hardware Scanner Wedge Listener
     cardInput.addEventListener("input", (e) => {
       const val = e.target.value.trim();
-      // Auto-trigger if card ID hits 10 characters (adjust if your IDs are shorter/longer)
       if (val.length >= 10) {
         processScan(val);
       }
     });
 
-    // Fallback: If the scanner sends an 'Enter' key before 10 chars
     cardInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
@@ -243,7 +233,7 @@
           pendingCardId = cardId;
           modalCardId.textContent = cardId;
           registerModal.classList.remove("hidden");
-          newStudentNameInput.focus();
+          firstNameInput.focus();
         } else {
           const student = snap.docs[0].data();
           await recordAttendance(cardId, student.name);
@@ -283,9 +273,13 @@
     // Modal Events: Student Registration
     registerForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const name = newStudentNameInput.value.trim();
+      const fName = firstNameInput.value.trim();
+      const lName = lastNameInput.value.trim();
       const card = pendingCardId;
-      if (!name || !card) return;
+      
+      if (!fName || !lName || !card) return;
+
+      const fullName = `${fName} ${lName}`;
 
       submitRegisterBtn.disabled = true;
       submitRegisterBtn.textContent = "Saving...";
@@ -294,13 +288,17 @@
       try {
         await addDoc(collection(db, "students"), {
           cardId: card,
-          name: name,
+          firstName: fName,
+          lastName: lName,
+          name: fullName, 
           registeredAt: serverTimestamp()
         });
 
-        await recordAttendance(card, name);
+        await recordAttendance(card, fullName);
+        
         registerModal.classList.add("hidden");
-        newStudentNameInput.value = "";
+        firstNameInput.value = "";
+        lastNameInput.value = "";
         pendingCardId = null;
         focusInput();
       } catch (err) {
@@ -316,7 +314,8 @@
     cancelRegisterBtn.addEventListener("click", () => {
       registerModal.classList.add("hidden");
       modalError.classList.add("hidden");
-      newStudentNameInput.value = "";
+      firstNameInput.value = "";
+      lastNameInput.value = "";
       pendingCardId = null;
       focusInput();
     });
@@ -376,35 +375,229 @@
       logsSection.classList.add("hidden");
     });
 
+    // Admin Data Loading
     async function loadAdminData() {
+      // 1. Fetch Logs
       const logsSnap = await getDocs(query(collection(db, "attendance"), orderBy("timestamp", "desc")));
       cachedLogs = logsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderLogs();
 
+      // 2. Fetch Edvance Sync States
+      const syncSnap = await getDocs(collection(db, "edvance_sync"));
+      edvanceStatusMap = {};
+      syncSnap.docs.forEach(d => {
+        edvanceStatusMap[d.id] = d.data().synced === true;
+      });
+
+      renderDailyLogs();
+
+      // 3. Fetch Students
       const stuSnap = await getDocs(query(collection(db, "students"), orderBy("name", "asc")));
       cachedStudents = stuSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderStudents();
     }
 
-    function renderLogs() {
-      if (cachedLogs.length === 0) {
-        logsTableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-400">No logs found.</td></tr>`;
-        return;
-      }
-      logsTableBody.innerHTML = cachedLogs.map(log => `
-        <tr class="hover:bg-gray-750">
-          <td class="p-3.5 font-semibold text-white">${log.studentName}</td>
-          <td class="p-3.5 font-mono text-gray-400">${log.cardId}</td>
-          <td class="p-3.5 text-gray-300">${log.localDate || ""}</td>
-          <td class="p-3.5 text-gray-300">${log.localTime || ""}</td>
-          <td class="p-3.5 text-right">
-            <button onclick="window.editLog('${log.id}', '${log.studentName}')" class="text-blue-400 hover:text-blue-300 mr-3">Edit</button>
-            <button onclick="window.deleteLog('${log.id}')" class="text-red-400 hover:text-red-300">Delete</button>
-          </td>
-        </tr>
-      `).join("");
+    // Name sorting helpers
+    function getLastName(fullName) {
+      if (!fullName) return "";
+      const parts = fullName.trim().split(/\s+/);
+      return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : parts[0].toLowerCase();
+    }
+    function getFirstName(fullName) {
+      if (!fullName) return "";
+      const parts = fullName.trim().split(/\s+/);
+      return parts[0].toLowerCase();
     }
 
+    function formatDateDisplay(dateStr) {
+      try {
+        const [year, month, day] = dateStr.split("-").map(Number);
+        const d = new Date(year, month - 1, day);
+        return d.toLocaleDateString("en-CA", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        });
+      } catch (e) {
+        return dateStr;
+      }
+    }
+
+    // Render Grouped, Aggregated, and Sorted Daily Logs
+    function renderDailyLogs() {
+      if (cachedLogs.length === 0) {
+        logsSection.innerHTML = `<div class="p-8 text-center bg-gray-800 rounded-xl text-gray-400 border border-gray-700">No attendance logs found.</div>`;
+        return;
+      }
+
+      // Group logs by localDate
+      const groupedByDate = {};
+      cachedLogs.forEach(log => {
+        const dateKey = log.localDate || "Unknown Date";
+        if (!groupedByDate[dateKey]) groupedByDate[dateKey] = [];
+        groupedByDate[dateKey].push(log);
+      });
+
+      // Sort dates in descending order (most recent first)
+      const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
+
+      let html = "";
+
+      sortedDates.forEach(dateKey => {
+        const dayLogs = groupedByDate[dateKey];
+        const isSynced = edvanceStatusMap[dateKey] === true;
+
+        // Aggregate multiple scans by cardId / studentName
+        const studentMap = {};
+        dayLogs.forEach(log => {
+          const key = log.cardId || log.studentName;
+          if (!studentMap[key]) {
+            studentMap[key] = {
+              studentName: log.studentName,
+              cardId: log.cardId,
+              times: [log.localTime],
+              logIds: [log.id]
+            };
+          } else {
+            studentMap[key].times.push(log.localTime);
+            studentMap[key].logIds.push(log.id);
+          }
+        });
+
+        // Convert to array and sort alphabetically by LAST name
+        const aggregatedStudents = Object.values(studentMap).sort((a, b) => {
+          const lastA = getLastName(a.studentName);
+          const lastB = getLastName(b.studentName);
+          const comp = lastA.localeCompare(lastB);
+          if (comp !== 0) return comp;
+          return getFirstName(a.studentName).localeCompare(getFirstName(b.studentName));
+        });
+
+        // Build Table rows
+        const rowsHtml = aggregatedStudents.map(student => {
+          // Format multiple check-in times
+          const timeDisplay = student.times.length > 1
+            ? `${student.times[student.times.length - 1]} <span class="text-xs text-red-400 font-sans ml-1">(${student.times.length} taps: ${student.times.join(", ")})</span>`
+            : student.times[0];
+
+          const escapedLogIds = JSON.stringify(student.logIds).replace(/"/g, '&quot;');
+
+          return `
+            <tr class="hover:bg-gray-750 transition-colors">
+              <td class="p-3.5 font-semibold text-white">${student.studentName}</td>
+              <td class="p-3.5 font-mono text-gray-400">${student.cardId}</td>
+              <td class="p-3.5 text-gray-300">${timeDisplay}</td>
+              <td class="p-3.5 text-right">
+                <button onclick="window.editDailyStudentName('${escapedLogIds}', '${student.studentName}')" class="text-blue-400 hover:text-blue-300 mr-3">Edit</button>
+                <button onclick="window.deleteDailyStudentLogs('${escapedLogIds}')" class="text-red-400 hover:text-red-300">Delete</button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+
+        // Build Daily Card with Edvance Checkbox
+        html += `
+          <div class="rounded-xl overflow-hidden border border-gray-700 bg-gray-800 transition-all duration-300 ${
+            isSynced ? "opacity-50 grayscale" : ""
+          }">
+            <!-- Day Header Bar -->
+            <div class="bg-gray-750 px-5 py-3.5 flex flex-wrap items-center justify-between gap-4 border-b border-gray-700">
+              <div class="flex items-center gap-3">
+                <div class="p-1.5 bg-red-600/20 text-red-400 rounded">
+                  <i data-lucide="calendar" class="w-4 h-4"></i>
+                </div>
+                <h3 class="font-bold text-base text-white tracking-wide">${formatDateDisplay(dateKey)}</h3>
+                <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full font-mono font-medium">
+                  ${aggregatedStudents.length} ${aggregatedStudents.length === 1 ? 'student' : 'students'}
+                </span>
+              </div>
+
+              <!-- Edvance Checkbox -->
+              <label class="flex items-center gap-2 cursor-pointer bg-gray-900/60 px-3 py-1.5 rounded-lg border border-gray-600 hover:border-gray-500 transition select-none">
+                <input 
+                  type="checkbox" 
+                  onchange="window.toggleEdvanceSync('${dateKey}', this.checked)"
+                  ${isSynced ? "checked" : ""}
+                  class="w-4 h-4 rounded text-red-600 bg-gray-800 border-gray-600 focus:ring-0 cursor-pointer"
+                />
+                <span class="text-xs font-semibold ${isSynced ? 'text-emerald-400 line-through' : 'text-gray-200'}">
+                  Attendance Translated to Edvance
+                </span>
+              </label>
+            </div>
+
+            <!-- Table of Students -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-gray-700 text-gray-300">
+                  <tr>
+                    <th class="p-3.5">Student Name (Last, First)</th>
+                    <th class="p-3.5">Card ID</th>
+                    <th class="p-3.5">Check-in Time</th>
+                    <th class="p-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700">
+                  ${rowsHtml}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      });
+
+      logsSection.innerHTML = html;
+      lucide.createIcons();
+    }
+
+    // Toggle and persist the Edvance checkbox
+    window.toggleEdvanceSync = async (dateKey, isChecked) => {
+      edvanceStatusMap[dateKey] = isChecked;
+      renderDailyLogs(); // Apply the grayscale & opacity immediately
+
+      try {
+        await setDoc(doc(db, "edvance_sync", dateKey), {
+          synced: isChecked,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } catch (err) {
+        console.error("Error saving Edvance sync state:", err);
+        alert("Failed to save Edvance status: " + err.message);
+      }
+    };
+
+    // Delete aggregated logs for a student on that day
+    window.deleteDailyStudentLogs = async (logIdsJson) => {
+      const logIds = JSON.parse(logIdsJson);
+      if (!confirm(`Delete this student's attendance records (${logIds.length} entry/entries) for this day?`)) return;
+
+      try {
+        await Promise.all(logIds.map(id => deleteDoc(doc(db, "attendance", id))));
+        cachedLogs = cachedLogs.filter(l => !logIds.includes(l.id));
+        renderDailyLogs();
+      } catch (err) {
+        alert("Error deleting attendance: " + err.message);
+      }
+    };
+
+    // Edit aggregated name across their daily logs
+    window.editDailyStudentName = async (logIdsJson, currentName) => {
+      const logIds = JSON.parse(logIdsJson);
+      const newName = prompt("Update student name:", currentName);
+      if (!newName || newName === currentName) return;
+
+      try {
+        await Promise.all(logIds.map(id => updateDoc(doc(db, "attendance", id), { studentName: newName })));
+        cachedLogs.forEach(l => {
+          if (logIds.includes(l.id)) l.studentName = newName;
+        });
+        renderDailyLogs();
+      } catch (err) {
+        alert("Error updating student name: " + err.message);
+      }
+    };
+
+    // Registered Students View
     function renderStudents() {
       if (cachedStudents.length === 0) {
         studentsTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-400">No registered students.</td></tr>`;
@@ -421,22 +614,6 @@
       `).join("");
     }
 
-    window.deleteLog = async (id) => {
-      if (!confirm("Delete this log?")) return;
-      await deleteDoc(doc(db, "attendance", id));
-      cachedLogs = cachedLogs.filter(l => l.id !== id);
-      renderLogs();
-    };
-
-    window.editLog = async (id, currentName) => {
-      const newName = prompt("Update student name:", currentName);
-      if (!newName || newName === currentName) return;
-      await updateDoc(doc(db, "attendance", id), { studentName: newName });
-      const item = cachedLogs.find(l => l.id === id);
-      if (item) item.studentName = newName;
-      renderLogs();
-    };
-
     window.deleteStudent = async (id) => {
       if (!confirm("Delete student profile?")) return;
       await deleteDoc(doc(db, "students", id));
@@ -444,9 +621,48 @@
       renderStudents();
     };
 
+    // CSV Download
     exportCsvBtn.addEventListener("click", () => {
-      const headers = ["Card ID", "Student Name", "Date", "Time"];
-      const rows = cachedLogs.map(l => [l.cardId, `"${l.studentName}"`, l.localDate, l.localTime]);
+      const headers = ["Date", "Student Name", "Card ID", "Time(s)", "Translated to Edvance"];
+      
+      const rows = [];
+      const groupedByDate = {};
+      cachedLogs.forEach(log => {
+        const dateKey = log.localDate || "Unknown Date";
+        if (!groupedByDate[dateKey]) groupedByDate[dateKey] = [];
+        groupedByDate[dateKey].push(log);
+      });
+
+      const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
+
+      sortedDates.forEach(dateKey => {
+        const isSynced = edvanceStatusMap[dateKey] === true ? "YES" : "NO";
+        const studentMap = {};
+        groupedByDate[dateKey].forEach(log => {
+          const key = log.cardId || log.studentName;
+          if (!studentMap[key]) {
+            studentMap[key] = { name: log.studentName, cardId: log.cardId, times: [log.localTime] };
+          } else {
+            studentMap[key].times.push(log.localTime);
+          }
+        });
+
+        const students = Object.values(studentMap).sort((a, b) => {
+          const comp = getLastName(a.name).localeCompare(getLastName(b.name));
+          return comp !== 0 ? comp : getFirstName(a.name).localeCompare(getFirstName(b.name));
+        });
+
+        students.forEach(s => {
+          rows.push([
+            dateKey,
+            `"${s.name}"`,
+            s.cardId,
+            `"${s.times.join(", ")}"`,
+            isSynced
+          ]);
+        });
+      });
+
       const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
       const blob = new Blob([csv], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
