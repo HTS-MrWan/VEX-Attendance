@@ -175,7 +175,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.4.0
+    v1.4.1
   </div>
 
   <script type="module">
@@ -201,7 +201,7 @@
     const db = getFirestore(app);
 
     let currentView = "kiosk";
-    let selectedProgramFilter = "V5"; // 'V5' or 'IQ'
+    let selectedProgramFilter = "V5";
     let pendingCardId = null;
     let cachedLogs = [];
     let cachedStudents = [];
@@ -230,12 +230,10 @@
     const cancelPasswordBtn = document.getElementById("cancelPasswordBtn");
     const cardInput = document.getElementById("cardInput");
     
-    // Top program filter buttons
     const filterV5Btn = document.getElementById("filterV5Btn");
     const filterIQBtn = document.getElementById("filterIQBtn");
     const currentSectionTitle = document.getElementById("currentSectionTitle");
 
-    // Tab and Action Buttons
     const tabLogsBtn = document.getElementById("tabLogsBtn");
     const tabStudentsBtn = document.getElementById("tabStudentsBtn");
     const deleteAllLogsBtn = document.getElementById("deleteAllLogsBtn");
@@ -348,7 +346,6 @@
       }, 3000);
     }
 
-    // Register Unrecognized Card
     registerForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const fName = firstNameInput.value.trim();
@@ -402,7 +399,6 @@
       focusScannerInput();
     });
 
-    // View Navigation & Authentication
     toggleViewBtn.addEventListener("click", () => {
       if (currentView === "kiosk") {
         passwordError.classList.add("hidden");
@@ -443,7 +439,6 @@
       focusScannerInput();
     });
 
-    // Program Toggle Controls (V5 vs IQ)
     filterV5Btn.addEventListener("click", () => {
       selectedProgramFilter = "V5";
       filterV5Btn.className = "px-5 py-1.5 rounded-lg text-sm font-bold bg-red-600 text-white shadow transition";
@@ -467,7 +462,6 @@
       lucide.createIcons();
     }
 
-    // Tab Switching
     tabLogsBtn.addEventListener("click", () => {
       tabLogsBtn.className = "bg-red-600 px-4 py-2 rounded-md text-sm font-semibold transition";
       tabStudentsBtn.className = "bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md text-sm font-semibold transition";
@@ -502,7 +496,6 @@
       exportCsvBtn.classList.remove("flex");
     });
 
-    // Program-Specific Bulk Deletion
     deleteAllLogsBtn.addEventListener("click", async () => {
       const prog = selectedProgramFilter;
       if (!confirm(`⚠️ WARNING: This will permanently delete ALL ${prog} attendance logs. Are you sure?`)) return;
@@ -553,10 +546,27 @@
       const logsSnap = await getDocs(query(collection(db, "attendance"), orderBy("timestamp", "desc")));
       cachedLogs = logsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
+      // Clean load of Edvance sync statuses with graceful one-time migration
       const syncSnap = await getDocs(collection(db, "edvance_sync"));
       edvanceStatusMap = {};
+      const legacyEntries = {};
+
       syncSnap.docs.forEach(d => {
-        edvanceStatusMap[d.id] = d.data().synced === true;
+        const id = d.id;
+        const synced = d.data().synced === true;
+        if (id.includes("_")) {
+          edvanceStatusMap[id] = synced;
+        } else {
+          legacyEntries[id] = synced;
+        }
+      });
+
+      // Migrate legacy status only if a dedicated _V5 entry doesn't exist yet
+      Object.keys(legacyEntries).forEach(date => {
+        const v5Key = `${date}_V5`;
+        if (edvanceStatusMap[v5Key] === undefined) {
+          edvanceStatusMap[v5Key] = legacyEntries[date];
+        }
       });
 
       const stuSnap = await getDocs(query(collection(db, "students"), orderBy("name", "asc")));
@@ -592,7 +602,6 @@
     }
 
     function renderDailyLogs() {
-      // Filter logs by the selected program tab
       const currentLogs = cachedLogs.filter(log => (log.program || "V5") === selectedProgramFilter);
 
       if (currentLogs.length === 0) {
@@ -613,8 +622,7 @@
       sortedDates.forEach(dateKey => {
         const dayLogs = groupedByDate[dateKey];
         const syncKey = `${dateKey}_${selectedProgramFilter}`;
-        // Fallback checks both compound syncKey and legacy dateKey
-        const isSynced = edvanceStatusMap[syncKey] === true || (edvanceStatusMap[dateKey] === true && selectedProgramFilter === "V5");
+        const isSynced = edvanceStatusMap[syncKey] === true;
 
         const studentMap = {};
         dayLogs.forEach(log => {
@@ -721,6 +729,12 @@
           synced: isChecked,
           updatedAt: serverTimestamp()
         }, { merge: true });
+
+        // Clean up legacy pre-v1.4 record so it doesn't linger
+        if (syncKey.endsWith("_V5")) {
+          const oldDateKey = syncKey.replace("_V5", "");
+          deleteDoc(doc(db, "edvance_sync", oldDateKey)).catch(() => {});
+        }
       } catch (err) {
         console.error("Error saving Edvance sync state:", err);
       }
@@ -756,7 +770,6 @@
     };
 
     function renderStudents() {
-      // Filter students by selected program tab
       const currentStudents = cachedStudents.filter(s => (s.program || "V5") === selectedProgramFilter);
 
       if (currentStudents.length === 0) {
@@ -789,7 +802,6 @@
       renderStudents();
     };
 
-    // CSV Download (Filtered to the active program view)
     exportCsvBtn.addEventListener("click", () => {
       const prog = selectedProgramFilter;
       const headers = ["Date", "Program", "Student Name", "Card ID", "Time(s)", "Translated to Edvance"];
@@ -807,7 +819,7 @@
 
       sortedDates.forEach(dateKey => {
         const syncKey = `${dateKey}_${prog}`;
-        const isSynced = edvanceStatusMap[syncKey] === true || (edvanceStatusMap[dateKey] === true && prog === "V5") ? "YES" : "NO";
+        const isSynced = edvanceStatusMap[syncKey] === true ? "YES" : "NO";
         
         const studentMap = {};
         groupedByDate[dateKey].forEach(log => {
