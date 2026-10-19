@@ -39,7 +39,7 @@
 
   <!-- ================= KIOSK VIEW ================= -->
   <main id="kioskView" class="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-xl mx-auto w-full">
-    <!-- 3-Second Confirmation Banner -->
+    <!-- Confirmation Banner -->
     <div id="statusBanner" class="hidden w-full mb-6 p-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg transition-all">
       <i id="bannerIcon" data-lucide="check-circle" class="w-6 h-6"></i>
       <span id="bannerText"></span>
@@ -63,7 +63,7 @@
   <!-- ================= ADMIN VIEW ================= -->
   <main id="adminView" class="hidden flex-1 max-w-5xl w-full mx-auto p-6 flex-col gap-6">
     
-    <!-- Top Bar: Program Selector (V5 vs IQ) -->
+    <!-- Program Selector (V5 vs IQ) -->
     <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-850 p-3 rounded-2xl border border-gray-700">
       <div class="flex items-center gap-2">
         <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 mr-1">Program:</span>
@@ -187,7 +187,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.4.4
+    v1.4.5
   </div>
 
   <script type="module">
@@ -803,8 +803,10 @@
       }
       studentsTableBody.innerHTML = currentStudents.map(s => {
         const prog = s.program || "V5";
+        const targetProg = prog === "V5" ? "IQ" : "V5";
+
         return `
-          <tr class="hover:bg-gray-750">
+          <tr class="hover:bg-gray-750 transition-colors">
             <td class="p-3.5 font-semibold text-white">${s.name}</td>
             <td class="p-3.5">
               <span class="text-xs font-bold px-2 py-0.5 rounded ${
@@ -812,14 +814,56 @@
               }">${prog}</span>
             </td>
             <td class="p-3.5 font-mono text-gray-400">${s.cardId}</td>
-            <td class="p-3.5 text-right">
-              <button onclick="window.deleteStudent('${s.id}')" class="text-red-400 hover:text-red-300">Delete</button>
+            <td class="p-3.5 text-right whitespace-nowrap">
+              <button onclick="window.swapStudentProgram('${s.id}')" class="text-amber-400 hover:text-amber-300 font-medium mr-4 transition">
+                Move to ${targetProg}
+              </button>
+              <button onclick="window.deleteStudent('${s.id}')" class="text-red-400 hover:text-red-300 transition">
+                Delete
+              </button>
             </td>
           </tr>
         `;
       }).join("");
     }
 
+    // Move Student + Past Logs Between V5 and IQ
+    window.swapStudentProgram = async (id) => {
+      const student = cachedStudents.find(s => s.id === id);
+      if (!student) return;
+
+      const currentProg = student.program || "V5";
+      const newProg = currentProg === "V5" ? "IQ" : "V5";
+
+      if (!confirm(`Move "${student.name}" and all their attendance history from VEX ${currentProg} to VEX ${newProg}?`)) return;
+
+      try {
+        // 1. Update Student Profile
+        await updateDoc(doc(db, "students", id), { program: newProg });
+        student.program = newProg;
+
+        // 2. Update All Related Attendance Records
+        if (student.cardId) {
+          const q = query(collection(db, "attendance"), where("cardId", "==", student.cardId));
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            await Promise.all(snap.docs.map(d => updateDoc(doc(db, "attendance", d.id), { program: newProg })));
+          }
+          cachedLogs.forEach(log => {
+            if (log.cardId === student.cardId) {
+              log.program = newProg;
+            }
+          });
+        }
+
+        renderStudents();
+        renderDailyLogs();
+      } catch (err) {
+        alert("Error swapping program: " + err.message);
+      }
+    };
+
+    // Cascading Deep Deletion (Purges profile, duplicates, and logs)
     window.deleteStudent = async (id) => {
       const student = cachedStudents.find(s => s.id === id);
       const studentName = student ? student.name : "this student";
@@ -832,6 +876,15 @@
         cachedStudents = cachedStudents.filter(s => s.id !== id);
 
         if (cardId) {
+          // Purge any duplicates in the students collection
+          const dupQuery = query(collection(db, "students"), where("cardId", "==", cardId));
+          const dupSnap = await getDocs(dupQuery);
+          if (!dupSnap.empty) {
+            await Promise.all(dupSnap.docs.map(d => deleteDoc(doc(db, "students", d.id))));
+            cachedStudents = cachedStudents.filter(s => s.cardId !== cardId);
+          }
+
+          // Purge all attendance records for this cardId
           const q = query(collection(db, "attendance"), where("cardId", "==", cardId));
           const snap = await getDocs(q);
           if (!snap.empty) {
