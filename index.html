@@ -40,7 +40,7 @@
       </div>
       <div>
         <h2 class="text-2xl font-bold mb-2">Tap Student Badge</h2>
-        <p class="text-gray-400 text-sm">Hold card against the reader to check in.</p>
+        <p class="text-gray-400 text-sm">Hold card against the reader to check in (V5 & IQ).</p>
       </div>
     </div>
   </main>
@@ -50,27 +50,39 @@
 
   <!-- ================= ADMIN VIEW ================= -->
   <main id="adminView" class="hidden flex-1 max-w-5xl w-full mx-auto p-6 flex-col gap-6">
-    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-gray-700 pb-4">
-      
-      <!-- Tab Controls -->
+    
+    <!-- Top Bar: Program Selector (V5 vs IQ) -->
+    <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-850 p-3 rounded-2xl border border-gray-700">
+      <div class="flex items-center gap-2">
+        <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 mr-1">Program:</span>
+        <div class="flex bg-gray-900 p-1 rounded-xl border border-gray-700">
+          <button id="filterV5Btn" class="px-5 py-1.5 rounded-lg text-sm font-bold bg-red-600 text-white shadow transition">VEX V5</button>
+          <button id="filterIQBtn" class="px-5 py-1.5 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition">VEX IQ</button>
+        </div>
+      </div>
+
       <div class="flex gap-2">
         <button id="tabLogsBtn" class="bg-red-600 px-4 py-2 rounded-md text-sm font-semibold transition">Attendance Logs</button>
         <button id="tabStudentsBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md text-sm font-semibold transition">Registered Students</button>
       </div>
-      
-      <!-- Action Buttons -->
-      <div class="flex gap-2 flex-wrap justify-end">
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="flex justify-between items-center gap-4">
+      <div class="text-sm font-medium text-gray-400" id="currentSectionTitle">
+        Showing VEX V5 Records
+      </div>
+      <div class="flex gap-2">
         <button id="deleteAllLogsBtn" class="bg-red-950 hover:bg-red-900 border border-red-800 text-red-300 px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-2 transition">
-          <i data-lucide="trash-2" class="w-4 h-4"></i> Delete All Logs
+          <i data-lucide="trash-2" class="w-4 h-4"></i> Delete V5 Logs
         </button>
         <button id="deleteAllStudentsBtn" class="hidden bg-red-950 hover:bg-red-900 border border-red-800 text-red-300 px-4 py-2 rounded-md text-sm font-semibold items-center gap-2 transition">
-          <i data-lucide="trash-2" class="w-4 h-4"></i> Delete All Students
+          <i data-lucide="trash-2" class="w-4 h-4"></i> Delete V5 Students
         </button>
         <button id="exportCsvBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-2 transition">
           <i data-lucide="download" class="w-4 h-4"></i> Export CSV
         </button>
       </div>
-
     </div>
 
     <!-- Tab 1: Logs Section -->
@@ -84,12 +96,13 @@
         <thead class="bg-gray-700 text-gray-300">
           <tr>
             <th class="p-3.5">Student Name</th>
+            <th class="p-3.5">Program</th>
             <th class="p-3.5">Assigned Card ID</th>
             <th class="p-3.5 text-right">Actions</th>
           </tr>
         </thead>
         <tbody id="studentsTableBody" class="divide-y divide-gray-700">
-          <tr><td colspan="3" class="p-4 text-center text-gray-400">Loading students...</td></tr>
+          <tr><td colspan="4" class="p-4 text-center text-gray-400">Loading students...</td></tr>
         </tbody>
       </table>
     </div>
@@ -124,21 +137,33 @@
   <!-- ================= MODAL: UNREGISTERED CARD ================= -->
   <div id="registerModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
     <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-gray-700 shadow-2xl">
-      <h3 class="text-xl font-bold mb-2">New Card Detected</h3>
+      <h3 class="text-xl font-bold mb-1">New Card Detected</h3>
       <p class="text-gray-400 text-sm mb-4">
         Card <strong id="modalCardId" class="text-white font-mono"></strong> is not registered.
       </p>
       
       <div id="modalError" class="hidden mb-4 p-3 bg-red-950/80 border border-red-700 text-red-200 text-xs rounded-lg"></div>
 
-      <form id="registerForm">
-        <div class="flex gap-3 mb-4">
-          <input id="firstNameInput" type="text" placeholder="First Name" required autocomplete="off"
-            class="w-1/2 px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white" />
-          <input id="lastNameInput" type="text" placeholder="Last Name" required autocomplete="off"
-            class="w-1/2 px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white" />
+      <form id="registerForm" class="flex flex-col gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">VEX Program</label>
+          <select id="programSelect" class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white font-semibold">
+            <option value="V5">VEX V5</option>
+            <option value="IQ">VEX IQ</option>
+          </select>
         </div>
-        <div class="flex justify-end gap-3">
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Student Name</label>
+          <div class="flex gap-3">
+            <input id="firstNameInput" type="text" placeholder="First Name" required autocomplete="off"
+              class="w-1/2 px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white" />
+            <input id="lastNameInput" type="text" placeholder="Last Name" required autocomplete="off"
+              class="w-1/2 px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white" />
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-3">
           <button type="button" id="cancelRegisterBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Cancel</button>
           <button type="submit" id="submitRegisterBtn" class="bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-lg text-sm">
             Register & Check In
@@ -150,7 +175,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.3.0
+    v1.4.0
   </div>
 
   <script type="module">
@@ -176,6 +201,7 @@
     const db = getFirestore(app);
 
     let currentView = "kiosk";
+    let selectedProgramFilter = "V5"; // 'V5' or 'IQ'
     let pendingCardId = null;
     let cachedLogs = [];
     let cachedStudents = [];
@@ -192,6 +218,7 @@
     const modalCardId = document.getElementById("modalCardId");
     const modalError = document.getElementById("modalError");
     const registerForm = document.getElementById("registerForm");
+    const programSelect = document.getElementById("programSelect");
     const firstNameInput = document.getElementById("firstNameInput");
     const lastNameInput = document.getElementById("lastNameInput");
     const cancelRegisterBtn = document.getElementById("cancelRegisterBtn");
@@ -203,6 +230,11 @@
     const cancelPasswordBtn = document.getElementById("cancelPasswordBtn");
     const cardInput = document.getElementById("cardInput");
     
+    // Top program filter buttons
+    const filterV5Btn = document.getElementById("filterV5Btn");
+    const filterIQBtn = document.getElementById("filterIQBtn");
+    const currentSectionTitle = document.getElementById("currentSectionTitle");
+
     // Tab and Action Buttons
     const tabLogsBtn = document.getElementById("tabLogsBtn");
     const tabStudentsBtn = document.getElementById("tabStudentsBtn");
@@ -267,6 +299,7 @@
           modalCardId.textContent = cardId;
           firstNameInput.value = "";
           lastNameInput.value = "";
+          programSelect.value = "V5";
           
           registerModal.classList.remove("hidden");
           setTimeout(() => {
@@ -275,7 +308,8 @@
           }, 150);
         } else {
           const student = snap.docs[0].data();
-          await recordAttendance(cardId, student.name);
+          const program = student.program || "V5";
+          await recordAttendance(cardId, student.name, program);
           isProcessing = false;
           focusScannerInput();
         }
@@ -287,16 +321,17 @@
       }
     }
 
-    async function recordAttendance(cardId, name) {
+    async function recordAttendance(cardId, name, program) {
       const now = new Date();
       await addDoc(collection(db, "attendance"), {
         cardId: cardId,
         studentName: name,
+        program: program,
         timestamp: serverTimestamp(),
         localDate: now.toLocaleDateString('en-CA'),
         localTime: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
       });
-      showBanner(true, `${name} has checked into VEX robotics today!`);
+      showBanner(true, `${name} (${program}) has checked into VEX robotics today!`);
     }
 
     let bannerTimer = null;
@@ -313,10 +348,12 @@
       }, 3000);
     }
 
+    // Register Unrecognized Card
     registerForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const fName = firstNameInput.value.trim();
       const lName = lastNameInput.value.trim();
+      const prog = programSelect.value;
       const card = pendingCardId;
       
       if (!fName || !lName || !card) return;
@@ -332,11 +369,12 @@
           cardId: card,
           firstName: fName,
           lastName: lName,
-          name: fullName, 
+          name: fullName,
+          program: prog,
           registeredAt: serverTimestamp()
         });
 
-        await recordAttendance(card, fullName);
+        await recordAttendance(card, fullName, prog);
         
         registerModal.classList.add("hidden");
         firstNameInput.value = "";
@@ -364,7 +402,7 @@
       focusScannerInput();
     });
 
-    // Authentication
+    // View Navigation & Authentication
     toggleViewBtn.addEventListener("click", () => {
       if (currentView === "kiosk") {
         passwordError.classList.add("hidden");
@@ -405,7 +443,31 @@
       focusScannerInput();
     });
 
-    // Tab Switching Logic
+    // Program Toggle Controls (V5 vs IQ)
+    filterV5Btn.addEventListener("click", () => {
+      selectedProgramFilter = "V5";
+      filterV5Btn.className = "px-5 py-1.5 rounded-lg text-sm font-bold bg-red-600 text-white shadow transition";
+      filterIQBtn.className = "px-5 py-1.5 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition";
+      updateProgramView();
+    });
+
+    filterIQBtn.addEventListener("click", () => {
+      selectedProgramFilter = "IQ";
+      filterIQBtn.className = "px-5 py-1.5 rounded-lg text-sm font-bold bg-red-600 text-white shadow transition";
+      filterV5Btn.className = "px-5 py-1.5 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition";
+      updateProgramView();
+    });
+
+    function updateProgramView() {
+      currentSectionTitle.textContent = `Showing VEX ${selectedProgramFilter} Records`;
+      deleteAllLogsBtn.innerHTML = `<i data-lucide="trash-2" class="w-4 h-4"></i> Delete ${selectedProgramFilter} Logs`;
+      deleteAllStudentsBtn.innerHTML = `<i data-lucide="trash-2" class="w-4 h-4"></i> Delete ${selectedProgramFilter} Students`;
+      renderDailyLogs();
+      renderStudents();
+      lucide.createIcons();
+    }
+
+    // Tab Switching
     tabLogsBtn.addEventListener("click", () => {
       tabLogsBtn.className = "bg-red-600 px-4 py-2 rounded-md text-sm font-semibold transition";
       tabStudentsBtn.className = "bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md text-sm font-semibold transition";
@@ -440,19 +502,20 @@
       exportCsvBtn.classList.remove("flex");
     });
 
-    // Delete All Operations
+    // Program-Specific Bulk Deletion
     deleteAllLogsBtn.addEventListener("click", async () => {
-      if (!confirm("⚠️ WARNING: This will permanently delete ALL attendance logs for ALL days. Are you sure?")) return;
-      if (!confirm("Are you ABSOLUTELY sure? This cannot be undone.")) return;
+      const prog = selectedProgramFilter;
+      if (!confirm(`⚠️ WARNING: This will permanently delete ALL ${prog} attendance logs. Are you sure?`)) return;
+      if (!confirm(`Are you ABSOLUTELY sure? Only ${prog} logs will be removed.`)) return;
 
       const originalText = deleteAllLogsBtn.innerHTML;
       deleteAllLogsBtn.innerHTML = "Deleting...";
       deleteAllLogsBtn.disabled = true;
 
       try {
-        const snap = await getDocs(collection(db, "attendance"));
-        await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "attendance", d.id))));
-        cachedLogs = [];
+        const toDelete = cachedLogs.filter(l => (l.program || "V5") === prog);
+        await Promise.all(toDelete.map(d => deleteDoc(doc(db, "attendance", d.id))));
+        cachedLogs = cachedLogs.filter(l => (l.program || "V5") !== prog);
         renderDailyLogs();
       } catch (err) {
         alert("Error deleting logs: " + err.message);
@@ -464,17 +527,18 @@
     });
 
     deleteAllStudentsBtn.addEventListener("click", async () => {
-      if (!confirm("⚠️ WARNING: This will permanently delete ALL registered students. They will need to re-register upon their next scan. Are you sure?")) return;
-      if (!confirm("Are you ABSOLUTELY sure? This cannot be undone.")) return;
+      const prog = selectedProgramFilter;
+      if (!confirm(`⚠️ WARNING: This will permanently delete ALL registered ${prog} students. Are you sure?`)) return;
+      if (!confirm(`Are you ABSOLUTELY sure? Only ${prog} students will be deleted.`)) return;
 
       const originalText = deleteAllStudentsBtn.innerHTML;
       deleteAllStudentsBtn.innerHTML = "Deleting...";
       deleteAllStudentsBtn.disabled = true;
 
       try {
-        const snap = await getDocs(collection(db, "students"));
-        await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "students", d.id))));
-        cachedStudents = [];
+        const toDelete = cachedStudents.filter(s => (s.program || "V5") === prog);
+        await Promise.all(toDelete.map(d => deleteDoc(doc(db, "students", d.id))));
+        cachedStudents = cachedStudents.filter(s => (s.program || "V5") !== prog);
         renderStudents();
       } catch (err) {
         alert("Error deleting students: " + err.message);
@@ -495,11 +559,10 @@
         edvanceStatusMap[d.id] = d.data().synced === true;
       });
 
-      renderDailyLogs();
-
       const stuSnap = await getDocs(query(collection(db, "students"), orderBy("name", "asc")));
       cachedStudents = stuSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderStudents();
+
+      updateProgramView();
     }
 
     function getLastName(fullName) {
@@ -529,25 +592,29 @@
     }
 
     function renderDailyLogs() {
-      if (cachedLogs.length === 0) {
-        logsSection.innerHTML = `<div class="p-8 text-center bg-gray-800 rounded-xl text-gray-400 border border-gray-700">No attendance logs found.</div>`;
+      // Filter logs by the selected program tab
+      const currentLogs = cachedLogs.filter(log => (log.program || "V5") === selectedProgramFilter);
+
+      if (currentLogs.length === 0) {
+        logsSection.innerHTML = `<div class="p-8 text-center bg-gray-800 rounded-xl text-gray-400 border border-gray-700">No VEX ${selectedProgramFilter} attendance logs found.</div>`;
         return;
       }
 
       const groupedByDate = {};
-      cachedLogs.forEach(log => {
+      currentLogs.forEach(log => {
         const dateKey = log.localDate || "Unknown Date";
         if (!groupedByDate[dateKey]) groupedByDate[dateKey] = [];
         groupedByDate[dateKey].push(log);
       });
 
       const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
-
       let html = "";
 
       sortedDates.forEach(dateKey => {
         const dayLogs = groupedByDate[dateKey];
-        const isSynced = edvanceStatusMap[dateKey] === true;
+        const syncKey = `${dateKey}_${selectedProgramFilter}`;
+        // Fallback checks both compound syncKey and legacy dateKey
+        const isSynced = edvanceStatusMap[syncKey] === true || (edvanceStatusMap[dateKey] === true && selectedProgramFilter === "V5");
 
         const studentMap = {};
         dayLogs.forEach(log => {
@@ -556,6 +623,7 @@
             studentMap[key] = {
               studentName: log.studentName,
               cardId: log.cardId,
+              program: log.program || "V5",
               times: [log.localTime],
               logIds: [log.id]
             };
@@ -604,14 +672,14 @@
                 </div>
                 <h3 class="font-bold text-base text-white tracking-wide">${formatDateDisplay(dateKey)}</h3>
                 <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full font-mono font-medium">
-                  ${aggregatedStudents.length} ${aggregatedStudents.length === 1 ? 'student' : 'students'}
+                  ${aggregatedStudents.length} ${aggregatedStudents.length === 1 ? 'student' : 'students'} (${selectedProgramFilter})
                 </span>
               </div>
 
               <label class="flex items-center gap-2 cursor-pointer bg-gray-900/60 px-3 py-1.5 rounded-lg border border-gray-600 hover:border-gray-500 transition select-none">
                 <input 
                   type="checkbox" 
-                  onchange="window.toggleEdvanceSync('${dateKey}', this.checked)"
+                  onchange="window.toggleEdvanceSync('${syncKey}', this.checked)"
                   ${isSynced ? "checked" : ""}
                   class="w-4 h-4 rounded text-red-600 bg-gray-800 border-gray-600 focus:ring-0 cursor-pointer"
                 />
@@ -644,12 +712,12 @@
       lucide.createIcons();
     }
 
-    window.toggleEdvanceSync = async (dateKey, isChecked) => {
-      edvanceStatusMap[dateKey] = isChecked;
+    window.toggleEdvanceSync = async (syncKey, isChecked) => {
+      edvanceStatusMap[syncKey] = isChecked;
       renderDailyLogs();
 
       try {
-        await setDoc(doc(db, "edvance_sync", dateKey), {
+        await setDoc(doc(db, "edvance_sync", syncKey), {
           synced: isChecked,
           updatedAt: serverTimestamp()
         }, { merge: true });
@@ -688,19 +756,30 @@
     };
 
     function renderStudents() {
-      if (cachedStudents.length === 0) {
-        studentsTableBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-gray-400">No registered students.</td></tr>`;
+      // Filter students by selected program tab
+      const currentStudents = cachedStudents.filter(s => (s.program || "V5") === selectedProgramFilter);
+
+      if (currentStudents.length === 0) {
+        studentsTableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">No registered VEX ${selectedProgramFilter} students.</td></tr>`;
         return;
       }
-      studentsTableBody.innerHTML = cachedStudents.map(s => `
-        <tr class="hover:bg-gray-750">
-          <td class="p-3.5 font-semibold text-white">${s.name}</td>
-          <td class="p-3.5 font-mono text-gray-400">${s.cardId}</td>
-          <td class="p-3.5 text-right">
-            <button onclick="window.deleteStudent('${s.id}')" class="text-red-400 hover:text-red-300">Delete</button>
-          </td>
-        </tr>
-      `).join("");
+      studentsTableBody.innerHTML = currentStudents.map(s => {
+        const prog = s.program || "V5";
+        return `
+          <tr class="hover:bg-gray-750">
+            <td class="p-3.5 font-semibold text-white">${s.name}</td>
+            <td class="p-3.5">
+              <span class="text-xs font-bold px-2 py-0.5 rounded ${
+                prog === 'IQ' ? 'bg-blue-950 text-blue-400 border border-blue-800' : 'bg-red-950 text-red-400 border border-red-800'
+              }">${prog}</span>
+            </td>
+            <td class="p-3.5 font-mono text-gray-400">${s.cardId}</td>
+            <td class="p-3.5 text-right">
+              <button onclick="window.deleteStudent('${s.id}')" class="text-red-400 hover:text-red-300">Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
     }
 
     window.deleteStudent = async (id) => {
@@ -710,11 +789,15 @@
       renderStudents();
     };
 
+    // CSV Download (Filtered to the active program view)
     exportCsvBtn.addEventListener("click", () => {
-      const headers = ["Date", "Student Name", "Card ID", "Time(s)", "Translated to Edvance"];
+      const prog = selectedProgramFilter;
+      const headers = ["Date", "Program", "Student Name", "Card ID", "Time(s)", "Translated to Edvance"];
       const rows = [];
+      const currentLogs = cachedLogs.filter(log => (log.program || "V5") === prog);
+
       const groupedByDate = {};
-      cachedLogs.forEach(log => {
+      currentLogs.forEach(log => {
         const dateKey = log.localDate || "Unknown Date";
         if (!groupedByDate[dateKey]) groupedByDate[dateKey] = [];
         groupedByDate[dateKey].push(log);
@@ -723,7 +806,9 @@
       const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
 
       sortedDates.forEach(dateKey => {
-        const isSynced = edvanceStatusMap[dateKey] === true ? "YES" : "NO";
+        const syncKey = `${dateKey}_${prog}`;
+        const isSynced = edvanceStatusMap[syncKey] === true || (edvanceStatusMap[dateKey] === true && prog === "V5") ? "YES" : "NO";
+        
         const studentMap = {};
         groupedByDate[dateKey].forEach(log => {
           const key = log.cardId || log.studentName;
@@ -740,7 +825,7 @@
         });
 
         students.forEach(s => {
-          rows.push([dateKey, `"${s.name}"`, s.cardId, `"${s.times.join(", ")}"`, isSynced]);
+          rows.push([dateKey, prog, `"${s.name}"`, s.cardId, `"${s.times.join(", ")}"`, isSynced]);
         });
       });
 
@@ -749,7 +834,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `vex_attendance_${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `vex_${prog.toLowerCase()}_attendance_${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     });
