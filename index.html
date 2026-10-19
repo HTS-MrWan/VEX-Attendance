@@ -175,7 +175,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.4.1
+    v1.4.2
   </div>
 
   <script type="module">
@@ -521,18 +521,28 @@
 
     deleteAllStudentsBtn.addEventListener("click", async () => {
       const prog = selectedProgramFilter;
-      if (!confirm(`⚠️ WARNING: This will permanently delete ALL registered ${prog} students. Are you sure?`)) return;
-      if (!confirm(`Are you ABSOLUTELY sure? Only ${prog} students will be deleted.`)) return;
+      if (!confirm(`⚠️ WARNING: This will permanently delete ALL registered ${prog} students AND all of their attendance records. Are you sure?`)) return;
+      if (!confirm(`Are you ABSOLUTELY sure? This will purge ${prog} students and their logs permanently.`)) return;
 
       const originalText = deleteAllStudentsBtn.innerHTML;
       deleteAllStudentsBtn.innerHTML = "Deleting...";
       deleteAllStudentsBtn.disabled = true;
 
       try {
-        const toDelete = cachedStudents.filter(s => (s.program || "V5") === prog);
-        await Promise.all(toDelete.map(d => deleteDoc(doc(db, "students", d.id))));
+        const studentsToDelete = cachedStudents.filter(s => (s.program || "V5") === prog);
+        const cardIdsToDelete = new Set(studentsToDelete.map(s => s.cardId));
+
+        // Delete Student Profiles
+        await Promise.all(studentsToDelete.map(d => deleteDoc(doc(db, "students", d.id))));
         cachedStudents = cachedStudents.filter(s => (s.program || "V5") !== prog);
+
+        // Delete All Matching Attendance Records
+        const logsToDelete = cachedLogs.filter(l => cardIdsToDelete.has(l.cardId) || (l.program || "V5") === prog);
+        await Promise.all(logsToDelete.map(l => deleteDoc(doc(db, "attendance", l.id))));
+        cachedLogs = cachedLogs.filter(l => !cardIdsToDelete.has(l.cardId) && (l.program || "V5") !== prog);
+
         renderStudents();
+        renderDailyLogs();
       } catch (err) {
         alert("Error deleting students: " + err.message);
       } finally {
@@ -546,7 +556,6 @@
       const logsSnap = await getDocs(query(collection(db, "attendance"), orderBy("timestamp", "desc")));
       cachedLogs = logsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-      // Clean load of Edvance sync statuses with graceful one-time migration
       const syncSnap = await getDocs(collection(db, "edvance_sync"));
       edvanceStatusMap = {};
       const legacyEntries = {};
@@ -561,7 +570,6 @@
         }
       });
 
-      // Migrate legacy status only if a dedicated _V5 entry doesn't exist yet
       Object.keys(legacyEntries).forEach(date => {
         const v5Key = `${date}_V5`;
         if (edvanceStatusMap[v5Key] === undefined) {
@@ -730,7 +738,6 @@
           updatedAt: serverTimestamp()
         }, { merge: true });
 
-        // Clean up legacy pre-v1.4 record so it doesn't linger
         if (syncKey.endsWith("_V5")) {
           const oldDateKey = syncKey.replace("_V5", "");
           deleteDoc(doc(db, "edvance_sync", oldDateKey)).catch(() => {});
@@ -795,11 +802,34 @@
       }).join("");
     }
 
+    // Cascading Student Deletion: Deletes Student Profile + All Associated Attendance Records
     window.deleteStudent = async (id) => {
-      if (!confirm("Delete student profile?")) return;
-      await deleteDoc(doc(db, "students", id));
-      cachedStudents = cachedStudents.filter(s => s.id !== id);
-      renderStudents();
+      const student = cachedStudents.find(s => s.id === id);
+      const studentName = student ? student.name : "this student";
+      const cardId = student ? student.cardId : null;
+
+      if (!confirm(`Delete profile for "${studentName}" AND all of their attendance records across all dates? This cannot be undone.`)) return;
+
+      try {
+        // 1. Delete student profile doc
+        await deleteDoc(doc(db, "students", id));
+        cachedStudents = cachedStudents.filter(s => s.id !== id);
+
+        // 2. Cascade delete all attendance records for this cardId
+        if (cardId) {
+          const q = query(collection(db, "attendance"), where("cardId", "==", cardId));
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "attendance", d.id))));
+          }
+          cachedLogs = cachedLogs.filter(l => l.cardId !== cardId);
+        }
+
+        renderStudents();
+        renderDailyLogs();
+      } catch (err) {
+        alert("Error deleting student and attendance logs: " + err.message);
+      }
     };
 
     exportCsvBtn.addEventListener("click", () => {
