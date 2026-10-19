@@ -95,7 +95,7 @@
       <table class="w-full text-left text-sm">
         <thead class="bg-gray-700 text-gray-300">
           <tr>
-            <th class="p-3.5">Student Name</th>
+            <th class="p-3.5">Student Name (Last, First)</th>
             <th class="p-3.5">Program</th>
             <th class="p-3.5">Assigned Card ID</th>
             <th class="p-3.5 text-right">Actions</th>
@@ -175,7 +175,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.4.2
+    v1.4.3
   </div>
 
   <script type="module">
@@ -532,11 +532,9 @@
         const studentsToDelete = cachedStudents.filter(s => (s.program || "V5") === prog);
         const cardIdsToDelete = new Set(studentsToDelete.map(s => s.cardId));
 
-        // Delete Student Profiles
         await Promise.all(studentsToDelete.map(d => deleteDoc(doc(db, "students", d.id))));
         cachedStudents = cachedStudents.filter(s => (s.program || "V5") !== prog);
 
-        // Delete All Matching Attendance Records
         const logsToDelete = cachedLogs.filter(l => cardIdsToDelete.has(l.cardId) || (l.program || "V5") === prog);
         await Promise.all(logsToDelete.map(l => deleteDoc(doc(db, "attendance", l.id))));
         cachedLogs = cachedLogs.filter(l => !cardIdsToDelete.has(l.cardId) && (l.program || "V5") !== prog);
@@ -577,7 +575,7 @@
         }
       });
 
-      const stuSnap = await getDocs(query(collection(db, "students"), orderBy("name", "asc")));
+      const stuSnap = await getDocs(collection(db, "students"));
       cachedStudents = stuSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
       updateProgramView();
@@ -777,7 +775,16 @@
     };
 
     function renderStudents() {
-      const currentStudents = cachedStudents.filter(s => (s.program || "V5") === selectedProgramFilter);
+      // Filter students by selected program tab and sort alphabetically by last name (then first name)
+      const currentStudents = cachedStudents
+        .filter(s => (s.program || "V5") === selectedProgramFilter)
+        .sort((a, b) => {
+          const lastA = getLastName(a.name);
+          const lastB = getLastName(b.name);
+          const comp = lastA.localeCompare(lastB);
+          if (comp !== 0) return comp;
+          return getFirstName(a.name).localeCompare(getFirstName(b.name));
+        });
 
       if (currentStudents.length === 0) {
         studentsTableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">No registered VEX ${selectedProgramFilter} students.</td></tr>`;
@@ -802,7 +809,6 @@
       }).join("");
     }
 
-    // Cascading Student Deletion: Deletes Student Profile + All Associated Attendance Records
     window.deleteStudent = async (id) => {
       const student = cachedStudents.find(s => s.id === id);
       const studentName = student ? student.name : "this student";
@@ -811,11 +817,9 @@
       if (!confirm(`Delete profile for "${studentName}" AND all of their attendance records across all dates? This cannot be undone.`)) return;
 
       try {
-        // 1. Delete student profile doc
         await deleteDoc(doc(db, "students", id));
         cachedStudents = cachedStudents.filter(s => s.id !== id);
 
-        // 2. Cascade delete all attendance records for this cardId
         if (cardId) {
           const q = query(collection(db, "attendance"), where("cardId", "==", cardId));
           const snap = await getDocs(q);
