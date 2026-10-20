@@ -185,9 +185,44 @@
     </div>
   </div>
 
+  <!-- ================= MODAL: STUDENT ATTENDANCE HISTORY ================= -->
+  <div id="historyModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
+    <div class="bg-gray-800 rounded-2xl max-w-lg w-full p-6 border border-gray-700 shadow-2xl flex flex-col max-h-[85vh]">
+      <!-- Header -->
+      <div class="flex items-start justify-between border-b border-gray-700 pb-4 mb-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <h3 id="historyStudentName" class="text-xl font-bold text-white">Student Name</h3>
+            <span id="historyProgramBadge" class="text-xs font-bold px-2 py-0.5 rounded">V5</span>
+          </div>
+          <div class="text-xs text-gray-400 flex items-center gap-2">
+            <span>Card ID: <strong id="historyCardId" class="font-mono text-gray-300"></strong></span>
+            <span>•</span>
+            <span id="historyTotalSessions" class="text-emerald-400 font-semibold">0 check-ins total</span>
+          </div>
+        </div>
+        <button id="closeHistoryBtn" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-700 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- History List (Scrollable) -->
+      <div id="historyListContainer" class="flex-1 overflow-y-auto divide-y divide-gray-700 pr-1">
+        <!-- Dynamic history rows injected here -->
+      </div>
+
+      <!-- Footer -->
+      <div class="border-t border-gray-700 pt-4 mt-4 flex justify-end">
+        <button id="closeHistoryFooterBtn" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.4.6
+    v1.4.7
   </div>
 
   <script type="module">
@@ -242,6 +277,16 @@
     const cancelPasswordBtn = document.getElementById("cancelPasswordBtn");
     const cardInput = document.getElementById("cardInput");
     
+    // History Modal Elements
+    const historyModal = document.getElementById("historyModal");
+    const historyStudentName = document.getElementById("historyStudentName");
+    const historyProgramBadge = document.getElementById("historyProgramBadge");
+    const historyCardId = document.getElementById("historyCardId");
+    const historyTotalSessions = document.getElementById("historyTotalSessions");
+    const historyListContainer = document.getElementById("historyListContainer");
+    const closeHistoryBtn = document.getElementById("closeHistoryBtn");
+    const closeHistoryFooterBtn = document.getElementById("closeHistoryFooterBtn");
+
     const filterV5Btn = document.getElementById("filterV5Btn");
     const filterIQBtn = document.getElementById("filterIQBtn");
     const currentSectionTitle = document.getElementById("currentSectionTitle");
@@ -262,7 +307,8 @@
       if (
         currentView === "kiosk" &&
         registerModal.classList.contains("hidden") &&
-        passwordModal.classList.contains("hidden")
+        passwordModal.classList.contains("hidden") &&
+        historyModal.classList.contains("hidden")
       ) {
         cardInput.focus();
       }
@@ -790,7 +836,13 @@
 
         return `
           <tr class="hover:bg-gray-750 transition-colors">
-            <td class="p-3.5 font-semibold text-white">${s.name}</td>
+            <td class="p-3.5">
+              <button onclick="window.viewStudentHistory('${s.cardId}', '${s.name.replace(/'/g, "\\'")}', '${prog}')" 
+                class="font-semibold text-white hover:text-red-400 flex items-center gap-2 group transition text-left">
+                <span>${s.name}</span>
+                <i data-lucide="history" class="w-3.5 h-3.5 text-gray-500 group-hover:text-red-400 transition"></i>
+              </button>
+            </td>
             <td class="p-3.5">
               <span class="text-xs font-bold px-2 py-0.5 rounded ${
                 prog === 'IQ' ? 'bg-blue-950 text-blue-400 border border-blue-800' : 'bg-red-950 text-red-400 border border-red-800'
@@ -811,7 +863,72 @@
           </tr>
         `;
       }).join("");
+      lucide.createIcons();
     }
+
+    // View Comprehensive History for a Single Student
+    window.viewStudentHistory = (cardId, studentName, prog) => {
+      // Find all check-ins for this card across the entire logs cache
+      const studentLogs = cachedLogs.filter(l => l.cardId === cardId);
+
+      historyStudentName.textContent = studentName;
+      historyCardId.textContent = cardId;
+      historyProgramBadge.textContent = prog;
+      historyProgramBadge.className = `text-xs font-bold px-2 py-0.5 rounded ${
+        prog === 'IQ' ? 'bg-blue-950 text-blue-400 border border-blue-800' : 'bg-red-950 text-red-400 border border-red-800'
+      }`;
+
+      if (studentLogs.length === 0) {
+        historyTotalSessions.textContent = "0 check-ins total";
+        historyListContainer.innerHTML = `
+          <div class="py-8 text-center text-gray-400 text-sm">
+            No check-in logs found for this student.
+          </div>
+        `;
+      } else {
+        // Group by localDate
+        const dateGroups = {};
+        studentLogs.forEach(l => {
+          const d = l.localDate || "Unknown Date";
+          if (!dateGroups[d]) dateGroups[d] = [];
+          dateGroups[d].push(l.localTime);
+        });
+
+        const sortedDates = Object.keys(dateGroups).sort((a, b) => b.localeCompare(a));
+        historyTotalSessions.textContent = `${sortedDates.length} ${sortedDates.length === 1 ? 'day' : 'days'} attended (${studentLogs.length} total tap${studentLogs.length === 1 ? '' : 's'})`;
+
+        historyListContainer.innerHTML = sortedDates.map(dateKey => {
+          const times = dateGroups[dateKey];
+          const timeText = times.length > 1
+            ? `${times[times.length - 1]} <span class="text-xs text-red-400 font-sans ml-1">(${times.length} taps: ${times.join(", ")})</span>`
+            : times[0];
+
+          return `
+            <div class="py-3 flex items-center justify-between">
+              <div>
+                <p class="font-semibold text-sm text-gray-200">${formatDateDisplay(dateKey)}</p>
+                <p class="text-xs text-gray-400 mt-0.5">${timeText}</p>
+              </div>
+              <span class="text-xs px-2 py-0.5 bg-gray-750 text-gray-300 rounded font-mono">
+                ${times.length} tap${times.length === 1 ? '' : 's'}
+              </span>
+            </div>
+          `;
+        }).join("");
+      }
+
+      historyModal.classList.remove("hidden");
+    };
+
+    function closeHistoryModal() {
+      historyModal.classList.add("hidden");
+      focusScannerInput();
+    }
+    closeHistoryBtn.addEventListener("click", closeHistoryModal);
+    closeHistoryFooterBtn.addEventListener("click", closeHistoryModal);
+    historyModal.addEventListener("click", (e) => {
+      if (e.target === historyModal) closeHistoryModal();
+    });
 
     // Edit Student Name in Profile & Cascade to All Attendance Logs
     window.editStudent = async (id) => {
@@ -836,7 +953,6 @@
       const newFullName = `${trimmedFirst} ${trimmedLast}`;
 
       try {
-        // 1. Update Student profile document in Firestore
         await updateDoc(doc(db, "students", id), {
           firstName: trimmedFirst,
           lastName: trimmedLast,
@@ -847,7 +963,6 @@
         student.lastName = trimmedLast;
         student.name = newFullName;
 
-        // 2. Cascade updated name to all attendance records with this cardId
         if (student.cardId) {
           const q = query(collection(db, "attendance"), where("cardId", "==", student.cardId));
           const snap = await getDocs(q);
@@ -903,7 +1018,7 @@
       }
     };
 
-    // Cascading Deep Deletion (Purges profile, duplicates, and logs)
+    // Cascading Deep Deletion
     window.deleteStudent = async (id) => {
       const student = cachedStudents.find(s => s.id === id);
       const studentName = student ? student.name : "this student";
