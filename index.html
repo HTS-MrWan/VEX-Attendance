@@ -108,20 +108,54 @@
     </div>
 
     <!-- Tab 2: Students Section -->
-    <div id="studentsSection" class="hidden bg-gray-800 rounded-xl overflow-x-auto border border-gray-700">
-      <table class="w-full text-left text-sm">
-        <thead class="bg-gray-700 text-gray-300">
-          <tr>
-            <th class="p-3.5">Student Name (Last, First)</th>
-            <th class="p-3.5">Program</th>
-            <th class="p-3.5">Assigned Card ID</th>
-            <th class="p-3.5 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="studentsTableBody" class="divide-y divide-gray-700">
-          <tr><td colspan="4" class="p-4 text-center text-gray-400">Loading students...</td></tr>
-        </tbody>
-      </table>
+    <div id="studentsSection" class="hidden flex-col gap-4">
+      
+      <!-- At-Risk Attention Banner -->
+      <div id="atRiskAlertBanner" class="hidden bg-red-950/80 border border-red-700/80 text-red-200 p-4 rounded-xl flex items-center justify-between shadow-lg">
+        <div class="flex items-center gap-3">
+          <span class="p-2 bg-red-900/90 rounded-lg text-red-300">
+            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+          </span>
+          <div>
+            <p class="font-bold text-sm text-white" id="atRiskBannerTitle">Attendance Attention Required</p>
+            <p class="text-xs text-red-300" id="atRiskBannerSubtitle">Students have missed 10 or more consecutive lab meetings.</p>
+          </div>
+        </div>
+        <button id="viewAtRiskQuickBtn" class="bg-red-700 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition whitespace-nowrap">
+          Filter At-Risk
+        </button>
+      </div>
+
+      <!-- Students Sub-Toolbar (Filter by Activity) -->
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-gray-850 p-2.5 px-4 rounded-xl border border-gray-700">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-semibold text-gray-400 mr-1">Filter Students:</span>
+          <button id="filterAllStudentsBtn" class="px-3 py-1 rounded-lg text-xs font-bold bg-red-600 text-white transition">All Students</button>
+          <button id="filterAtRiskBtn" class="px-3 py-1 rounded-lg text-xs font-bold text-gray-400 hover:text-white transition flex items-center gap-1.5">
+            <span>⚠️ At-Risk Only (10+ Missed)</span>
+            <span id="atRiskCountBadge" class="hidden px-1.5 py-0.2 rounded-full text-[10px] bg-red-800 text-red-200 font-mono">0</span>
+          </button>
+        </div>
+        <div id="sessionStatsText" class="text-xs text-gray-400 font-medium"></div>
+      </div>
+
+      <!-- Students Table -->
+      <div class="bg-gray-800 rounded-xl overflow-x-auto border border-gray-700">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-gray-700 text-gray-300">
+            <tr>
+              <th class="p-3.5">Student Name (Last, First)</th>
+              <th class="p-3.5">Program</th>
+              <th class="p-3.5">Assigned Card ID</th>
+              <th class="p-3.5">Attendance Status</th>
+              <th class="p-3.5 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="studentsTableBody" class="divide-y divide-gray-700">
+            <tr><td colspan="5" class="p-4 text-center text-gray-400">Loading students...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
 
@@ -264,11 +298,12 @@
             <h3 id="historyStudentName" class="text-xl font-bold text-white">Student Name</h3>
             <span id="historyProgramBadge" class="text-xs font-bold px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800">V5</span>
           </div>
-          <div class="text-xs text-gray-400 flex items-center gap-2">
+          <div class="text-xs text-gray-400 flex flex-wrap items-center gap-2">
             <span>Card ID: <strong id="historyCardId" class="font-mono text-gray-300"></strong></span>
             <span>•</span>
             <span id="historyTotalSessions" class="text-emerald-400 font-semibold">0 check-ins total</span>
           </div>
+          <div id="historyRateText" class="text-xs text-amber-400 mt-1 font-medium"></div>
         </div>
         <button id="closeHistoryBtn" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-700 transition">
           <i data-lucide="x" class="w-5 h-5"></i>
@@ -287,7 +322,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.5.0
+    v1.5.1
   </div>
 
   <script type="module">
@@ -315,6 +350,7 @@
 
     let currentView = "kiosk";
     let selectedProgramFilter = "V5";
+    let filterOnlyAtRisk = false;
     let pendingCardId = null;
     let cachedPrograms = [];
     let cachedLogs = [];
@@ -344,7 +380,7 @@
     const cancelPasswordBtn = document.getElementById("cancelPasswordBtn");
     const cardInput = document.getElementById("cardInput");
     
-    // Program Management & Deletion Modals
+    // Dynamic Program & Deletion Controls
     const programTabsList = document.getElementById("programTabsList");
     const addProgramBtn = document.getElementById("addProgramBtn");
     const addProgramModal = document.getElementById("addProgramModal");
@@ -366,9 +402,19 @@
     const historyProgramBadge = document.getElementById("historyProgramBadge");
     const historyCardId = document.getElementById("historyCardId");
     const historyTotalSessions = document.getElementById("historyTotalSessions");
+    const historyRateText = document.getElementById("historyRateText");
     const historyListContainer = document.getElementById("historyListContainer");
     const closeHistoryBtn = document.getElementById("closeHistoryBtn");
     const closeHistoryFooterBtn = document.getElementById("closeHistoryFooterBtn");
+
+    // Sub-toolbar & At-Risk Controls
+    const atRiskAlertBanner = document.getElementById("atRiskAlertBanner");
+    const atRiskBannerSubtitle = document.getElementById("atRiskBannerSubtitle");
+    const viewAtRiskQuickBtn = document.getElementById("viewAtRiskQuickBtn");
+    const filterAllStudentsBtn = document.getElementById("filterAllStudentsBtn");
+    const filterAtRiskBtn = document.getElementById("filterAtRiskBtn");
+    const atRiskCountBadge = document.getElementById("atRiskCountBadge");
+    const sessionStatsText = document.getElementById("sessionStatsText");
 
     const currentSectionTitle = document.getElementById("currentSectionTitle");
     const tabLogsBtn = document.getElementById("tabLogsBtn");
@@ -437,8 +483,6 @@
           modalCardId.textContent = cardId;
           firstNameInput.value = "";
           lastNameInput.value = "";
-          
-          // Populate programs dropdown
           renderProgramSelectDropdown();
           
           registerModal.classList.remove("hidden");
@@ -585,7 +629,6 @@
     async function loadPrograms() {
       const snap = await getDocs(collection(db, "programs"));
       if (snap.empty) {
-        // Auto-seed V5 and IQ defaults
         await setDoc(doc(db, "programs", "V5"), { name: "VEX V5", code: "V5", createdAt: serverTimestamp() });
         await setDoc(doc(db, "programs", "IQ"), { name: "VEX IQ", code: "IQ", createdAt: serverTimestamp() });
         cachedPrograms = [
@@ -628,6 +671,8 @@
 
     window.switchProgram = (code) => {
       selectedProgramFilter = code;
+      filterOnlyAtRisk = false;
+      updateFilterButtonsUI();
       renderProgramTabs();
       updateProgramView();
     };
@@ -682,6 +727,7 @@
 
         cachedPrograms.push({ id: code, name: name, code: code });
         selectedProgramFilter = code;
+        filterOnlyAtRisk = false;
 
         renderProgramTabs();
         renderProgramSelectDropdown();
@@ -725,23 +771,20 @@
       executeDeleteProgramBtn.textContent = "Purging Program...";
 
       try {
-        // 1. Delete matching students
         const studentsToDelete = cachedStudents.filter(s => (s.program || "V5") === progToDelete);
         const cardIds = new Set(studentsToDelete.map(s => s.cardId));
         await Promise.all(studentsToDelete.map(d => deleteDoc(doc(db, "students", d.id))));
         cachedStudents = cachedStudents.filter(s => (s.program || "V5") !== progToDelete);
 
-        // 2. Delete matching logs
         const logsToDelete = cachedLogs.filter(l => cardIds.has(l.cardId) || (l.program || "V5") === progToDelete);
         await Promise.all(logsToDelete.map(l => deleteDoc(doc(db, "attendance", l.id))));
         cachedLogs = cachedLogs.filter(l => !cardIds.has(l.cardId) && (l.program || "V5") !== progToDelete);
 
-        // 3. Delete program document
         await deleteDoc(doc(db, "programs", progToDelete));
         cachedPrograms = cachedPrograms.filter(p => p.code !== progToDelete);
 
-        // Switch to next available program
         selectedProgramFilter = cachedPrograms[0]?.code || "V5";
+        filterOnlyAtRisk = false;
 
         deleteProgramModal.classList.add("hidden");
         executeDeleteProgramBtn.textContent = "Permanently Delete Program";
@@ -762,6 +805,7 @@
       
       logsSection.classList.remove("hidden");
       studentsSection.classList.add("hidden");
+      studentsSection.classList.remove("flex");
       
       deleteAllLogsBtn.classList.remove("hidden");
       deleteAllLogsBtn.classList.add("flex");
@@ -778,6 +822,7 @@
       tabLogsBtn.className = "bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md text-sm font-semibold transition";
       
       studentsSection.classList.remove("hidden");
+      studentsSection.classList.add("flex");
       logsSection.classList.add("hidden");
 
       deleteAllStudentsBtn.classList.remove("hidden");
@@ -804,6 +849,7 @@
         await Promise.all(toDelete.map(d => deleteDoc(doc(db, "attendance", d.id))));
         cachedLogs = cachedLogs.filter(l => (l.program || "V5") !== prog);
         renderDailyLogs();
+        renderStudents();
       } catch (err) {
         alert("Error deleting logs: " + err.message);
       } finally {
@@ -898,6 +944,17 @@
           month: "long",
           day: "numeric"
         });
+      } catch (e) {
+        return dateStr;
+      }
+    }
+
+    function formatDateShort(dateStr) {
+      if (!dateStr) return "Never";
+      try {
+        const [year, month, day] = dateStr.split("-").map(Number);
+        const d = new Date(year, month - 1, day);
+        return d.toLocaleDateString("en-CA", { month: "short", day: "numeric" });
       } catch (e) {
         return dateStr;
       }
@@ -1048,14 +1105,55 @@
         await Promise.all(logIds.map(id => deleteDoc(doc(db, "attendance", id))));
         cachedLogs = cachedLogs.filter(l => !logIds.includes(l.id));
         renderDailyLogs();
+        renderStudents();
       } catch (err) {
         alert("Error deleting attendance: " + err.message);
       }
     };
 
+    // ================= REGISTERED STUDENTS & AT-RISK LOGIC =================
+    function getDistinctLabDates(program) {
+      return [...new Set(
+        cachedLogs
+          .filter(l => (l.program || "V5") === program)
+          .map(l => l.localDate)
+          .filter(Boolean)
+      )].sort((a, b) => b.localeCompare(a));
+    }
+
+    function calculateStudentMissedSessions(cardId, distinctDates) {
+      const studentLogs = cachedLogs.filter(l => l.cardId === cardId && (l.program || "V5") === selectedProgramFilter);
+      if (studentLogs.length === 0) {
+        return {
+          missed: distinctDates.length,
+          lastDate: null,
+          totalAttendedDates: 0,
+          neverAttended: true
+        };
+      }
+      
+      const lastDate = studentLogs[0].localDate;
+      const missed = distinctDates.filter(d => d > lastDate).length;
+      const attendedUniqueDates = new Set(studentLogs.map(l => l.localDate)).size;
+
+      return {
+        missed: missed,
+        lastDate: lastDate,
+        totalAttendedDates: attendedUniqueDates,
+        neverAttended: false
+      };
+    }
+
     function renderStudents() {
-      const currentStudents = cachedStudents
+      const distinctDates = getDistinctLabDates(selectedProgramFilter);
+      sessionStatsText.textContent = `${distinctDates.length} distinct lab session${distinctDates.length === 1 ? '' : 's'} recorded to date`;
+
+      let programStudents = cachedStudents
         .filter(s => (s.program || "V5") === selectedProgramFilter)
+        .map(s => {
+          const stats = calculateStudentMissedSessions(s.cardId, distinctDates);
+          return { ...s, stats };
+        })
         .sort((a, b) => {
           const lastA = getLastName(a.name);
           const lastB = getLastName(b.name);
@@ -1064,17 +1162,71 @@
           return getFirstName(a.name).localeCompare(getFirstName(b.name));
         });
 
-      if (currentStudents.length === 0) {
-        studentsTableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">No registered ${selectedProgramFilter} students.</td></tr>`;
+      // Count at-risk students (missed >= 10 sessions)
+      const atRiskStudents = programStudents.filter(s => s.stats.missed >= 10 && distinctDates.length >= 10);
+      
+      // Update At-Risk Banner & Count Badge
+      if (atRiskStudents.length > 0) {
+        atRiskAlertBanner.classList.remove("hidden");
+        atRiskBannerSubtitle.textContent = `${atRiskStudents.length} student${atRiskStudents.length === 1 ? '' : 's'} in ${selectedProgramFilter} have missed 10 or more consecutive lab meetings.`;
+        atRiskCountBadge.textContent = atRiskStudents.length;
+        atRiskCountBadge.classList.remove("hidden");
+      } else {
+        atRiskAlertBanner.classList.add("hidden");
+        atRiskCountBadge.classList.add("hidden");
+      }
+
+      // Apply filter if active
+      let displayedStudents = programStudents;
+      if (filterOnlyAtRisk) {
+        displayedStudents = atRiskStudents;
+      }
+
+      if (displayedStudents.length === 0) {
+        const msg = filterOnlyAtRisk 
+          ? `No at-risk students found in ${selectedProgramFilter}! Everyone is keeping up.` 
+          : `No registered ${selectedProgramFilter} students.`;
+        studentsTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400 font-medium">${msg}</td></tr>`;
         return;
       }
-      studentsTableBody.innerHTML = currentStudents.map(s => {
+
+      studentsTableBody.innerHTML = displayedStudents.map(s => {
         const prog = s.program || "V5";
+        const stats = s.stats;
         
         let moveBtnLabel = "Move Program";
         if (cachedPrograms.length === 2) {
           const otherProg = cachedPrograms.find(p => p.code !== prog)?.code || "V5";
           moveBtnLabel = `Move to ${otherProg}`;
+        }
+
+        // Attendance Status Badge Rendering
+        let statusBadgeHtml = "";
+        if (distinctDates.length === 0) {
+          statusBadgeHtml = `<span class="text-xs text-gray-500 font-medium">No lab sessions held yet</span>`;
+        } else if (stats.missed >= 10 && distinctDates.length >= 10) {
+          const label = stats.neverAttended ? `Never Attended (${stats.missed} sessions)` : `⚠️ ${stats.missed} sessions missed`;
+          statusBadgeHtml = `
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-red-950/90 text-red-300 border border-red-700 animate-pulse shadow-sm">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-red-400"></i>
+              <span>${label}</span>
+            </span>
+          `;
+        } else if (stats.missed >= 5) {
+          statusBadgeHtml = `
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-950/70 text-amber-300 border border-amber-700/60">
+              <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Absent ${stats.missed} sessions</span>
+            </span>
+          `;
+        } else {
+          const lastText = stats.lastDate ? `Last: ${formatDateShort(stats.lastDate)}` : "Present recently";
+          statusBadgeHtml = `
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-950/60 text-emerald-300 border border-emerald-700/60">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>Active (${lastText})</span>
+            </span>
+          `;
         }
 
         return `
@@ -1090,6 +1242,7 @@
               <span class="text-xs font-bold px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800">${prog}</span>
             </td>
             <td class="p-3.5 font-mono text-gray-400">${s.cardId}</td>
+            <td class="p-3.5">${statusBadgeHtml}</td>
             <td class="p-3.5 text-right whitespace-nowrap">
               <button onclick="window.editStudent('${s.id}')" class="text-blue-400 hover:text-blue-300 font-medium mr-4 transition">
                 Edit
@@ -1107,9 +1260,39 @@
       lucide.createIcons();
     }
 
+    // Filter Toggle Controls
+    filterAllStudentsBtn.addEventListener("click", () => {
+      filterOnlyAtRisk = false;
+      updateFilterButtonsUI();
+      renderStudents();
+    });
+
+    filterAtRiskBtn.addEventListener("click", () => {
+      filterOnlyAtRisk = true;
+      updateFilterButtonsUI();
+      renderStudents();
+    });
+
+    viewAtRiskQuickBtn.addEventListener("click", () => {
+      filterOnlyAtRisk = true;
+      updateFilterButtonsUI();
+      renderStudents();
+    });
+
+    function updateFilterButtonsUI() {
+      if (filterOnlyAtRisk) {
+        filterAtRiskBtn.className = "px-3 py-1 rounded-lg text-xs font-bold bg-red-600 text-white transition flex items-center gap-1.5 shadow";
+        filterAllStudentsBtn.className = "px-3 py-1 rounded-lg text-xs font-bold text-gray-400 hover:text-white transition";
+      } else {
+        filterAllStudentsBtn.className = "px-3 py-1 rounded-lg text-xs font-bold bg-red-600 text-white transition shadow";
+        filterAtRiskBtn.className = "px-3 py-1 rounded-lg text-xs font-bold text-gray-400 hover:text-white transition flex items-center gap-1.5";
+      }
+    }
+
     // View Student History
     window.viewStudentHistory = (cardId, studentName, prog) => {
       const studentLogs = cachedLogs.filter(l => l.cardId === cardId);
+      const distinctDates = getDistinctLabDates(prog);
 
       historyStudentName.textContent = studentName;
       historyCardId.textContent = cardId;
@@ -1117,6 +1300,7 @@
 
       if (studentLogs.length === 0) {
         historyTotalSessions.textContent = "0 check-ins total";
+        historyRateText.textContent = distinctDates.length > 0 ? `Missed all ${distinctDates.length} sessions held so far` : "";
         historyListContainer.innerHTML = `
           <div class="py-8 text-center text-gray-400 text-sm">
             No check-in logs found for this student.
@@ -1131,7 +1315,19 @@
         });
 
         const sortedDates = Object.keys(dateGroups).sort((a, b) => b.localeCompare(a));
-        historyTotalSessions.textContent = `${sortedDates.length} ${sortedDates.length === 1 ? 'day' : 'days'} attended (${studentLogs.length} total tap${studentLogs.length === 1 ? '' : 's'})`;
+        const attendedCount = sortedDates.length;
+        const totalHeld = distinctDates.length;
+
+        historyTotalSessions.textContent = `${attendedCount} ${attendedCount === 1 ? 'day' : 'days'} attended (${studentLogs.length} total tap${studentLogs.length === 1 ? '' : 's'})`;
+
+        const mostRecentDate = sortedDates[0];
+        const missedSince = distinctDates.filter(d => d > mostRecentDate).length;
+        
+        let rateSummary = `Attended ${attendedCount} of ${totalHeld} recorded lab sessions`;
+        if (missedSince > 0) {
+          rateSummary += ` • Missed the last ${missedSince} session${missedSince === 1 ? '' : 's'}`;
+        }
+        historyRateText.textContent = rateSummary;
 
         historyListContainer.innerHTML = sortedDates.map(dateKey => {
           const times = dateGroups[dateKey];
