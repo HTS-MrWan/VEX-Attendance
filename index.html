@@ -187,7 +187,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.4.5
+    v1.4.6
   </div>
 
   <script type="module">
@@ -680,8 +680,7 @@
               <td class="p-3.5 font-mono text-gray-400">${student.cardId}</td>
               <td class="p-3.5 text-gray-300">${timeDisplay}</td>
               <td class="p-3.5 text-right">
-                <button onclick="window.editDailyStudentName('${escapedLogIds}', '${student.studentName}')" class="text-blue-400 hover:text-blue-300 mr-3">Edit</button>
-                <button onclick="window.deleteDailyStudentLogs('${escapedLogIds}')" class="text-red-400 hover:text-red-300">Delete</button>
+                <button onclick="window.deleteDailyStudentLogs('${escapedLogIds}')" class="text-red-400 hover:text-red-300 transition">Delete</button>
               </td>
             </tr>
           `;
@@ -770,22 +769,6 @@
       }
     };
 
-    window.editDailyStudentName = async (logIdsJson, currentName) => {
-      const logIds = JSON.parse(logIdsJson);
-      const newName = prompt("Update student name:", currentName);
-      if (!newName || newName === currentName) return;
-
-      try {
-        await Promise.all(logIds.map(id => updateDoc(doc(db, "attendance", id), { studentName: newName })));
-        cachedLogs.forEach(l => {
-          if (logIds.includes(l.id)) l.studentName = newName;
-        });
-        renderDailyLogs();
-      } catch (err) {
-        alert("Error updating student name: " + err.message);
-      }
-    };
-
     function renderStudents() {
       const currentStudents = cachedStudents
         .filter(s => (s.program || "V5") === selectedProgramFilter)
@@ -815,6 +798,9 @@
             </td>
             <td class="p-3.5 font-mono text-gray-400">${s.cardId}</td>
             <td class="p-3.5 text-right whitespace-nowrap">
+              <button onclick="window.editStudent('${s.id}')" class="text-blue-400 hover:text-blue-300 font-medium mr-4 transition">
+                Edit
+              </button>
               <button onclick="window.swapStudentProgram('${s.id}')" class="text-amber-400 hover:text-amber-300 font-medium mr-4 transition">
                 Move to ${targetProg}
               </button>
@@ -827,6 +813,62 @@
       }).join("");
     }
 
+    // Edit Student Name in Profile & Cascade to All Attendance Logs
+    window.editStudent = async (id) => {
+      const student = cachedStudents.find(s => s.id === id);
+      if (!student) return;
+
+      const currentFirst = student.firstName || (student.name ? student.name.split(" ")[0] : "");
+      const currentLast = student.lastName || (student.name ? student.name.split(" ").slice(1).join(" ") : "");
+
+      const newFirst = prompt("Enter First Name:", currentFirst);
+      if (newFirst === null) return;
+      const newLast = prompt("Enter Last Name:", currentLast);
+      if (newLast === null) return;
+
+      const trimmedFirst = newFirst.trim();
+      const trimmedLast = newLast.trim();
+      if (!trimmedFirst || !trimmedLast) {
+        alert("Both First Name and Last Name are required.");
+        return;
+      }
+
+      const newFullName = `${trimmedFirst} ${trimmedLast}`;
+
+      try {
+        // 1. Update Student profile document in Firestore
+        await updateDoc(doc(db, "students", id), {
+          firstName: trimmedFirst,
+          lastName: trimmedLast,
+          name: newFullName
+        });
+
+        student.firstName = trimmedFirst;
+        student.lastName = trimmedLast;
+        student.name = newFullName;
+
+        // 2. Cascade updated name to all attendance records with this cardId
+        if (student.cardId) {
+          const q = query(collection(db, "attendance"), where("cardId", "==", student.cardId));
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            await Promise.all(snap.docs.map(d => updateDoc(doc(db, "attendance", d.id), { studentName: newFullName })));
+          }
+
+          cachedLogs.forEach(l => {
+            if (l.cardId === student.cardId) {
+              l.studentName = newFullName;
+            }
+          });
+        }
+
+        renderStudents();
+        renderDailyLogs();
+      } catch (err) {
+        alert("Error updating student name: " + err.message);
+      }
+    };
+
     // Move Student + Past Logs Between V5 and IQ
     window.swapStudentProgram = async (id) => {
       const student = cachedStudents.find(s => s.id === id);
@@ -838,11 +880,9 @@
       if (!confirm(`Move "${student.name}" and all their attendance history from VEX ${currentProg} to VEX ${newProg}?`)) return;
 
       try {
-        // 1. Update Student Profile
         await updateDoc(doc(db, "students", id), { program: newProg });
         student.program = newProg;
 
-        // 2. Update All Related Attendance Records
         if (student.cardId) {
           const q = query(collection(db, "attendance"), where("cardId", "==", student.cardId));
           const snap = await getDocs(q);
@@ -876,7 +916,6 @@
         cachedStudents = cachedStudents.filter(s => s.id !== id);
 
         if (cardId) {
-          // Purge any duplicates in the students collection
           const dupQuery = query(collection(db, "students"), where("cardId", "==", cardId));
           const dupSnap = await getDocs(dupQuery);
           if (!dupSnap.empty) {
@@ -884,7 +923,6 @@
             cachedStudents = cachedStudents.filter(s => s.cardId !== cardId);
           }
 
-          // Purge all attendance records for this cardId
           const q = query(collection(db, "attendance"), where("cardId", "==", cardId));
           const snap = await getDocs(q);
           if (!snap.empty) {
