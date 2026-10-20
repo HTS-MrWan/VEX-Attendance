@@ -265,6 +265,34 @@
     </div>
   </div>
 
+  <!-- ================= MODAL: BULK DELETE CONFIRMATION ================= -->
+  <div id="bulkDeleteModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+    <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-red-800/80 shadow-2xl">
+      <div class="flex items-center gap-3 mb-3 text-red-500">
+        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+        <h3 id="bulkDeleteTitle" class="text-xl font-bold text-white">Permanently Delete?</h3>
+      </div>
+      
+      <p id="bulkDeleteDescription" class="text-sm text-gray-300 mb-3 leading-relaxed"></p>
+      
+      <div id="bulkDeleteWarningList" class="text-xs text-gray-400 bg-gray-900/80 p-3 rounded-lg border border-gray-700 mb-4"></div>
+
+      <p class="text-xs text-gray-300 font-semibold mb-2">
+        To confirm, type <span class="text-red-400 font-mono select-all">Ronny is awesome!</span> below:
+      </p>
+
+      <input id="bulkConfirmPhraseInput" type="text" placeholder="Ronny is awesome!" autocomplete="off"
+        class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 mb-4 text-white font-mono" />
+
+      <div class="flex justify-end gap-3">
+        <button type="button" id="cancelBulkDeleteBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Cancel</button>
+        <button type="button" id="executeBulkDeleteBtn" disabled class="bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-red-500 text-white font-bold px-4 py-2 rounded-lg text-sm transition">
+          Confirm Deletion
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= MODAL: ADD PROGRAM ================= -->
   <div id="addProgramModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
     <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-gray-700 shadow-2xl">
@@ -364,7 +392,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.5.2
+    v1.5.3
   </div>
 
   <script type="module">
@@ -385,7 +413,8 @@
     };
 
     const ADMIN_PASSWORD = "awesomelawson";
-    const REQUIRED_CONFIRM_PHRASE = "Ronny is the Best!";
+    const PROGRAM_DELETE_CONFIRM_PHRASE = "Ronny is the Best!";
+    const BULK_DELETE_CONFIRM_PHRASE = "Ronny is awesome!";
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -399,6 +428,7 @@
     let cachedStudents = [];
     let edvanceStatusMap = {};
     let isProcessing = false;
+    let pendingBulkDeleteType = null; // 'logs' or 'students'
 
     const kioskView = document.getElementById("kioskView");
     const adminView = document.getElementById("adminView");
@@ -448,6 +478,15 @@
     const cancelDeleteProgramBtn = document.getElementById("cancelDeleteProgramBtn");
     const executeDeleteProgramBtn = document.getElementById("executeDeleteProgramBtn");
 
+    // Bulk Delete Modal Controls
+    const bulkDeleteModal = document.getElementById("bulkDeleteModal");
+    const bulkDeleteTitle = document.getElementById("bulkDeleteTitle");
+    const bulkDeleteDescription = document.getElementById("bulkDeleteDescription");
+    const bulkDeleteWarningList = document.getElementById("bulkDeleteWarningList");
+    const bulkConfirmPhraseInput = document.getElementById("bulkConfirmPhraseInput");
+    const cancelBulkDeleteBtn = document.getElementById("cancelBulkDeleteBtn");
+    const executeBulkDeleteBtn = document.getElementById("executeBulkDeleteBtn");
+
     // History Modal Elements
     const historyModal = document.getElementById("historyModal");
     const historyStudentName = document.getElementById("historyStudentName");
@@ -489,6 +528,7 @@
         historyModal.classList.contains("hidden") &&
         addProgramModal.classList.contains("hidden") &&
         deleteProgramModal.classList.contains("hidden") &&
+        bulkDeleteModal.classList.contains("hidden") &&
         manualEntryModal.classList.contains("hidden")
       ) {
         cardInput.focus();
@@ -572,7 +612,6 @@
         localTime: localTime
       });
 
-      // Optimistically push to local cache for instant zero-reload reactivity
       cachedLogs.unshift({
         id: docRef.id,
         cardId: cardId,
@@ -835,7 +874,7 @@
     });
 
     confirmPhraseInput.addEventListener("input", (e) => {
-      executeDeleteProgramBtn.disabled = (e.target.value.trim() !== REQUIRED_CONFIRM_PHRASE);
+      executeDeleteProgramBtn.disabled = (e.target.value.trim() !== PROGRAM_DELETE_CONFIRM_PHRASE);
     });
 
     cancelDeleteProgramBtn.addEventListener("click", () => {
@@ -843,7 +882,7 @@
     });
 
     executeDeleteProgramBtn.addEventListener("click", async () => {
-      if (confirmPhraseInput.value.trim() !== REQUIRED_CONFIRM_PHRASE) return;
+      if (confirmPhraseInput.value.trim() !== PROGRAM_DELETE_CONFIRM_PHRASE) return;
 
       const progToDelete = selectedProgramFilter;
       executeDeleteProgramBtn.disabled = true;
@@ -877,6 +916,92 @@
       }
     });
 
+    // ================= BULK DELETE MODAL ("Ronny is awesome!") =================
+    deleteAllLogsBtn.addEventListener("click", () => {
+      const prog = selectedProgramFilter;
+      pendingBulkDeleteType = "logs";
+      bulkDeleteTitle.textContent = `Delete All ${prog} Logs?`;
+      bulkDeleteDescription.innerHTML = `You are about to permanently delete all attendance check-in records for <strong>${prog}</strong>.`;
+      bulkDeleteWarningList.innerHTML = `
+        <ul class="list-disc list-inside space-y-1">
+          <li>All daily attendance history for ${prog} will be erased.</li>
+          <li>All Edvance translation checkmark records for ${prog} will be reset.</li>
+          <li>Registered student profiles will <strong>not</strong> be removed.</li>
+        </ul>
+      `;
+      bulkConfirmPhraseInput.value = "";
+      executeBulkDeleteBtn.disabled = true;
+      bulkDeleteModal.classList.remove("hidden");
+      bulkConfirmPhraseInput.focus();
+    });
+
+    deleteAllStudentsBtn.addEventListener("click", () => {
+      const prog = selectedProgramFilter;
+      pendingBulkDeleteType = "students";
+      bulkDeleteTitle.textContent = `Delete All ${prog} Students?`;
+      bulkDeleteDescription.innerHTML = `You are about to permanently delete all registered student profiles in <strong>${prog}</strong> and their check-in history.`;
+      bulkDeleteWarningList.innerHTML = `
+        <ul class="list-disc list-inside space-y-1">
+          <li><strong>ALL</strong> registered student accounts for ${prog} will be deleted.</li>
+          <li><strong>ALL</strong> associated attendance check-in logs for those students will be permanently wiped.</li>
+          <li>This action cannot be undone.</li>
+        </ul>
+      `;
+      bulkConfirmPhraseInput.value = "";
+      executeBulkDeleteBtn.disabled = true;
+      bulkDeleteModal.classList.remove("hidden");
+      bulkConfirmPhraseInput.focus();
+    });
+
+    bulkConfirmPhraseInput.addEventListener("input", (e) => {
+      executeBulkDeleteBtn.disabled = (e.target.value.trim() !== BULK_DELETE_CONFIRM_PHRASE);
+    });
+
+    cancelBulkDeleteBtn.addEventListener("click", () => {
+      bulkDeleteModal.classList.add("hidden");
+      pendingBulkDeleteType = null;
+    });
+
+    executeBulkDeleteBtn.addEventListener("click", async () => {
+      if (bulkConfirmPhraseInput.value.trim() !== BULK_DELETE_CONFIRM_PHRASE) return;
+
+      const prog = selectedProgramFilter;
+      executeBulkDeleteBtn.disabled = true;
+      executeBulkDeleteBtn.textContent = "Deleting...";
+
+      try {
+        if (pendingBulkDeleteType === "logs") {
+          const toDelete = cachedLogs.filter(l => (l.program || "V5") === prog);
+          await Promise.all(toDelete.map(d => deleteDoc(doc(db, "attendance", d.id))));
+          cachedLogs = cachedLogs.filter(l => (l.program || "V5") !== prog);
+          renderDailyLogs();
+          renderStudents();
+        } else if (pendingBulkDeleteType === "students") {
+          const studentsToDelete = cachedStudents.filter(s => (s.program || "V5") === prog);
+          const cardIdsToDelete = new Set(studentsToDelete.map(s => s.cardId));
+
+          await Promise.all(studentsToDelete.map(d => deleteDoc(doc(db, "students", d.id))));
+          cachedStudents = cachedStudents.filter(s => (s.program || "V5") !== prog);
+
+          const logsToDelete = cachedLogs.filter(l => cardIdsToDelete.has(l.cardId) || (l.program || "V5") === prog);
+          await Promise.all(logsToDelete.map(l => deleteDoc(doc(db, "attendance", l.id))));
+          cachedLogs = cachedLogs.filter(l => !cardIdsToDelete.has(l.cardId) && (l.program || "V5") !== prog);
+
+          renderStudents();
+          renderDailyLogs();
+        }
+
+        bulkDeleteModal.classList.add("hidden");
+        pendingBulkDeleteType = null;
+      } catch (err) {
+        alert("Error during bulk deletion: " + err.message);
+      } finally {
+        executeBulkDeleteBtn.textContent = "Confirm Deletion";
+        executeBulkDeleteBtn.disabled = false;
+        lucide.createIcons();
+      }
+    });
+
     // ================= MANUAL CHECK-IN SYSTEM =================
     manualEntryBtn.addEventListener("click", () => {
       renderProgramSelectDropdown();
@@ -897,14 +1022,12 @@
       const prog = manualProgramSelect.value;
       const today = new Date().toLocaleDateString('en-CA');
 
-      // Find all students in this program who have already checked in today
       const checkedInTodayCards = new Set(
         cachedLogs
           .filter(l => (l.program || "V5") === prog && l.localDate === today)
           .map(l => l.cardId)
       );
 
-      // Filter registered students in this program who HAVEN'T signed in yet today
       const eligibleStudents = cachedStudents
         .filter(s => (s.program || "V5") === prog && !checkedInTodayCards.has(s.cardId))
         .sort((a, b) => {
@@ -990,61 +1113,6 @@
       
       exportCsvBtn.classList.add("hidden");
       exportCsvBtn.classList.remove("flex");
-    });
-
-    deleteAllLogsBtn.addEventListener("click", async () => {
-      const prog = selectedProgramFilter;
-      if (!confirm(`⚠️ WARNING: This will permanently delete ALL ${prog} attendance logs. Are you sure?`)) return;
-      if (!confirm(`Are you ABSOLUTELY sure? Only ${prog} logs will be removed.`)) return;
-
-      const originalText = deleteAllLogsBtn.innerHTML;
-      deleteAllLogsBtn.innerHTML = "Deleting...";
-      deleteAllLogsBtn.disabled = true;
-
-      try {
-        const toDelete = cachedLogs.filter(l => (l.program || "V5") === prog);
-        await Promise.all(toDelete.map(d => deleteDoc(doc(db, "attendance", d.id))));
-        cachedLogs = cachedLogs.filter(l => (l.program || "V5") !== prog);
-        renderDailyLogs();
-        renderStudents();
-      } catch (err) {
-        alert("Error deleting logs: " + err.message);
-      } finally {
-        deleteAllLogsBtn.innerHTML = originalText;
-        deleteAllLogsBtn.disabled = false;
-        lucide.createIcons();
-      }
-    });
-
-    deleteAllStudentsBtn.addEventListener("click", async () => {
-      const prog = selectedProgramFilter;
-      if (!confirm(`⚠️ WARNING: This will permanently delete ALL registered ${prog} students AND all of their attendance records. Are you sure?`)) return;
-      if (!confirm(`Are you ABSOLUTELY sure? This will purge ${prog} students and their logs permanently.`)) return;
-
-      const originalText = deleteAllStudentsBtn.innerHTML;
-      deleteAllStudentsBtn.innerHTML = "Deleting...";
-      deleteAllStudentsBtn.disabled = true;
-
-      try {
-        const studentsToDelete = cachedStudents.filter(s => (s.program || "V5") === prog);
-        const cardIdsToDelete = new Set(studentsToDelete.map(s => s.cardId));
-
-        await Promise.all(studentsToDelete.map(d => deleteDoc(doc(db, "students", d.id))));
-        cachedStudents = cachedStudents.filter(s => (s.program || "V5") !== prog);
-
-        const logsToDelete = cachedLogs.filter(l => cardIdsToDelete.has(l.cardId) || (l.program || "V5") === prog);
-        await Promise.all(logsToDelete.map(l => deleteDoc(doc(db, "attendance", l.id))));
-        cachedLogs = cachedLogs.filter(l => !cardIdsToDelete.has(l.cardId) && (l.program || "V5") !== prog);
-
-        renderStudents();
-        renderDailyLogs();
-      } catch (err) {
-        alert("Error deleting students: " + err.message);
-      } finally {
-        deleteAllStudentsBtn.innerHTML = originalText;
-        deleteAllStudentsBtn.disabled = false;
-        lucide.createIcons();
-      }
     });
 
     async function loadAdminData() {
@@ -1619,7 +1687,7 @@
       }
     };
 
-    // Delete Student Profile + Cascade
+    // Delete Single Student Profile + Cascade
     window.deleteStudent = async (id) => {
       const student = cachedStudents.find(s => s.id === id);
       const studentName = student ? student.name : "this student";
