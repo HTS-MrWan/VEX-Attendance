@@ -87,6 +87,9 @@
         Showing Records
       </div>
       <div class="flex gap-2 flex-wrap">
+        <button id="manualEntryBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition shadow">
+          <i data-lucide="user-check" class="w-4 h-4"></i> Manual Check-In
+        </button>
         <button id="deleteProgramBtn" class="bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-300 px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition">
           <i data-lucide="folder-x" class="w-4 h-4"></i> Delete Program
         </button>
@@ -223,6 +226,45 @@
     </div>
   </div>
 
+  <!-- ================= MODAL: MANUAL CHECK-IN ================= -->
+  <div id="manualEntryModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
+    <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-gray-700 shadow-2xl">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="p-2 bg-indigo-950 border border-indigo-700 text-indigo-400 rounded-lg">
+          <i data-lucide="user-check" class="w-5 h-5"></i>
+        </div>
+        <h3 class="text-xl font-bold">Manual Student Check-In</h3>
+      </div>
+      <p class="text-gray-400 text-sm mb-4">Check in a student who forgot or lost their physical badge today.</p>
+
+      <form id="manualEntryForm" class="flex flex-col gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Select Program</label>
+          <select id="manualProgramSelect" class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-indigo-500 text-white font-semibold">
+            <!-- Dynamic program options -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Select Student (Unchecked Today)</label>
+          <select id="manualStudentSelect" class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-indigo-500 text-white font-semibold">
+            <!-- Dynamically populated with students not yet checked in today -->
+          </select>
+          <p id="noStudentsNotice" class="hidden text-xs text-emerald-400 mt-2 font-medium">
+            ✓ All registered students in this program have already checked in today!
+          </p>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-2">
+          <button type="button" id="cancelManualEntryBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Cancel</button>
+          <button type="submit" id="submitManualEntryBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+            Check In Student
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ================= MODAL: ADD PROGRAM ================= -->
   <div id="addProgramModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
     <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-gray-700 shadow-2xl">
@@ -322,7 +364,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.5.1
+    v1.5.2
   </div>
 
   <script type="module">
@@ -380,6 +422,16 @@
     const cancelPasswordBtn = document.getElementById("cancelPasswordBtn");
     const cardInput = document.getElementById("cardInput");
     
+    // Manual Check-In Elements
+    const manualEntryBtn = document.getElementById("manualEntryBtn");
+    const manualEntryModal = document.getElementById("manualEntryModal");
+    const manualEntryForm = document.getElementById("manualEntryForm");
+    const manualProgramSelect = document.getElementById("manualProgramSelect");
+    const manualStudentSelect = document.getElementById("manualStudentSelect");
+    const noStudentsNotice = document.getElementById("noStudentsNotice");
+    const cancelManualEntryBtn = document.getElementById("cancelManualEntryBtn");
+    const submitManualEntryBtn = document.getElementById("submitManualEntryBtn");
+
     // Dynamic Program & Deletion Controls
     const programTabsList = document.getElementById("programTabsList");
     const addProgramBtn = document.getElementById("addProgramBtn");
@@ -436,7 +488,8 @@
         passwordModal.classList.contains("hidden") &&
         historyModal.classList.contains("hidden") &&
         addProgramModal.classList.contains("hidden") &&
-        deleteProgramModal.classList.contains("hidden")
+        deleteProgramModal.classList.contains("hidden") &&
+        manualEntryModal.classList.contains("hidden")
       ) {
         cardInput.focus();
       }
@@ -507,14 +560,28 @@
 
     async function recordAttendance(cardId, name, program) {
       const now = new Date();
-      await addDoc(collection(db, "attendance"), {
+      const localDate = now.toLocaleDateString('en-CA');
+      const localTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      const docRef = await addDoc(collection(db, "attendance"), {
         cardId: cardId,
         studentName: name,
         program: program,
         timestamp: serverTimestamp(),
-        localDate: now.toLocaleDateString('en-CA'),
-        localTime: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        localDate: localDate,
+        localTime: localTime
       });
+
+      // Optimistically push to local cache for instant zero-reload reactivity
+      cachedLogs.unshift({
+        id: docRef.id,
+        cardId: cardId,
+        studentName: name,
+        program: program,
+        localDate: localDate,
+        localTime: localTime
+      });
+
       showBanner(true, `${name} (${program}) has checked in today!`);
     }
 
@@ -548,13 +615,22 @@
       modalError.classList.add("hidden");
 
       try {
-        await addDoc(collection(db, "students"), {
+        const studentDoc = await addDoc(collection(db, "students"), {
           cardId: card,
           firstName: fName,
           lastName: lName,
           name: fullName,
           program: prog,
           registeredAt: serverTimestamp()
+        });
+
+        cachedStudents.push({
+          id: studentDoc.id,
+          cardId: card,
+          firstName: fName,
+          lastName: lName,
+          name: fullName,
+          program: prog
         });
 
         await recordAttendance(card, fullName, prog);
@@ -662,11 +738,14 @@
     }
 
     function renderProgramSelectDropdown() {
-      programSelect.innerHTML = cachedPrograms.map(p => `
+      const optionsHtml = cachedPrograms.map(p => `
         <option value="${p.code}" ${p.code === selectedProgramFilter ? 'selected' : ''}>
           ${p.name} (${p.code})
         </option>
       `).join("");
+
+      programSelect.innerHTML = optionsHtml;
+      manualProgramSelect.innerHTML = optionsHtml;
     }
 
     window.switchProgram = (code) => {
@@ -795,6 +874,84 @@
       } catch (err) {
         alert("Error during program deletion: " + err.message);
         executeDeleteProgramBtn.textContent = "Permanently Delete Program";
+      }
+    });
+
+    // ================= MANUAL CHECK-IN SYSTEM =================
+    manualEntryBtn.addEventListener("click", () => {
+      renderProgramSelectDropdown();
+      manualProgramSelect.value = selectedProgramFilter;
+      populateManualStudentList();
+      manualEntryModal.classList.remove("hidden");
+    });
+
+    manualProgramSelect.addEventListener("change", () => {
+      populateManualStudentList();
+    });
+
+    cancelManualEntryBtn.addEventListener("click", () => {
+      manualEntryModal.classList.add("hidden");
+    });
+
+    function populateManualStudentList() {
+      const prog = manualProgramSelect.value;
+      const today = new Date().toLocaleDateString('en-CA');
+
+      // Find all students in this program who have already checked in today
+      const checkedInTodayCards = new Set(
+        cachedLogs
+          .filter(l => (l.program || "V5") === prog && l.localDate === today)
+          .map(l => l.cardId)
+      );
+
+      // Filter registered students in this program who HAVEN'T signed in yet today
+      const eligibleStudents = cachedStudents
+        .filter(s => (s.program || "V5") === prog && !checkedInTodayCards.has(s.cardId))
+        .sort((a, b) => {
+          const comp = getLastName(a.name).localeCompare(getLastName(b.name));
+          return comp !== 0 ? comp : getFirstName(a.name).localeCompare(getFirstName(b.name));
+        });
+
+      if (eligibleStudents.length === 0) {
+        manualStudentSelect.innerHTML = "";
+        manualStudentSelect.classList.add("hidden");
+        noStudentsNotice.classList.remove("hidden");
+        submitManualEntryBtn.disabled = true;
+        submitManualEntryBtn.classList.add("opacity-50", "cursor-not-allowed");
+      } else {
+        manualStudentSelect.innerHTML = eligibleStudents.map(s => `
+          <option value="${s.id}">
+            ${s.name} (Card: ${s.cardId})
+          </option>
+        `).join("");
+        manualStudentSelect.classList.remove("hidden");
+        noStudentsNotice.classList.add("hidden");
+        submitManualEntryBtn.disabled = false;
+        submitManualEntryBtn.classList.remove("opacity-50", "cursor-not-allowed");
+      }
+    }
+
+    manualEntryForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const studentId = manualStudentSelect.value;
+      const prog = manualProgramSelect.value;
+      const student = cachedStudents.find(s => s.id === studentId);
+
+      if (!student) return;
+
+      submitManualEntryBtn.disabled = true;
+      submitManualEntryBtn.textContent = "Logging Check-In...";
+
+      try {
+        await recordAttendance(student.cardId, student.name, prog);
+        manualEntryModal.classList.add("hidden");
+        renderDailyLogs();
+        renderStudents();
+      } catch (err) {
+        alert("Error saving manual check-in: " + err.message);
+      } finally {
+        submitManualEntryBtn.disabled = false;
+        submitManualEntryBtn.textContent = "Check In Student";
       }
     });
 
@@ -1162,10 +1319,8 @@
           return getFirstName(a.name).localeCompare(getFirstName(b.name));
         });
 
-      // Count at-risk students (missed >= 10 sessions)
       const atRiskStudents = programStudents.filter(s => s.stats.missed >= 10 && distinctDates.length >= 10);
       
-      // Update At-Risk Banner & Count Badge
       if (atRiskStudents.length > 0) {
         atRiskAlertBanner.classList.remove("hidden");
         atRiskBannerSubtitle.textContent = `${atRiskStudents.length} student${atRiskStudents.length === 1 ? '' : 's'} in ${selectedProgramFilter} have missed 10 or more consecutive lab meetings.`;
@@ -1176,7 +1331,6 @@
         atRiskCountBadge.classList.add("hidden");
       }
 
-      // Apply filter if active
       let displayedStudents = programStudents;
       if (filterOnlyAtRisk) {
         displayedStudents = atRiskStudents;
@@ -1200,7 +1354,6 @@
           moveBtnLabel = `Move to ${otherProg}`;
         }
 
-        // Attendance Status Badge Rendering
         let statusBadgeHtml = "";
         if (distinctDates.length === 0) {
           statusBadgeHtml = `<span class="text-xs text-gray-500 font-medium">No lab sessions held yet</span>`;
