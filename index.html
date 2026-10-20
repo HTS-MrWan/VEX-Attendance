@@ -27,7 +27,7 @@
         <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-600"></span>
       </span>
       <span class="text-xs sm:text-sm font-black text-gray-100 uppercase tracking-widest">
-        VEX V5 & IQ: Sign In Here With Key Card
+        Robotics Lab: Sign In Here With Key Card
       </span>
     </div>
 
@@ -63,14 +63,16 @@
   <!-- ================= ADMIN VIEW ================= -->
   <main id="adminView" class="hidden flex-1 max-w-5xl w-full mx-auto p-6 flex-col gap-6">
     
-    <!-- Program Selector (V5 vs IQ) -->
+    <!-- Dynamic Program Selector Bar -->
     <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-850 p-3 rounded-2xl border border-gray-700">
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 flex-wrap">
         <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 mr-1">Program:</span>
-        <div class="flex bg-gray-900 p-1 rounded-xl border border-gray-700">
-          <button id="filterV5Btn" class="px-5 py-1.5 rounded-lg text-sm font-bold bg-red-600 text-white shadow transition">VEX V5</button>
-          <button id="filterIQBtn" class="px-5 py-1.5 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition">VEX IQ</button>
+        <div id="programTabsList" class="flex flex-wrap bg-gray-900 p-1 rounded-xl border border-gray-700 gap-1">
+          <!-- Dynamically injected program tabs -->
         </div>
+        <button id="addProgramBtn" class="bg-gray-800 hover:bg-gray-700 border border-gray-600 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition">
+          <i data-lucide="plus" class="w-3.5 h-3.5 text-red-400"></i> Add Program
+        </button>
       </div>
 
       <div class="flex gap-2">
@@ -80,16 +82,19 @@
     </div>
 
     <!-- Actions Bar -->
-    <div class="flex justify-between items-center gap-4">
+    <div class="flex flex-wrap justify-between items-center gap-4">
       <div class="text-sm font-medium text-gray-400" id="currentSectionTitle">
-        Showing VEX V5 Records
+        Showing Records
       </div>
-      <div class="flex gap-2">
-        <button id="deleteAllLogsBtn" class="bg-red-950 hover:bg-red-900 border border-red-800 text-red-300 px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-2 transition">
-          <i data-lucide="trash-2" class="w-4 h-4"></i> Delete V5 Logs
+      <div class="flex gap-2 flex-wrap">
+        <button id="deleteProgramBtn" class="bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-300 px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="folder-x" class="w-4 h-4"></i> Delete Program
         </button>
-        <button id="deleteAllStudentsBtn" class="hidden bg-red-950 hover:bg-red-900 border border-red-800 text-red-300 px-4 py-2 rounded-md text-sm font-semibold items-center gap-2 transition">
-          <i data-lucide="trash-2" class="w-4 h-4"></i> Delete V5 Students
+        <button id="deleteAllLogsBtn" class="bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-300 px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="trash-2" class="w-4 h-4"></i> Delete Logs
+        </button>
+        <button id="deleteAllStudentsBtn" class="hidden bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-300 px-3.5 py-2 rounded-md text-sm font-semibold items-center gap-1.5 transition">
+          <i data-lucide="trash-2" class="w-4 h-4"></i> Delete Students
         </button>
         <button id="exportCsvBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-2 transition">
           <i data-lucide="download" class="w-4 h-4"></i> Export CSV
@@ -158,10 +163,9 @@
 
       <form id="registerForm" class="flex flex-col gap-3">
         <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1">VEX Program</label>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Program</label>
           <select id="programSelect" class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white font-semibold">
-            <option value="V5">VEX V5</option>
-            <option value="IQ">VEX IQ</option>
+            <!-- Dynamic program options -->
           </select>
         </div>
 
@@ -185,15 +189,80 @@
     </div>
   </div>
 
+  <!-- ================= MODAL: ADD PROGRAM ================= -->
+  <div id="addProgramModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
+    <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-gray-700 shadow-2xl">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="p-2 bg-gray-700 rounded-lg text-red-400">
+          <i data-lucide="folder-plus" class="w-5 h-5"></i>
+        </div>
+        <h3 class="text-xl font-bold">Add New Program</h3>
+      </div>
+      <p class="text-gray-400 text-sm mb-4">Create a new program to start tracking separate attendance records and students.</p>
+
+      <form id="addProgramForm" class="flex flex-col gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Program Full Name</label>
+          <input id="newProgramNameInput" type="text" placeholder="e.g. FIRST Tech Challenge" required
+            class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-400 mb-1">Short Code / Badge Label (Max 8 Chars)</label>
+          <input id="newProgramCodeInput" type="text" placeholder="e.g. FTC or SKILLS" maxlength="8" required
+            class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white uppercase font-mono" />
+        </div>
+
+        <div class="flex justify-end gap-3 mt-3">
+          <button type="button" id="cancelAddProgramBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Cancel</button>
+          <button type="submit" id="submitAddProgramBtn" class="bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-lg text-sm">
+            Create Program
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: DELETE ENTIRE PROGRAM ================= -->
+  <div id="deleteProgramModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+    <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-red-800/80 shadow-2xl">
+      <div class="flex items-center gap-3 mb-3 text-red-500">
+        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+        <h3 class="text-xl font-bold text-white">Permanently Delete Program?</h3>
+      </div>
+      
+      <p class="text-sm text-gray-300 mb-3 leading-relaxed">
+        You are about to delete <strong id="deleteProgramTargetName" class="text-red-400"></strong>. This will permanently delete:
+      </p>
+      <ul class="text-xs text-gray-400 list-disc list-inside space-y-1 mb-4 bg-gray-900/80 p-3 rounded-lg border border-gray-700">
+        <li>The program configuration and dashboard tabs</li>
+        <li><strong>ALL</strong> registered student profiles in this program</li>
+        <li><strong>ALL</strong> attendance check-in logs and Edvance records for this program</li>
+      </ul>
+
+      <p class="text-xs text-gray-300 font-semibold mb-2">
+        To confirm, type <span class="text-red-400 font-mono select-all">Ronny is the Best!</span> below:
+      </p>
+
+      <input id="confirmPhraseInput" type="text" placeholder="Ronny is the Best!" autocomplete="off"
+        class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 mb-4 text-white font-mono" />
+
+      <div class="flex justify-end gap-3">
+        <button type="button" id="cancelDeleteProgramBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Cancel</button>
+        <button type="button" id="executeDeleteProgramBtn" disabled class="bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-red-500 text-white font-bold px-4 py-2 rounded-lg text-sm transition">
+          Permanently Delete Program
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= MODAL: STUDENT ATTENDANCE HISTORY ================= -->
   <div id="historyModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
     <div class="bg-gray-800 rounded-2xl max-w-lg w-full p-6 border border-gray-700 shadow-2xl flex flex-col max-h-[85vh]">
-      <!-- Header -->
       <div class="flex items-start justify-between border-b border-gray-700 pb-4 mb-4">
         <div>
           <div class="flex items-center gap-2 mb-1">
             <h3 id="historyStudentName" class="text-xl font-bold text-white">Student Name</h3>
-            <span id="historyProgramBadge" class="text-xs font-bold px-2 py-0.5 rounded">V5</span>
+            <span id="historyProgramBadge" class="text-xs font-bold px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800">V5</span>
           </div>
           <div class="text-xs text-gray-400 flex items-center gap-2">
             <span>Card ID: <strong id="historyCardId" class="font-mono text-gray-300"></strong></span>
@@ -206,12 +275,8 @@
         </button>
       </div>
 
-      <!-- History List (Scrollable) -->
-      <div id="historyListContainer" class="flex-1 overflow-y-auto divide-y divide-gray-700 pr-1">
-        <!-- Dynamic history rows injected here -->
-      </div>
+      <div id="historyListContainer" class="flex-1 overflow-y-auto divide-y divide-gray-700 pr-1"></div>
 
-      <!-- Footer -->
       <div class="border-t border-gray-700 pt-4 mt-4 flex justify-end">
         <button id="closeHistoryFooterBtn" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
           Close
@@ -222,7 +287,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.4.7
+    v1.5.0
   </div>
 
   <script type="module">
@@ -243,6 +308,7 @@
     };
 
     const ADMIN_PASSWORD = "awesomelawson";
+    const REQUIRED_CONFIRM_PHRASE = "Ronny is the Best!";
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -250,6 +316,7 @@
     let currentView = "kiosk";
     let selectedProgramFilter = "V5";
     let pendingCardId = null;
+    let cachedPrograms = [];
     let cachedLogs = [];
     let cachedStudents = [];
     let edvanceStatusMap = {};
@@ -277,6 +344,22 @@
     const cancelPasswordBtn = document.getElementById("cancelPasswordBtn");
     const cardInput = document.getElementById("cardInput");
     
+    // Program Management & Deletion Modals
+    const programTabsList = document.getElementById("programTabsList");
+    const addProgramBtn = document.getElementById("addProgramBtn");
+    const addProgramModal = document.getElementById("addProgramModal");
+    const addProgramForm = document.getElementById("addProgramForm");
+    const newProgramNameInput = document.getElementById("newProgramNameInput");
+    const newProgramCodeInput = document.getElementById("newProgramCodeInput");
+    const cancelAddProgramBtn = document.getElementById("cancelAddProgramBtn");
+
+    const deleteProgramBtn = document.getElementById("deleteProgramBtn");
+    const deleteProgramModal = document.getElementById("deleteProgramModal");
+    const deleteProgramTargetName = document.getElementById("deleteProgramTargetName");
+    const confirmPhraseInput = document.getElementById("confirmPhraseInput");
+    const cancelDeleteProgramBtn = document.getElementById("cancelDeleteProgramBtn");
+    const executeDeleteProgramBtn = document.getElementById("executeDeleteProgramBtn");
+
     // History Modal Elements
     const historyModal = document.getElementById("historyModal");
     const historyStudentName = document.getElementById("historyStudentName");
@@ -287,10 +370,7 @@
     const closeHistoryBtn = document.getElementById("closeHistoryBtn");
     const closeHistoryFooterBtn = document.getElementById("closeHistoryFooterBtn");
 
-    const filterV5Btn = document.getElementById("filterV5Btn");
-    const filterIQBtn = document.getElementById("filterIQBtn");
     const currentSectionTitle = document.getElementById("currentSectionTitle");
-
     const tabLogsBtn = document.getElementById("tabLogsBtn");
     const tabStudentsBtn = document.getElementById("tabStudentsBtn");
     const deleteAllLogsBtn = document.getElementById("deleteAllLogsBtn");
@@ -308,7 +388,9 @@
         currentView === "kiosk" &&
         registerModal.classList.contains("hidden") &&
         passwordModal.classList.contains("hidden") &&
-        historyModal.classList.contains("hidden")
+        historyModal.classList.contains("hidden") &&
+        addProgramModal.classList.contains("hidden") &&
+        deleteProgramModal.classList.contains("hidden")
       ) {
         cardInput.focus();
       }
@@ -355,7 +437,9 @@
           modalCardId.textContent = cardId;
           firstNameInput.value = "";
           lastNameInput.value = "";
-          programSelect.value = "V5";
+          
+          // Populate programs dropdown
+          renderProgramSelectDropdown();
           
           registerModal.classList.remove("hidden");
           setTimeout(() => {
@@ -387,7 +471,7 @@
         localDate: now.toLocaleDateString('en-CA'),
         localTime: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
       });
-      showBanner(true, `${name} (${program}) has checked into VEX robotics today!`);
+      showBanner(true, `${name} (${program}) has checked in today!`);
     }
 
     let bannerTimer = null;
@@ -497,29 +581,181 @@
       focusScannerInput();
     });
 
-    filterV5Btn.addEventListener("click", () => {
-      selectedProgramFilter = "V5";
-      filterV5Btn.className = "px-5 py-1.5 rounded-lg text-sm font-bold bg-red-600 text-white shadow transition";
-      filterIQBtn.className = "px-5 py-1.5 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition";
-      updateProgramView();
-    });
+    // ================= DYNAMIC PROGRAMS SYSTEM =================
+    async function loadPrograms() {
+      const snap = await getDocs(collection(db, "programs"));
+      if (snap.empty) {
+        // Auto-seed V5 and IQ defaults
+        await setDoc(doc(db, "programs", "V5"), { name: "VEX V5", code: "V5", createdAt: serverTimestamp() });
+        await setDoc(doc(db, "programs", "IQ"), { name: "VEX IQ", code: "IQ", createdAt: serverTimestamp() });
+        cachedPrograms = [
+          { id: "V5", name: "VEX V5", code: "V5" },
+          { id: "IQ", name: "VEX IQ", code: "IQ" }
+        ];
+      } else {
+        cachedPrograms = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      }
 
-    filterIQBtn.addEventListener("click", () => {
-      selectedProgramFilter = "IQ";
-      filterIQBtn.className = "px-5 py-1.5 rounded-lg text-sm font-bold bg-red-600 text-white shadow transition";
-      filterV5Btn.className = "px-5 py-1.5 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition";
+      if (!cachedPrograms.some(p => p.code === selectedProgramFilter)) {
+        selectedProgramFilter = cachedPrograms[0]?.code || "V5";
+      }
+
+      renderProgramTabs();
+      renderProgramSelectDropdown();
+    }
+
+    function renderProgramTabs() {
+      programTabsList.innerHTML = cachedPrograms.map(p => {
+        const isActive = p.code === selectedProgramFilter;
+        return `
+          <button onclick="window.switchProgram('${p.code}')" 
+            class="px-4 py-1.5 rounded-lg text-sm font-bold transition ${
+              isActive ? 'bg-red-600 text-white shadow' : 'text-gray-400 hover:text-white'
+            }">
+            ${p.code}
+          </button>
+        `;
+      }).join("");
+    }
+
+    function renderProgramSelectDropdown() {
+      programSelect.innerHTML = cachedPrograms.map(p => `
+        <option value="${p.code}" ${p.code === selectedProgramFilter ? 'selected' : ''}>
+          ${p.name} (${p.code})
+        </option>
+      `).join("");
+    }
+
+    window.switchProgram = (code) => {
+      selectedProgramFilter = code;
+      renderProgramTabs();
       updateProgramView();
-    });
+    };
 
     function updateProgramView() {
-      currentSectionTitle.textContent = `Showing VEX ${selectedProgramFilter} Records`;
+      const currentProgObj = cachedPrograms.find(p => p.code === selectedProgramFilter);
+      const progLabel = currentProgObj ? currentProgObj.name : selectedProgramFilter;
+
+      currentSectionTitle.textContent = `Showing ${progLabel} Records`;
       deleteAllLogsBtn.innerHTML = `<i data-lucide="trash-2" class="w-4 h-4"></i> Delete ${selectedProgramFilter} Logs`;
       deleteAllStudentsBtn.innerHTML = `<i data-lucide="trash-2" class="w-4 h-4"></i> Delete ${selectedProgramFilter} Students`;
+      deleteProgramBtn.innerHTML = `<i data-lucide="folder-x" class="w-4 h-4"></i> Delete ${selectedProgramFilter}`;
+      
       renderDailyLogs();
       renderStudents();
       lucide.createIcons();
     }
 
+    // Modal: Add New Program
+    addProgramBtn.addEventListener("click", () => {
+      newProgramNameInput.value = "";
+      newProgramCodeInput.value = "";
+      addProgramModal.classList.remove("hidden");
+      newProgramNameInput.focus();
+    });
+
+    cancelAddProgramBtn.addEventListener("click", () => {
+      addProgramModal.classList.add("hidden");
+    });
+
+    addProgramForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = newProgramNameInput.value.trim();
+      const code = newProgramCodeInput.value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "");
+
+      if (!name || !code) {
+        alert("Please provide both a program name and short code.");
+        return;
+      }
+
+      if (cachedPrograms.some(p => p.code === code)) {
+        alert(`Program with code "${code}" already exists.`);
+        return;
+      }
+
+      try {
+        await setDoc(doc(db, "programs", code), {
+          name: name,
+          code: code,
+          createdAt: serverTimestamp()
+        });
+
+        cachedPrograms.push({ id: code, name: name, code: code });
+        selectedProgramFilter = code;
+
+        renderProgramTabs();
+        renderProgramSelectDropdown();
+        updateProgramView();
+        addProgramModal.classList.add("hidden");
+      } catch (err) {
+        alert("Error creating program: " + err.message);
+      }
+    });
+
+    // Modal: Delete Entire Program (Guarded by "Ronny is the Best!")
+    deleteProgramBtn.addEventListener("click", () => {
+      if (cachedPrograms.length <= 1) {
+        alert("You must maintain at least one active program.");
+        return;
+      }
+
+      const currentProgObj = cachedPrograms.find(p => p.code === selectedProgramFilter);
+      const displayName = currentProgObj ? `${currentProgObj.name} (${currentProgObj.code})` : selectedProgramFilter;
+
+      deleteProgramTargetName.textContent = displayName;
+      confirmPhraseInput.value = "";
+      executeDeleteProgramBtn.disabled = true;
+      deleteProgramModal.classList.remove("hidden");
+      confirmPhraseInput.focus();
+    });
+
+    confirmPhraseInput.addEventListener("input", (e) => {
+      executeDeleteProgramBtn.disabled = (e.target.value.trim() !== REQUIRED_CONFIRM_PHRASE);
+    });
+
+    cancelDeleteProgramBtn.addEventListener("click", () => {
+      deleteProgramModal.classList.add("hidden");
+    });
+
+    executeDeleteProgramBtn.addEventListener("click", async () => {
+      if (confirmPhraseInput.value.trim() !== REQUIRED_CONFIRM_PHRASE) return;
+
+      const progToDelete = selectedProgramFilter;
+      executeDeleteProgramBtn.disabled = true;
+      executeDeleteProgramBtn.textContent = "Purging Program...";
+
+      try {
+        // 1. Delete matching students
+        const studentsToDelete = cachedStudents.filter(s => (s.program || "V5") === progToDelete);
+        const cardIds = new Set(studentsToDelete.map(s => s.cardId));
+        await Promise.all(studentsToDelete.map(d => deleteDoc(doc(db, "students", d.id))));
+        cachedStudents = cachedStudents.filter(s => (s.program || "V5") !== progToDelete);
+
+        // 2. Delete matching logs
+        const logsToDelete = cachedLogs.filter(l => cardIds.has(l.cardId) || (l.program || "V5") === progToDelete);
+        await Promise.all(logsToDelete.map(l => deleteDoc(doc(db, "attendance", l.id))));
+        cachedLogs = cachedLogs.filter(l => !cardIds.has(l.cardId) && (l.program || "V5") !== progToDelete);
+
+        // 3. Delete program document
+        await deleteDoc(doc(db, "programs", progToDelete));
+        cachedPrograms = cachedPrograms.filter(p => p.code !== progToDelete);
+
+        // Switch to next available program
+        selectedProgramFilter = cachedPrograms[0]?.code || "V5";
+
+        deleteProgramModal.classList.add("hidden");
+        executeDeleteProgramBtn.textContent = "Permanently Delete Program";
+        
+        renderProgramTabs();
+        renderProgramSelectDropdown();
+        updateProgramView();
+      } catch (err) {
+        alert("Error during program deletion: " + err.message);
+        executeDeleteProgramBtn.textContent = "Permanently Delete Program";
+      }
+    });
+
+    // ================= TAB SWITCHING =================
     tabLogsBtn.addEventListener("click", () => {
       tabLogsBtn.className = "bg-red-600 px-4 py-2 rounded-md text-sm font-semibold transition";
       tabStudentsBtn.className = "bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md text-sm font-semibold transition";
@@ -609,6 +845,8 @@
     });
 
     async function loadAdminData() {
+      await loadPrograms();
+
       const logsSnap = await getDocs(query(collection(db, "attendance"), orderBy("timestamp", "desc")));
       cachedLogs = logsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
@@ -669,7 +907,7 @@
       const currentLogs = cachedLogs.filter(log => (log.program || "V5") === selectedProgramFilter);
 
       if (currentLogs.length === 0) {
-        logsSection.innerHTML = `<div class="p-8 text-center bg-gray-800 rounded-xl text-gray-400 border border-gray-700">No VEX ${selectedProgramFilter} attendance logs found.</div>`;
+        logsSection.innerHTML = `<div class="p-8 text-center bg-gray-800 rounded-xl text-gray-400 border border-gray-700">No ${selectedProgramFilter} attendance logs found.</div>`;
         return;
       }
 
@@ -827,12 +1065,17 @@
         });
 
       if (currentStudents.length === 0) {
-        studentsTableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">No registered VEX ${selectedProgramFilter} students.</td></tr>`;
+        studentsTableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">No registered ${selectedProgramFilter} students.</td></tr>`;
         return;
       }
       studentsTableBody.innerHTML = currentStudents.map(s => {
         const prog = s.program || "V5";
-        const targetProg = prog === "V5" ? "IQ" : "V5";
+        
+        let moveBtnLabel = "Move Program";
+        if (cachedPrograms.length === 2) {
+          const otherProg = cachedPrograms.find(p => p.code !== prog)?.code || "V5";
+          moveBtnLabel = `Move to ${otherProg}`;
+        }
 
         return `
           <tr class="hover:bg-gray-750 transition-colors">
@@ -844,9 +1087,7 @@
               </button>
             </td>
             <td class="p-3.5">
-              <span class="text-xs font-bold px-2 py-0.5 rounded ${
-                prog === 'IQ' ? 'bg-blue-950 text-blue-400 border border-blue-800' : 'bg-red-950 text-red-400 border border-red-800'
-              }">${prog}</span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800">${prog}</span>
             </td>
             <td class="p-3.5 font-mono text-gray-400">${s.cardId}</td>
             <td class="p-3.5 text-right whitespace-nowrap">
@@ -854,7 +1095,7 @@
                 Edit
               </button>
               <button onclick="window.swapStudentProgram('${s.id}')" class="text-amber-400 hover:text-amber-300 font-medium mr-4 transition">
-                Move to ${targetProg}
+                ${moveBtnLabel}
               </button>
               <button onclick="window.deleteStudent('${s.id}')" class="text-red-400 hover:text-red-300 transition">
                 Delete
@@ -866,17 +1107,13 @@
       lucide.createIcons();
     }
 
-    // View Comprehensive History for a Single Student
+    // View Student History
     window.viewStudentHistory = (cardId, studentName, prog) => {
-      // Find all check-ins for this card across the entire logs cache
       const studentLogs = cachedLogs.filter(l => l.cardId === cardId);
 
       historyStudentName.textContent = studentName;
       historyCardId.textContent = cardId;
       historyProgramBadge.textContent = prog;
-      historyProgramBadge.className = `text-xs font-bold px-2 py-0.5 rounded ${
-        prog === 'IQ' ? 'bg-blue-950 text-blue-400 border border-blue-800' : 'bg-red-950 text-red-400 border border-red-800'
-      }`;
 
       if (studentLogs.length === 0) {
         historyTotalSessions.textContent = "0 check-ins total";
@@ -886,7 +1123,6 @@
           </div>
         `;
       } else {
-        // Group by localDate
         const dateGroups = {};
         studentLogs.forEach(l => {
           const d = l.localDate || "Unknown Date";
@@ -930,7 +1166,7 @@
       if (e.target === historyModal) closeHistoryModal();
     });
 
-    // Edit Student Name in Profile & Cascade to All Attendance Logs
+    // Edit Student Name
     window.editStudent = async (id) => {
       const student = cachedStudents.find(s => s.id === id);
       if (!student) return;
@@ -984,29 +1220,45 @@
       }
     };
 
-    // Move Student + Past Logs Between V5 and IQ
+    // Move Student Between Any Programs
     window.swapStudentProgram = async (id) => {
       const student = cachedStudents.find(s => s.id === id);
       if (!student) return;
 
       const currentProg = student.program || "V5";
-      const newProg = currentProg === "V5" ? "IQ" : "V5";
+      let targetProg = null;
 
-      if (!confirm(`Move "${student.name}" and all their attendance history from VEX ${currentProg} to VEX ${newProg}?`)) return;
+      if (cachedPrograms.length === 2) {
+        targetProg = cachedPrograms.find(p => p.code !== currentProg)?.code;
+      } else {
+        const availableOptions = cachedPrograms.filter(p => p.code !== currentProg).map(p => p.code);
+        const choice = prompt(`Move "${student.name}" from ${currentProg} to which program?\nAvailable options: ${availableOptions.join(", ")}`);
+        if (!choice) return;
+        const matched = availableOptions.find(o => o.toLowerCase() === choice.trim().toLowerCase());
+        if (!matched) {
+          alert(`Invalid program. Please choose from: ${availableOptions.join(", ")}`);
+          return;
+        }
+        targetProg = matched;
+      }
+
+      if (!targetProg) return;
+
+      if (!confirm(`Move "${student.name}" and all their attendance history from ${currentProg} to ${targetProg}?`)) return;
 
       try {
-        await updateDoc(doc(db, "students", id), { program: newProg });
-        student.program = newProg;
+        await updateDoc(doc(db, "students", id), { program: targetProg });
+        student.program = targetProg;
 
         if (student.cardId) {
           const q = query(collection(db, "attendance"), where("cardId", "==", student.cardId));
           const snap = await getDocs(q);
           if (!snap.empty) {
-            await Promise.all(snap.docs.map(d => updateDoc(doc(db, "attendance", d.id), { program: newProg })));
+            await Promise.all(snap.docs.map(d => updateDoc(doc(db, "attendance", d.id), { program: targetProg })));
           }
           cachedLogs.forEach(log => {
             if (log.cardId === student.cardId) {
-              log.program = newProg;
+              log.program = targetProg;
             }
           });
         }
@@ -1018,7 +1270,7 @@
       }
     };
 
-    // Cascading Deep Deletion
+    // Delete Student Profile + Cascade
     window.deleteStudent = async (id) => {
       const student = cachedStudents.find(s => s.id === id);
       const studentName = student ? student.name : "this student";
@@ -1053,6 +1305,7 @@
       }
     };
 
+    // CSV Download
     exportCsvBtn.addEventListener("click", () => {
       const prog = selectedProgramFilter;
       const headers = ["Date", "Program", "Student Name", "Card ID", "Time(s)", "Translated to Edvance"];
