@@ -186,6 +186,48 @@
     </div>
   </main>
 
+  <!-- ================= MODAL: EDIT STUDENT PROFILE & PROGRAM ================= -->
+  <div id="editStudentModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-800 rounded-2xl max-w-md w-full p-6 border border-slate-700 shadow-2xl">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="p-2 bg-indigo-950/80 border border-indigo-700 text-indigo-400 rounded-lg">
+          <i data-lucide="user-cog" class="w-5 h-5"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white">Edit Student Profile</h3>
+      </div>
+      <p class="text-slate-400 text-sm mb-4">
+        Update name or transfer this student and all past check-in logs to another program.
+      </p>
+
+      <form id="editStudentForm" class="flex flex-col gap-4">
+        <input type="hidden" id="editStudentId" />
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Enrolled Program</label>
+          <select id="editProgramSelect" class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white font-semibold text-sm">
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Student Name</label>
+          <div class="flex gap-3">
+            <input id="editFirstNameInput" type="text" placeholder="First Name" required autocomplete="off"
+              class="w-1/2 px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white" />
+            <input id="editLastNameInput" type="text" placeholder="Last Name" required autocomplete="off"
+              class="w-1/2 px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white" />
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-2">
+          <button type="button" id="cancelEditStudentBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-semibold">Cancel</button>
+          <button type="submit" id="submitEditStudentBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-lg text-sm transition shadow-md shadow-indigo-500/20">
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ================= MODAL: MERGE STUDENTS ================= -->
   <div id="mergeModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
     <div class="bg-slate-800 rounded-2xl max-w-lg w-full p-6 border border-slate-700 shadow-2xl">
@@ -292,7 +334,6 @@
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li><strong>Organized Program Ordering:</strong> Program tabs always appear in the consistent order of <strong>V5 $\rightarrow$ IQ $\rightarrow$ SRP $\rightarrow$ SRE</strong>, followed chronologically by any new programs added.</li>
             <li><strong>Add Custom Programs:</strong> Teachers can click <strong>"+ Add Program"</strong> to create new programs. Each program receives its own isolated attendance logs and student roster.</li>
-            <li><strong>Program Swapping:</strong> In Registered Students, teachers can move any student to another program using <strong>Move Program</strong>. Their profile and all past attendance logs automatically transfer over.</li>
           </ul>
         </section>
 
@@ -329,7 +370,7 @@
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li><strong>Alphabetical Sorting:</strong> Registered students are sorted alphabetically by last name, then first name.</li>
             <li><strong>Attendance History:</strong> Click on any student's name in the table to open their comprehensive attendance breakdown, showing their card ID, linked aliases, total sessions attended, attendance rate, and every logged check-in timestamp.</li>
-            <li><strong>Edit Profile:</strong> Click <strong>Edit</strong> in the student table to update their First or Last Name. Changes cascade across the database, automatically updating all past attendance logs.</li>
+            <li><strong>Edit & Program Transfer:</strong> Click <strong>Edit</strong> in the student table to open the profile modal. Update their First Name, Last Name, or choose a new program from the dropdown to transfer the student and their entire history.</li>
           </ul>
         </section>
 
@@ -372,7 +413,7 @@
       </div>
 
       <div class="border-t border-slate-700 pt-4 mt-4 flex justify-between items-center">
-        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.6.1</span>
+        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.6.2</span>
         <button id="closeUserManualFooterBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           Close Manual
         </button>
@@ -607,7 +648,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-slate-500 bg-slate-800/90 border border-slate-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.6.1
+    v1.6.2
   </div>
 
   <script type="module">
@@ -684,6 +725,16 @@
     const noStudentsNotice = document.getElementById("noStudentsNotice");
     const cancelManualEntryBtn = document.getElementById("cancelManualEntryBtn");
     const submitManualEntryBtn = document.getElementById("submitManualEntryBtn");
+
+    // Edit Student Elements
+    const editStudentModal = document.getElementById("editStudentModal");
+    const editStudentForm = document.getElementById("editStudentForm");
+    const editStudentId = document.getElementById("editStudentId");
+    const editProgramSelect = document.getElementById("editProgramSelect");
+    const editFirstNameInput = document.getElementById("editFirstNameInput");
+    const editLastNameInput = document.getElementById("editLastNameInput");
+    const cancelEditStudentBtn = document.getElementById("cancelEditStudentBtn");
+    const submitEditStudentBtn = document.getElementById("submitEditStudentBtn");
 
     // Merge Student Elements
     const openMergeModalBtn = document.getElementById("openMergeModalBtn");
@@ -796,6 +847,7 @@
         bulkDeleteModal.classList.contains("hidden") &&
         manualEntryModal.classList.contains("hidden") &&
         mergeModal.classList.contains("hidden") &&
+        editStudentModal.classList.contains("hidden") &&
         userManualModal.classList.contains("hidden")
       ) {
         cardInput.focus();
@@ -1547,6 +1599,114 @@
       }
     });
 
+    // ================= EDIT STUDENT MODAL =================
+    window.editStudent = (id) => {
+      const student = cachedStudents.find(s => s.id === id);
+      if (!student) return;
+
+      editStudentId.value = id;
+      editFirstNameInput.value = student.firstName || (student.name ? student.name.split(" ")[0] : "");
+      editLastNameInput.value = student.lastName || (student.name ? student.name.split(" ").slice(1).join(" ") : "");
+
+      const currentProg = student.program || "V5";
+      editProgramSelect.innerHTML = cachedPrograms.map(p => `
+        <option value="${p.code}" ${p.code === currentProg ? 'selected' : ''}>
+          ${p.name} (${p.code})
+        </option>
+      `).join("");
+
+      editStudentModal.classList.remove("hidden");
+      setTimeout(() => {
+        editFirstNameInput.focus();
+      }, 100);
+    };
+
+    cancelEditStudentBtn.addEventListener("click", () => {
+      editStudentModal.classList.add("hidden");
+      focusScannerInput();
+    });
+
+    editStudentModal.addEventListener("click", (e) => {
+      if (e.target === editStudentModal) {
+        editStudentModal.classList.add("hidden");
+        focusScannerInput();
+      }
+    });
+
+    editStudentForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = editStudentId.value;
+      const student = cachedStudents.find(s => s.id === id);
+      if (!student) return;
+
+      const trimmedFirst = editFirstNameInput.value.trim();
+      const trimmedLast = editLastNameInput.value.trim();
+      const newProg = editProgramSelect.value;
+
+      if (!trimmedFirst || !trimmedLast) {
+        alert("Both First Name and Last Name are required.");
+        return;
+      }
+
+      const newFullName = `${trimmedFirst} ${trimmedLast}`;
+      const nameChanged = (trimmedFirst !== student.firstName || trimmedLast !== student.lastName);
+      const progChanged = (newProg !== (student.program || "V5"));
+
+      submitEditStudentBtn.disabled = true;
+      submitEditStudentBtn.textContent = "Saving...";
+
+      try {
+        // 1. Update Student Profile in Firestore
+        await updateDoc(doc(db, "students", id), {
+          firstName: trimmedFirst,
+          lastName: trimmedLast,
+          name: newFullName,
+          program: newProg
+        });
+
+        // 2. Cascade Name and/or Program updates across attendance logs
+        if (nameChanged || progChanged) {
+          const allTargetCards = [student.cardId, ...(student.altCardIds || [])];
+
+          for (const card of allTargetCards) {
+            const q = query(collection(db, "attendance"), where("cardId", "==", card));
+            const snap = await getDocs(q);
+
+            if (!snap.empty) {
+              const updates = {};
+              if (nameChanged) updates.studentName = newFullName;
+              if (progChanged) updates.program = newProg;
+              await Promise.all(snap.docs.map(d => updateDoc(doc(db, "attendance", d.id), updates)));
+            }
+          }
+
+          cachedLogs.forEach(l => {
+            if (allTargetCards.includes(l.cardId)) {
+              if (nameChanged) l.studentName = newFullName;
+              if (progChanged) l.program = newProg;
+            }
+          });
+        }
+
+        // 3. Update local in-memory student record
+        student.firstName = trimmedFirst;
+        student.lastName = trimmedLast;
+        student.name = newFullName;
+        student.program = newProg;
+
+        editStudentModal.classList.add("hidden");
+        showBanner(true, `Updated ${newFullName}'s profile!`);
+        renderStudents();
+        renderDailyLogs();
+      } catch (err) {
+        alert("Error updating student: " + err.message);
+      } finally {
+        submitEditStudentBtn.disabled = false;
+        submitEditStudentBtn.textContent = "Save Changes";
+        focusScannerInput();
+      }
+    });
+
     // ================= TAB SWITCHING =================
     tabLogsBtn.addEventListener("click", () => {
       tabLogsBtn.className = "bg-indigo-600 px-4 py-2 rounded-lg text-sm font-bold text-white shadow-md shadow-indigo-500/20 transition";
@@ -1876,12 +2036,6 @@
       studentsTableBody.innerHTML = displayedStudents.map(s => {
         const prog = s.program || "V5";
         const stats = s.stats;
-        
-        let moveBtnLabel = "Move Program";
-        if (cachedPrograms.length === 2) {
-          const otherProg = cachedPrograms.find(p => p.code !== prog)?.code || "V5";
-          moveBtnLabel = `Move to ${otherProg}`;
-        }
 
         const aliasCount = (s.altCardIds && s.altCardIds.length) ? s.altCardIds.length : 0;
         const aliasTagHtml = aliasCount > 0 
@@ -1940,9 +2094,6 @@
             <td class="p-3.5 text-right whitespace-nowrap">
               <button onclick="window.editStudent('${s.id}')" class="text-blue-400 hover:text-blue-300 font-semibold mr-4 transition">
                 Edit
-              </button>
-              <button onclick="window.swapStudentProgram('${s.id}')" class="text-amber-400 hover:text-amber-300 font-semibold mr-4 transition">
-                ${moveBtnLabel}
               </button>
               <button onclick="window.deleteStudent('${s.id}')" class="text-rose-400 hover:text-rose-300 font-semibold transition">
                 Delete
@@ -2063,110 +2214,6 @@
     historyModal.addEventListener("click", (e) => {
       if (e.target === historyModal) closeHistoryModal();
     });
-
-    // Edit Student Name
-    window.editStudent = async (id) => {
-      const student = cachedStudents.find(s => s.id === id);
-      if (!student) return;
-
-      const currentFirst = student.firstName || (student.name ? student.name.split(" ")[0] : "");
-      const currentLast = student.lastName || (student.name ? student.name.split(" ").slice(1).join(" ") : "");
-
-      const newFirst = prompt("Enter First Name:", currentFirst);
-      if (newFirst === null) return;
-      const newLast = prompt("Enter Last Name:", currentLast);
-      if (newLast === null) return;
-
-      const trimmedFirst = newFirst.trim();
-      const trimmedLast = newLast.trim();
-      if (!trimmedFirst || !trimmedLast) {
-        alert("Both First Name and Last Name are required.");
-        return;
-      }
-
-      const newFullName = `${trimmedFirst} ${trimmedLast}`;
-
-      try {
-        await updateDoc(doc(db, "students", id), {
-          firstName: trimmedFirst,
-          lastName: trimmedLast,
-          name: newFullName
-        });
-
-        student.firstName = trimmedFirst;
-        student.lastName = trimmedLast;
-        student.name = newFullName;
-
-        if (student.cardId) {
-          const q = query(collection(db, "attendance"), where("cardId", "==", student.cardId));
-          const snap = await getDocs(q);
-          if (!snap.empty) {
-            await Promise.all(snap.docs.map(d => updateDoc(doc(db, "attendance", d.id), { studentName: newFullName })));
-          }
-
-          cachedLogs.forEach(l => {
-            if (l.cardId === student.cardId) {
-              l.studentName = newFullName;
-            }
-          });
-        }
-
-        renderStudents();
-        renderDailyLogs();
-      } catch (err) {
-        alert("Error updating student name: " + err.message);
-      }
-    };
-
-    // Move Student Between Any Programs
-    window.swapStudentProgram = async (id) => {
-      const student = cachedStudents.find(s => s.id === id);
-      if (!student) return;
-
-      const currentProg = student.program || "V5";
-      let targetProg = null;
-
-      if (cachedPrograms.length === 2) {
-        targetProg = cachedPrograms.find(p => p.code !== currentProg)?.code;
-      } else {
-        const availableOptions = cachedPrograms.filter(p => p.code !== currentProg).map(p => p.code);
-        const choice = prompt(`Move "${student.name}" from ${currentProg} to which program?\nAvailable options: ${availableOptions.join(", ")}`);
-        if (!choice) return;
-        const matched = availableOptions.find(o => o.toLowerCase() === choice.trim().toLowerCase());
-        if (!matched) {
-          alert(`Invalid program. Please choose from: ${availableOptions.join(", ")}`);
-          return;
-        }
-        targetProg = matched;
-      }
-
-      if (!targetProg) return;
-
-      if (!confirm(`Move "${student.name}" and all their attendance history from ${currentProg} to ${targetProg}?`)) return;
-
-      try {
-        await updateDoc(doc(db, "students", id), { program: targetProg });
-        student.program = targetProg;
-
-        if (student.cardId) {
-          const q = query(collection(db, "attendance"), where("cardId", "==", student.cardId));
-          const snap = await getDocs(q);
-          if (!snap.empty) {
-            await Promise.all(snap.docs.map(d => updateDoc(doc(db, "attendance", d.id), { program: targetProg })));
-          }
-          cachedLogs.forEach(log => {
-            if (log.cardId === student.cardId) {
-              log.program = targetProg;
-            }
-          });
-        }
-
-        renderStudents();
-        renderDailyLogs();
-      } catch (err) {
-        alert("Error swapping program: " + err.message);
-      }
-    };
 
     // Delete Single Student Profile + Cascade (Including all Aliases)
     window.deleteStudent = async (id) => {
