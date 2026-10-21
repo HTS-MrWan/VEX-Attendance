@@ -67,10 +67,8 @@
     <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-850 p-3 rounded-2xl border border-gray-700">
       <div class="flex items-center gap-2 flex-wrap">
         <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 mr-1">Program:</span>
-        <div id="programTabsList" class="flex flex-wrap bg-gray-900 p-1 rounded-xl border border-gray-700 gap-1">
-          <!-- Dynamically injected and pinned program tabs -->
-        </div>
-        <button id="addProgramBtn" class="bg-gray-800 hover:bg-gray-700 border border-gray-600 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition">
+        <div id="programTabsList" class="flex flex-wrap bg-gray-900 p-1 rounded-xl border border-gray-700 gap-1"></div>
+        <button id="addProgramBtn" class="bg-gray-800 hover:bg-gray-700 border border-gray-600 text-gray-200 px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition">
           <i data-lucide="plus" class="w-3.5 h-3.5 text-red-400"></i> Add Program
         </button>
       </div>
@@ -103,7 +101,6 @@
           </button>
 
           <div id="manageDropdownMenu" class="hidden absolute right-0 mt-2 w-64 rounded-xl bg-gray-800 border border-gray-700 shadow-2xl z-40 py-1 divide-y divide-gray-700">
-            <!-- Data Management Section -->
             <div class="py-1">
               <button id="exportCsvBtn" type="button" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-emerald-400 hover:bg-gray-750 hover:text-emerald-300 flex items-center gap-2 transition">
                 <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
@@ -115,7 +112,6 @@
               </button>
             </div>
             
-            <!-- Deletion Options Section -->
             <div class="py-1">
               <button id="deleteAllLogsBtn" type="button" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-red-300 hover:bg-red-950/60 hover:text-white flex items-center gap-2 transition">
                 <i data-lucide="file-x" class="w-4 h-4 text-red-400"></i>
@@ -211,7 +207,6 @@
             1. Primary Student Profile <span class="text-emerald-400 font-normal">(Keep as main profile & primary ID)</span>
           </label>
           <select id="mergePrimarySelect" class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-indigo-500 text-white font-semibold text-sm">
-            <!-- Dynamically injected -->
           </select>
         </div>
 
@@ -220,7 +215,6 @@
             2. Secondary Profile to Merge <span class="text-indigo-400 font-normal">(Card becomes an alias; attendance merged)</span>
           </label>
           <select id="mergeSecondarySelect" class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-indigo-500 text-white font-semibold text-sm">
-            <!-- Dynamically injected -->
           </select>
         </div>
 
@@ -379,7 +373,7 @@
       </div>
 
       <div class="border-t border-gray-700 pt-4 mt-4 flex justify-between items-center">
-        <span class="text-xs text-gray-500 font-mono">Documentation Version: v1.5.8</span>
+        <span class="text-xs text-gray-500 font-mono">Documentation Version: v1.5.9</span>
         <button id="closeUserManualFooterBtn" class="bg-gray-700 hover:bg-gray-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           Close Manual
         </button>
@@ -427,7 +421,6 @@
         <div>
           <label class="block text-xs font-semibold text-gray-400 mb-1">Program</label>
           <select id="programSelect" class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white font-semibold">
-            <!-- Dynamic program options -->
           </select>
         </div>
 
@@ -466,14 +459,12 @@
         <div>
           <label class="block text-xs font-semibold text-gray-400 mb-1">Select Program</label>
           <select id="manualProgramSelect" class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-indigo-500 text-white font-semibold">
-            <!-- Dynamic program options -->
           </select>
         </div>
 
         <div>
           <label class="block text-xs font-semibold text-gray-400 mb-1">Select Student (Unchecked Today)</label>
           <select id="manualStudentSelect" class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-indigo-500 text-white font-semibold">
-            <!-- Dynamically populated with students not yet checked in today -->
           </select>
           <p id="noStudentsNotice" class="hidden text-xs text-emerald-400 mt-2 font-medium">
             ✓ All registered students in this program have already checked in today!
@@ -617,7 +608,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.5.8
+    v1.5.9
   </div>
 
   <script type="module">
@@ -770,6 +761,9 @@
 
     lucide.createIcons();
 
+    // Immediately load programs from database on initial page load
+    loadPrograms();
+
     function focusScannerInput() {
       if (
         currentView === "kiosk" &&
@@ -855,6 +849,11 @@
           modalCardId.textContent = cardId;
           firstNameInput.value = "";
           lastNameInput.value = "";
+          
+          // Defense-in-depth: Ensure programs are loaded before rendering dropdown
+          if (cachedPrograms.length === 0) {
+            await loadPrograms();
+          }
           renderProgramSelectDropdown();
           
           registerModal.classList.remove("hidden");
@@ -864,7 +863,6 @@
           }, 150);
         } else {
           const program = student.program || "V5";
-          // Always record under primary student.cardId for clean aggregation
           await recordAttendance(student.cardId, student.name, program);
           isProcessing = false;
           focusScannerInput();
@@ -1400,18 +1398,15 @@
       submitMergeBtn.textContent = "Merging Profiles...";
 
       try {
-        // Collect secondary cards (primary card + any existing aliases it had)
         const secondaryCards = [secondary.cardId, ...(secondary.altCardIds || [])];
         const existingAlt = primary.altCardIds || [];
         const combinedAlt = [...new Set([...existingAlt, ...secondaryCards])].filter(c => c !== primary.cardId);
 
-        // 1. Update Primary student document with new altCardIds
         await updateDoc(doc(db, "students", primary.id), {
           altCardIds: combinedAlt
         });
         primary.altCardIds = combinedAlt;
 
-        // 2. Query and reassign all past attendance logs from secondary cards
         for (const card of secondaryCards) {
           const q = query(collection(db, "attendance"), where("cardId", "==", card));
           const snap = await getDocs(q);
@@ -1425,10 +1420,8 @@
           }
         }
 
-        // 3. Delete the secondary student profile document
         await deleteDoc(doc(db, "students", secondary.id));
 
-        // 4. Update in-memory cache
         cachedLogs.forEach(l => {
           if (secondaryCards.includes(l.cardId)) {
             l.cardId = primary.cardId;
@@ -1480,7 +1473,6 @@
       const eligibleStudents = cachedStudents
         .filter(s => {
           if ((s.program || "V5") !== prog) return false;
-          // Check if primary or any alias is checked in today
           if (checkedInTodayCards.has(s.cardId)) return false;
           if (s.altCardIds && s.altCardIds.some(c => checkedInTodayCards.has(c))) return false;
           return true;
@@ -2157,7 +2149,6 @@
           const allTargetCards = [cardId, ...(student.altCardIds || [])];
 
           for (const c of allTargetCards) {
-            // Delete duplicate profiles in students collection
             const dupQuery = query(collection(db, "students"), where("cardId", "==", c));
             const dupSnap = await getDocs(dupQuery);
             if (!dupSnap.empty) {
@@ -2165,7 +2156,6 @@
               cachedStudents = cachedStudents.filter(s => s.cardId !== c);
             }
 
-            // Delete all attendance records for this card
             const q = query(collection(db, "attendance"), where("cardId", "==", c));
             const snap = await getDocs(q);
             if (!snap.empty) {
