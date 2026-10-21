@@ -47,8 +47,9 @@
 
     <!-- Scanner Target Display -->
     <div class="w-full bg-gray-800 border-2 border-dashed border-gray-600 rounded-2xl p-12 flex flex-col items-center gap-5 shadow-xl">
-      <div class="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center text-red-500">
-        <i data-lucide="scan" class="w-10 h-10"></i>
+      <!-- Hidden Test Click Target (Clicking simulates a new card scan) -->
+      <div id="scannerIconCircle" class="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center text-red-500 cursor-pointer active:scale-95 transition-transform select-none hover:bg-gray-650" title="Click or press Alt+T to test new card">
+        <i data-lucide="scan" class="w-10 h-10 pointer-events-none"></i>
       </div>
       <div>
         <h2 class="text-2xl font-bold mb-2">Tap Student Badge</h2>
@@ -94,7 +95,7 @@
 
         <!-- Unified Manage Dropdown -->
         <div class="relative inline-block text-left" id="manageDropdownContainer">
-          <button id="manageDropdownBtn" type="button" class="bg-gray-800 hover:bg-gray-750 border border-gray-600 text-gray-200 px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition">
+          <button id="manageDropdownBtn" type="button" class="bg-gray-800 hover:bg-gray-755 border border-gray-600 text-gray-200 px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition">
             <i data-lucide="settings" class="w-4 h-4 text-gray-400"></i>
             <span>Manage</span>
             <i data-lucide="chevron-down" class="w-3.5 h-3.5 ml-0.5"></i>
@@ -267,6 +268,7 @@
           <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
             <li><strong>Automatic Card Reader:</strong> Plug in any USB keycard scanner. Tapping a student badge registers their check-in instantly with zero clicks required.</li>
             <li><strong>Linked Aliases:</strong> If a student has merged cards, tapping either their primary card or any linked alias card will check them in without issues.</li>
+            <li><strong>Testing Without a Badge:</strong> Click the red scanner target circle in Kiosk view or press <code class="bg-gray-800 px-1.5 py-0.5 rounded text-gray-200">Alt + T</code> to trigger a simulated new badge scan.</li>
             <li><strong>Auto-Focusing:</strong> Clicking anywhere on the screen refocuses the scanner input automatically.</li>
             <li><strong>New Badge Registration:</strong> When an unrecognized keycard is tapped, a registration modal prompts for First Name, Last Name, and Program. Upon submission, it registers the student and immediately logs today's attendance.</li>
             <li><strong>Full-Screen Lock:</strong> Press <code class="bg-gray-800 px-1.5 py-0.5 rounded text-gray-200">Cmd + Shift + F</code> (Mac) or <code class="bg-gray-800 px-1.5 py-0.5 rounded text-gray-200">F11</code> (Windows) in Chrome to hide the address bar and keep students locked to the kiosk.</li>
@@ -373,7 +375,7 @@
       </div>
 
       <div class="border-t border-gray-700 pt-4 mt-4 flex justify-between items-center">
-        <span class="text-xs text-gray-500 font-mono">Documentation Version: v1.5.9</span>
+        <span class="text-xs text-gray-500 font-mono">Documentation Version: v1.6.0</span>
         <button id="closeUserManualFooterBtn" class="bg-gray-700 hover:bg-gray-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           Close Manual
         </button>
@@ -608,7 +610,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.5.9
+    v1.6.0
   </div>
 
   <script type="module">
@@ -668,6 +670,7 @@
     const passwordError = document.getElementById("passwordError");
     const cancelPasswordBtn = document.getElementById("cancelPasswordBtn");
     const cardInput = document.getElementById("cardInput");
+    const scannerIconCircle = document.getElementById("scannerIconCircle");
     
     // User Manual Elements
     const userManualBtn = document.getElementById("userManualBtn");
@@ -764,6 +767,29 @@
     // Immediately load programs from database on initial page load
     loadPrograms();
 
+    // Test Trigger: Simulates an unregistered new badge tap
+    function simulateTestScan() {
+      if (isProcessing) return;
+      const testCardId = String(Math.floor(100000 + Math.random() * 900000));
+      processScan(testCardId);
+    }
+
+    // Hidden Test Trigger 1: Clicking the circular scanner icon in Kiosk view
+    if (scannerIconCircle) {
+      scannerIconCircle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        simulateTestScan();
+      });
+    }
+
+    // Hidden Test Trigger 2: Keyboard shortcut Alt + T
+    document.addEventListener("keydown", (e) => {
+      if (e.altKey && (e.key === "t" || e.key === "T")) {
+        e.preventDefault();
+        simulateTestScan();
+      }
+    });
+
     function focusScannerInput() {
       if (
         currentView === "kiosk" &&
@@ -850,7 +876,6 @@
           firstNameInput.value = "";
           lastNameInput.value = "";
           
-          // Defense-in-depth: Ensure programs are loaded before rendering dropdown
           if (cachedPrograms.length === 0) {
             await loadPrograms();
           }
