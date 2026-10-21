@@ -68,7 +68,7 @@
       <div class="flex items-center gap-2 flex-wrap">
         <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 mr-1">Program:</span>
         <div id="programTabsList" class="flex flex-wrap bg-gray-900 p-1 rounded-xl border border-gray-700 gap-1">
-          <!-- Dynamically injected program tabs -->
+          <!-- Dynamically injected and pinned program tabs -->
         </div>
         <button id="addProgramBtn" class="bg-gray-800 hover:bg-gray-700 border border-gray-600 text-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition">
           <i data-lucide="plus" class="w-3.5 h-3.5 text-red-400"></i> Add Program
@@ -93,19 +93,25 @@
         <button id="manualEntryBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition shadow">
           <i data-lucide="user-check" class="w-4 h-4"></i> Manual Check-In
         </button>
-        <button id="exportCsvBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-2 transition">
-          <i data-lucide="download" class="w-4 h-4"></i> Export CSV
-        </button>
 
-        <!-- Consolidated Delete Actions Dropdown -->
-        <div class="relative inline-block text-left" id="dangerDropdownContainer">
-          <button id="dangerDropdownBtn" type="button" class="bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-300 px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
-            <span>Delete Actions</span>
+        <!-- Unified Manage Dropdown -->
+        <div class="relative inline-block text-left" id="manageDropdownContainer">
+          <button id="manageDropdownBtn" type="button" class="bg-gray-800 hover:bg-gray-750 border border-gray-600 text-gray-200 px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition">
+            <i data-lucide="settings" class="w-4 h-4 text-gray-400"></i>
+            <span>Manage</span>
             <i data-lucide="chevron-down" class="w-3.5 h-3.5 ml-0.5"></i>
           </button>
 
-          <div id="dangerDropdownMenu" class="hidden absolute right-0 mt-2 w-64 rounded-xl bg-gray-800 border border-red-800/80 shadow-2xl z-40 py-1 divide-y divide-gray-700">
+          <div id="manageDropdownMenu" class="hidden absolute right-0 mt-2 w-64 rounded-xl bg-gray-800 border border-gray-700 shadow-2xl z-40 py-1 divide-y divide-gray-700">
+            <!-- Data Export Section -->
+            <div class="py-1">
+              <button id="exportCsvBtn" type="button" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-emerald-400 hover:bg-gray-750 hover:text-emerald-300 flex items-center gap-2 transition">
+                <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
+                <span id="exportCsvLabel">Export CSV</span>
+              </button>
+            </div>
+            
+            <!-- Deletion Options Section -->
             <div class="py-1">
               <button id="deleteAllLogsBtn" type="button" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-red-300 hover:bg-red-950/60 hover:text-white flex items-center gap-2 transition">
                 <i data-lucide="file-x" class="w-4 h-4 text-red-400"></i>
@@ -115,8 +121,6 @@
                 <i data-lucide="users" class="w-4 h-4 text-red-400"></i>
                 <span id="deleteStudentsLabel">Delete Students</span>
               </button>
-            </div>
-            <div class="py-1">
               <button id="deleteProgramBtn" type="button" class="w-full text-left px-4 py-2.5 text-xs font-bold text-red-400 hover:bg-red-900/80 hover:text-white flex items-center gap-2 transition">
                 <i data-lucide="alert-octagon" class="w-4 h-4 text-red-400"></i>
                 <span id="deleteProgramLabel">Delete ENTIRE Program</span>
@@ -187,7 +191,6 @@
   <!-- ================= MODAL: USER MANUAL ================= -->
   <div id="userManualModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
     <div class="bg-gray-800 rounded-2xl max-w-3xl w-full p-6 sm:p-8 border border-gray-700 shadow-2xl flex flex-col max-h-[88vh]">
-      <!-- Header -->
       <div class="flex items-center justify-between border-b border-gray-700 pb-4 mb-4">
         <div class="flex items-center gap-3">
           <div class="p-2.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-xl">
@@ -203,9 +206,7 @@
         </button>
       </div>
 
-      <!-- Manual Content (Scrollable) -->
       <div class="flex-1 overflow-y-auto pr-3 space-y-6 text-sm text-gray-300 leading-relaxed">
-        
         <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="scan" class="w-4 h-4 text-red-500"></i>
@@ -214,7 +215,7 @@
           <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
             <li><strong>Automatic Card Reader:</strong> Plug in any USB keycard scanner. Tapping a student badge registers their check-in instantly with zero clicks required.</li>
             <li><strong>Auto-Focusing:</strong> Clicking anywhere on the screen refocuses the scanner input automatically.</li>
-            <li><strong>New Badge Registration:</strong> When an unrecognized keycard is tapped, a registration modal pops up prompting for First Name, Last Name, and Program. Upon submission, it registers the student and immediately logs today's attendance.</li>
+            <li><strong>New Badge Registration:</strong> When an unrecognized keycard is tapped, a registration modal prompts for First Name, Last Name, and Program. Upon submission, it registers the student and immediately logs today's attendance.</li>
             <li><strong>Full-Screen Lock:</strong> Press <code class="bg-gray-800 px-1.5 py-0.5 rounded text-gray-200">Cmd + Shift + F</code> (Mac) or <code class="bg-gray-800 px-1.5 py-0.5 rounded text-gray-200">F11</code> (Windows) in Chrome to hide the address bar and keep students locked to the kiosk.</li>
           </ul>
         </section>
@@ -237,7 +238,7 @@
             3. Dynamic Multi-Program Management
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
-            <li><strong>Multi-Program Support:</strong> Track multiple programs (V5, IQ, SRP, SRE, etc.) with dedicated tabs and rosters.</li>
+            <li><strong>Organized Program Ordering:</strong> Program tabs always appear in the consistent order of <strong>V5 $\rightarrow$ IQ $\rightarrow$ SRP $\rightarrow$ SRE</strong>, followed chronologically by any new programs added.</li>
             <li><strong>Add Custom Programs:</strong> Teachers can click <strong>"+ Add Program"</strong> to create new programs. Each program receives its own isolated attendance logs and student roster.</li>
             <li><strong>Program Swapping:</strong> In Registered Students, teachers can move any student to another program using <strong>Move Program</strong>. Their profile and all past attendance logs automatically transfer over.</li>
           </ul>
@@ -287,13 +288,14 @@
 
         <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
-            <i data-lucide="shield-alert" class="w-4 h-4 text-red-400"></i>
-            7. Admin Access & Deletion Safeguards
+            <i data-lucide="settings" class="w-4 h-4 text-gray-400"></i>
+            7. Admin Access & Manage Menu Safeguards
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
             <li><strong>Admin Dashboard:</strong> Protected by the admin password.</li>
-            <li><strong>Delete Actions Menu:</strong> Consolidates destructive tasks to keep the toolbar clean:
+            <li><strong>Manage Menu:</strong> Consolidates data export and destructive actions into one location:
               <ul class="list-circle list-inside ml-4 mt-1 space-y-1">
+                <li><strong>Export CSV:</strong> Instantly downloads a formatted CSV spreadsheet of all check-in records for the active program.</li>
                 <li><strong>Delete ENTIRE [CODE] Program:</strong> Permanently deletes the program configuration, all students, and all logs. Guarded by typing <code class="bg-gray-800 px-1.5 py-0.5 rounded text-red-300 font-mono">Ronny is the Best!</code>.</li>
                 <li><strong>Delete [CODE] Logs / Delete [CODE] Students:</strong> Guarded by typing <code class="bg-gray-800 px-1.5 py-0.5 rounded text-red-300 font-mono">Ronny is awesome!</code>.</li>
               </ul>
@@ -301,22 +303,10 @@
             <li><strong>Individual Student Deletion:</strong> Deleting an individual student cascades to remove their master profile, any card duplicates, and all associated attendance logs.</li>
           </ul>
         </section>
-
-        <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
-          <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
-            <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
-            8. CSV Attendance Export
-          </h3>
-          <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
-            <li>Click <strong>Export CSV</strong> to download a formatted spreadsheet containing dates, program, student names (Last, First), card IDs, check-in times, and Edvance translation status for the selected program.</li>
-          </ul>
-        </section>
-
       </div>
 
-      <!-- Footer -->
       <div class="border-t border-gray-700 pt-4 mt-4 flex justify-between items-center">
-        <span class="text-xs text-gray-500 font-mono">Documentation Version: v1.5.5</span>
+        <span class="text-xs text-gray-500 font-mono">Documentation Version: v1.5.6</span>
         <button id="closeUserManualFooterBtn" class="bg-gray-700 hover:bg-gray-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           Close Manual
         </button>
@@ -554,7 +544,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.5.5
+    v1.5.6
   </div>
 
   <script type="module">
@@ -577,6 +567,7 @@
     const ADMIN_PASSWORD = "awesomelawson";
     const PROGRAM_DELETE_CONFIRM_PHRASE = "Ronny is the Best!";
     const BULK_DELETE_CONFIRM_PHRASE = "Ronny is awesome!";
+    const PINNED_PROGRAM_ORDER = ["V5", "IQ", "SRP", "SRE"];
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -639,10 +630,12 @@
     const newProgramCodeInput = document.getElementById("newProgramCodeInput");
     const cancelAddProgramBtn = document.getElementById("cancelAddProgramBtn");
 
-    // Consolidated Danger Dropdown & Items
-    const dangerDropdownContainer = document.getElementById("dangerDropdownContainer");
-    const dangerDropdownBtn = document.getElementById("dangerDropdownBtn");
-    const dangerDropdownMenu = document.getElementById("dangerDropdownMenu");
+    // Unified Manage Dropdown
+    const manageDropdownContainer = document.getElementById("manageDropdownContainer");
+    const manageDropdownBtn = document.getElementById("manageDropdownBtn");
+    const manageDropdownMenu = document.getElementById("manageDropdownMenu");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+    const exportCsvLabel = document.getElementById("exportCsvLabel");
     const deleteLogsLabel = document.getElementById("deleteLogsLabel");
     const deleteStudentsLabel = document.getElementById("deleteStudentsLabel");
     const deleteProgramLabel = document.getElementById("deleteProgramLabel");
@@ -688,7 +681,6 @@
     const currentSectionTitle = document.getElementById("currentSectionTitle");
     const tabLogsBtn = document.getElementById("tabLogsBtn");
     const tabStudentsBtn = document.getElementById("tabStudentsBtn");
-    const exportCsvBtn = document.getElementById("exportCsvBtn");
 
     const logsSection = document.getElementById("logsSection");
     const studentsSection = document.getElementById("studentsSection");
@@ -714,15 +706,15 @@
     document.addEventListener("click", focusScannerInput);
     focusScannerInput();
 
-    // Dropdown toggle logic
-    dangerDropdownBtn.addEventListener("click", (e) => {
+    // Manage Dropdown Toggle Logic
+    manageDropdownBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      dangerDropdownMenu.classList.toggle("hidden");
+      manageDropdownMenu.classList.toggle("hidden");
     });
 
     document.addEventListener("click", (e) => {
-      if (dangerDropdownContainer && !dangerDropdownContainer.contains(e.target)) {
-        dangerDropdownMenu.classList.add("hidden");
+      if (manageDropdownContainer && !manageDropdownContainer.contains(e.target)) {
+        manageDropdownMenu.classList.add("hidden");
       }
     });
 
@@ -944,7 +936,29 @@
       if (e.target === userManualModal) closeUserManual();
     });
 
-    // ================= DYNAMIC PROGRAMS SYSTEM =================
+    // ================= DYNAMIC PROGRAMS SYSTEM & SORTING =================
+    function sortProgramsList() {
+      cachedPrograms.sort((a, b) => {
+        const indexA = PINNED_PROGRAM_ORDER.indexOf(a.code);
+        const indexB = PINNED_PROGRAM_ORDER.indexOf(b.code);
+
+        // Both are pinned -> sort by pinned list order
+        if (indexA !== -1 && indexB !== -1) {
+          return indexA - indexB;
+        }
+        // One is pinned -> pinned comes first
+        if (indexA !== -1) return -1;
+        if (indexB !== -1) return 1;
+
+        // Neither is pinned -> sort chronologically by createdAt (oldest first)
+        const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (a.createdAt instanceof Date ? a.createdAt.getTime() : 0));
+        const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (b.createdAt instanceof Date ? b.createdAt.getTime() : 0));
+
+        if (timeA !== timeB) return timeA - timeB;
+        return (a.code || "").localeCompare(b.code || "");
+      });
+    }
+
     async function loadPrograms() {
       const snap = await getDocs(collection(db, "programs"));
       if (snap.empty) {
@@ -957,6 +971,8 @@
       } else {
         cachedPrograms = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       }
+
+      sortProgramsList();
 
       if (!cachedPrograms.some(p => p.code === selectedProgramFilter)) {
         selectedProgramFilter = cachedPrograms[0]?.code || "V5";
@@ -1005,7 +1021,8 @@
 
       currentSectionTitle.textContent = `Showing ${progLabel} Records`;
       
-      // Update Action labels inside consolidated Danger Dropdown
+      // Update Action labels inside Manage Dropdown
+      exportCsvLabel.textContent = `Export ${selectedProgramFilter} CSV`;
       deleteLogsLabel.textContent = `Delete ${selectedProgramFilter} Logs`;
       deleteStudentsLabel.textContent = `Delete ${selectedProgramFilter} Students`;
       deleteProgramLabel.textContent = `Delete ENTIRE ${selectedProgramFilter} Program`;
@@ -1049,7 +1066,8 @@
           createdAt: serverTimestamp()
         });
 
-        cachedPrograms.push({ id: code, name: name, code: code });
+        cachedPrograms.push({ id: code, name: name, code: code, createdAt: new Date() });
+        sortProgramsList();
         selectedProgramFilter = code;
         filterOnlyAtRisk = false;
 
@@ -1064,7 +1082,7 @@
 
     // Modal: Delete Entire Program (Guarded by "Ronny is the Best!")
     deleteProgramBtn.addEventListener("click", () => {
-      dangerDropdownMenu.classList.add("hidden");
+      manageDropdownMenu.classList.add("hidden");
       if (cachedPrograms.length <= 1) {
         alert("You must maintain at least one active program.");
         return;
@@ -1107,6 +1125,7 @@
 
         await deleteDoc(doc(db, "programs", progToDelete));
         cachedPrograms = cachedPrograms.filter(p => p.code !== progToDelete);
+        sortProgramsList();
 
         selectedProgramFilter = cachedPrograms[0]?.code || "V5";
         filterOnlyAtRisk = false;
@@ -1125,7 +1144,7 @@
 
     // ================= BULK DELETE MODAL ("Ronny is awesome!") =================
     deleteAllLogsBtn.addEventListener("click", () => {
-      dangerDropdownMenu.classList.add("hidden");
+      manageDropdownMenu.classList.add("hidden");
       const prog = selectedProgramFilter;
       pendingBulkDeleteType = "logs";
       bulkDeleteTitle.textContent = `Delete All ${prog} Logs?`;
@@ -1144,7 +1163,7 @@
     });
 
     deleteAllStudentsBtn.addEventListener("click", () => {
-      dangerDropdownMenu.classList.add("hidden");
+      manageDropdownMenu.classList.add("hidden");
       const prog = selectedProgramFilter;
       pendingBulkDeleteType = "students";
       bulkDeleteTitle.textContent = `Delete All ${prog} Students?`;
@@ -1915,6 +1934,7 @@
 
     // CSV Download
     exportCsvBtn.addEventListener("click", () => {
+      manageDropdownMenu.classList.add("hidden");
       const prog = selectedProgramFilter;
       const headers = ["Date", "Program", "Student Name", "Card ID", "Time(s)", "Translated to Edvance"];
       const rows = [];
