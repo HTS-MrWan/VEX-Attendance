@@ -86,25 +86,44 @@
       <div class="text-sm font-medium text-gray-400" id="currentSectionTitle">
         Showing Records
       </div>
-      <div class="flex gap-2 flex-wrap">
+      <div class="flex gap-2 flex-wrap items-center">
         <button id="userManualBtn" class="bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-200 px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition">
           <i data-lucide="book-open" class="w-4 h-4 text-amber-400"></i> User Manual
         </button>
         <button id="manualEntryBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition shadow">
           <i data-lucide="user-check" class="w-4 h-4"></i> Manual Check-In
         </button>
-        <button id="deleteProgramBtn" class="bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-300 px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition">
-          <i data-lucide="folder-x" class="w-4 h-4"></i> Delete Program
-        </button>
-        <button id="deleteAllLogsBtn" class="bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-300 px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition">
-          <i data-lucide="trash-2" class="w-4 h-4"></i> Delete Logs
-        </button>
-        <button id="deleteAllStudentsBtn" class="hidden bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-300 px-3.5 py-2 rounded-md text-sm font-semibold items-center gap-1.5 transition">
-          <i data-lucide="trash-2" class="w-4 h-4"></i> Delete Students
-        </button>
         <button id="exportCsvBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-md text-sm font-semibold flex items-center gap-2 transition">
           <i data-lucide="download" class="w-4 h-4"></i> Export CSV
         </button>
+
+        <!-- Consolidated Delete Actions Dropdown -->
+        <div class="relative inline-block text-left" id="dangerDropdownContainer">
+          <button id="dangerDropdownBtn" type="button" class="bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-300 px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <span>Delete Actions</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 ml-0.5"></i>
+          </button>
+
+          <div id="dangerDropdownMenu" class="hidden absolute right-0 mt-2 w-64 rounded-xl bg-gray-800 border border-red-800/80 shadow-2xl z-40 py-1 divide-y divide-gray-700">
+            <div class="py-1">
+              <button id="deleteAllLogsBtn" type="button" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-red-300 hover:bg-red-950/60 hover:text-white flex items-center gap-2 transition">
+                <i data-lucide="file-x" class="w-4 h-4 text-red-400"></i>
+                <span id="deleteLogsLabel">Delete Logs</span>
+              </button>
+              <button id="deleteAllStudentsBtn" type="button" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-red-300 hover:bg-red-950/60 hover:text-white flex items-center gap-2 transition">
+                <i data-lucide="users" class="w-4 h-4 text-red-400"></i>
+                <span id="deleteStudentsLabel">Delete Students</span>
+              </button>
+            </div>
+            <div class="py-1">
+              <button id="deleteProgramBtn" type="button" class="w-full text-left px-4 py-2.5 text-xs font-bold text-red-400 hover:bg-red-900/80 hover:text-white flex items-center gap-2 transition">
+                <i data-lucide="alert-octagon" class="w-4 h-4 text-red-400"></i>
+                <span id="deleteProgramLabel">Delete ENTIRE Program</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -176,7 +195,7 @@
           </div>
           <div>
             <h2 class="text-xl font-bold text-white">Teacher & Admin User Manual</h2>
-            <p class="text-xs text-gray-400">VEX Robotics Lab Attendance Application Guide</p>
+            <p class="text-xs text-gray-400">Robotics Lab Attendance Application Guide</p>
           </div>
         </div>
         <button id="closeUserManualBtn" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-700 transition">
@@ -187,7 +206,6 @@
       <!-- Manual Content (Scrollable) -->
       <div class="flex-1 overflow-y-auto pr-3 space-y-6 text-sm text-gray-300 leading-relaxed">
         
-        <!-- Section 1 -->
         <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="scan" class="w-4 h-4 text-red-500"></i>
@@ -196,12 +214,11 @@
           <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
             <li><strong>Automatic Card Reader:</strong> Plug in any USB keycard scanner. Tapping a student badge registers their check-in instantly with zero clicks required.</li>
             <li><strong>Auto-Focusing:</strong> Clicking anywhere on the screen refocuses the scanner input automatically.</li>
-            <li><strong>New Badge Registration:</strong> When an unrecognized keycard is tapped, a registration modal pops up prompting for the student's First Name, Last Name, and Program. Upon submission, it registers the student and immediately logs their attendance for the day.</li>
+            <li><strong>New Badge Registration:</strong> When an unrecognized keycard is tapped, a registration modal pops up prompting for First Name, Last Name, and Program. Upon submission, it registers the student and immediately logs today's attendance.</li>
             <li><strong>Full-Screen Lock:</strong> Press <code class="bg-gray-800 px-1.5 py-0.5 rounded text-gray-200">Cmd + Shift + F</code> (Mac) or <code class="bg-gray-800 px-1.5 py-0.5 rounded text-gray-200">F11</code> (Windows) in Chrome to hide the address bar and keep students locked to the kiosk.</li>
           </ul>
         </section>
 
-        <!-- Section 2 -->
         <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="user-check" class="w-4 h-4 text-indigo-400"></i>
@@ -214,20 +231,18 @@
           </ul>
         </section>
 
-        <!-- Section 3 -->
         <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="folder-plus" class="w-4 h-4 text-emerald-400"></i>
             3. Dynamic Multi-Program Management
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
-            <li><strong>Multi-Program Support:</strong> By default, VEX V5 and VEX IQ are ready to use.</li>
-            <li><strong>Add Custom Programs:</strong> Other teachers can click <strong>"+ Add Program"</strong> to create new programs (e.g., <em>FIRST Tech Challenge</em>, <em>Skills Team</em>). Each program receives its own dedicated attendance logs and student roster.</li>
-            <li><strong>Program Swapping:</strong> In the Registered Students tab, teachers can move any student to another program using the amber <strong>Move Program</strong> button. Their student profile and all past check-in history automatically transfer over.</li>
+            <li><strong>Multi-Program Support:</strong> Track multiple programs (V5, IQ, SRP, SRE, etc.) with dedicated tabs and rosters.</li>
+            <li><strong>Add Custom Programs:</strong> Teachers can click <strong>"+ Add Program"</strong> to create new programs. Each program receives its own isolated attendance logs and student roster.</li>
+            <li><strong>Program Swapping:</strong> In Registered Students, teachers can move any student to another program using <strong>Move Program</strong>. Their profile and all past attendance logs automatically transfer over.</li>
           </ul>
         </section>
 
-        <!-- Section 4 -->
         <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="calendar" class="w-4 h-4 text-blue-400"></i>
@@ -236,11 +251,10 @@
           <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
             <li>Check-ins are grouped by calendar date and sorted newest first.</li>
             <li>Multi-tap detection tracks multiple scans by the same student on the same day without creating duplicate rows.</li>
-            <li><strong>Edvance Checkbox:</strong> Check <em>"Attendance Translated to Edvance"</em> once daily logs have been officially recorded in the school SIS. This greys out the day to prevent duplicate entries and persists safely across all browsers.</li>
+            <li><strong>Edvance Checkbox:</strong> Check <em>"Attendance Translated to Edvance"</em> once daily logs have been officially recorded in the school SIS. This greys out the day to prevent duplicate entries and persists across all browsers.</li>
           </ul>
         </section>
 
-        <!-- Section 5 -->
         <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="history" class="w-4 h-4 text-purple-400"></i>
@@ -253,14 +267,13 @@
           </ul>
         </section>
 
-        <!-- Section 6 -->
         <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
             6. Inactivity & At-Risk Tracking (10+ Lab Days)
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
-            <li><strong>Distinct Lab Meetings:</strong> Rather than relying on calendar math that breaks over holidays and exam weeks, the app counts unique dates that students actually attended robotics lab sessions.</li>
+            <li><strong>Distinct Lab Meetings:</strong> The app counts unique dates that students actually attended robotics lab sessions, seamlessly skipping holidays, exam weeks, and cancellations.</li>
             <li><strong>Status Badges:</strong>
               <ul class="list-circle list-inside ml-4 mt-1 space-y-1">
                 <li><span class="text-emerald-400 font-semibold">Active:</span> Checked in within the last 4 lab sessions.</li>
@@ -272,7 +285,6 @@
           </ul>
         </section>
 
-        <!-- Section 7 -->
         <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="shield-alert" class="w-4 h-4 text-red-400"></i>
@@ -280,13 +292,16 @@
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
             <li><strong>Admin Dashboard:</strong> Protected by the admin password.</li>
-            <li><strong>Delete Program:</strong> Deletes an entire program, its tabs, student profiles, and attendance logs. Requires typing <code class="bg-gray-800 px-1.5 py-0.5 rounded text-red-300 font-mono">Ronny is the Best!</code> to unlock.</li>
-            <li><strong>Delete Logs / Delete Students:</strong> Bulk deletions of logs or registered students are guarded by typing <code class="bg-gray-800 px-1.5 py-0.5 rounded text-red-300 font-mono">Ronny is awesome!</code>.</li>
-            <li><strong>Individual Student Deletion:</strong> Deleting a student cascades to remove their master profile, any card duplicates, and all associated attendance logs across all dates.</li>
+            <li><strong>Delete Actions Menu:</strong> Consolidates destructive tasks to keep the toolbar clean:
+              <ul class="list-circle list-inside ml-4 mt-1 space-y-1">
+                <li><strong>Delete ENTIRE [CODE] Program:</strong> Permanently deletes the program configuration, all students, and all logs. Guarded by typing <code class="bg-gray-800 px-1.5 py-0.5 rounded text-red-300 font-mono">Ronny is the Best!</code>.</li>
+                <li><strong>Delete [CODE] Logs / Delete [CODE] Students:</strong> Guarded by typing <code class="bg-gray-800 px-1.5 py-0.5 rounded text-red-300 font-mono">Ronny is awesome!</code>.</li>
+              </ul>
+            </li>
+            <li><strong>Individual Student Deletion:</strong> Deleting an individual student cascades to remove their master profile, any card duplicates, and all associated attendance logs.</li>
           </ul>
         </section>
 
-        <!-- Section 8 -->
         <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
@@ -301,7 +316,7 @@
 
       <!-- Footer -->
       <div class="border-t border-gray-700 pt-4 mt-4 flex justify-between items-center">
-        <span class="text-xs text-gray-500 font-mono">Documentation Version: v1.5.4</span>
+        <span class="text-xs text-gray-500 font-mono">Documentation Version: v1.5.5</span>
         <button id="closeUserManualFooterBtn" class="bg-gray-700 hover:bg-gray-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           Close Manual
         </button>
@@ -539,7 +554,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.5.4
+    v1.5.5
   </div>
 
   <script type="module">
@@ -624,6 +639,14 @@
     const newProgramCodeInput = document.getElementById("newProgramCodeInput");
     const cancelAddProgramBtn = document.getElementById("cancelAddProgramBtn");
 
+    // Consolidated Danger Dropdown & Items
+    const dangerDropdownContainer = document.getElementById("dangerDropdownContainer");
+    const dangerDropdownBtn = document.getElementById("dangerDropdownBtn");
+    const dangerDropdownMenu = document.getElementById("dangerDropdownMenu");
+    const deleteLogsLabel = document.getElementById("deleteLogsLabel");
+    const deleteStudentsLabel = document.getElementById("deleteStudentsLabel");
+    const deleteProgramLabel = document.getElementById("deleteProgramLabel");
+
     const deleteProgramBtn = document.getElementById("deleteProgramBtn");
     const deleteProgramModal = document.getElementById("deleteProgramModal");
     const deleteProgramTargetName = document.getElementById("deleteProgramTargetName");
@@ -639,6 +662,8 @@
     const bulkConfirmPhraseInput = document.getElementById("bulkConfirmPhraseInput");
     const cancelBulkDeleteBtn = document.getElementById("cancelBulkDeleteBtn");
     const executeBulkDeleteBtn = document.getElementById("executeBulkDeleteBtn");
+    const deleteAllLogsBtn = document.getElementById("deleteAllLogsBtn");
+    const deleteAllStudentsBtn = document.getElementById("deleteAllStudentsBtn");
 
     // History Modal Elements
     const historyModal = document.getElementById("historyModal");
@@ -663,8 +688,6 @@
     const currentSectionTitle = document.getElementById("currentSectionTitle");
     const tabLogsBtn = document.getElementById("tabLogsBtn");
     const tabStudentsBtn = document.getElementById("tabStudentsBtn");
-    const deleteAllLogsBtn = document.getElementById("deleteAllLogsBtn");
-    const deleteAllStudentsBtn = document.getElementById("deleteAllStudentsBtn");
     const exportCsvBtn = document.getElementById("exportCsvBtn");
 
     const logsSection = document.getElementById("logsSection");
@@ -690,6 +713,18 @@
     }
     document.addEventListener("click", focusScannerInput);
     focusScannerInput();
+
+    // Dropdown toggle logic
+    dangerDropdownBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dangerDropdownMenu.classList.toggle("hidden");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (dangerDropdownContainer && !dangerDropdownContainer.contains(e.target)) {
+        dangerDropdownMenu.classList.add("hidden");
+      }
+    });
 
     let scanTimer = null;
     cardInput.addEventListener("input", () => {
@@ -969,9 +1004,11 @@
       const progLabel = currentProgObj ? currentProgObj.name : selectedProgramFilter;
 
       currentSectionTitle.textContent = `Showing ${progLabel} Records`;
-      deleteAllLogsBtn.innerHTML = `<i data-lucide="trash-2" class="w-4 h-4"></i> Delete ${selectedProgramFilter} Logs`;
-      deleteAllStudentsBtn.innerHTML = `<i data-lucide="trash-2" class="w-4 h-4"></i> Delete ${selectedProgramFilter} Students`;
-      deleteProgramBtn.innerHTML = `<i data-lucide="folder-x" class="w-4 h-4"></i> Delete ${selectedProgramFilter}`;
+      
+      // Update Action labels inside consolidated Danger Dropdown
+      deleteLogsLabel.textContent = `Delete ${selectedProgramFilter} Logs`;
+      deleteStudentsLabel.textContent = `Delete ${selectedProgramFilter} Students`;
+      deleteProgramLabel.textContent = `Delete ENTIRE ${selectedProgramFilter} Program`;
       
       renderDailyLogs();
       renderStudents();
@@ -1027,6 +1064,7 @@
 
     // Modal: Delete Entire Program (Guarded by "Ronny is the Best!")
     deleteProgramBtn.addEventListener("click", () => {
+      dangerDropdownMenu.classList.add("hidden");
       if (cachedPrograms.length <= 1) {
         alert("You must maintain at least one active program.");
         return;
@@ -1087,6 +1125,7 @@
 
     // ================= BULK DELETE MODAL ("Ronny is awesome!") =================
     deleteAllLogsBtn.addEventListener("click", () => {
+      dangerDropdownMenu.classList.add("hidden");
       const prog = selectedProgramFilter;
       pendingBulkDeleteType = "logs";
       bulkDeleteTitle.textContent = `Delete All ${prog} Logs?`;
@@ -1105,6 +1144,7 @@
     });
 
     deleteAllStudentsBtn.addEventListener("click", () => {
+      dangerDropdownMenu.classList.add("hidden");
       const prog = selectedProgramFilter;
       pendingBulkDeleteType = "students";
       bulkDeleteTitle.textContent = `Delete All ${prog} Students?`;
@@ -1255,15 +1295,6 @@
       logsSection.classList.remove("hidden");
       studentsSection.classList.add("hidden");
       studentsSection.classList.remove("flex");
-      
-      deleteAllLogsBtn.classList.remove("hidden");
-      deleteAllLogsBtn.classList.add("flex");
-      
-      exportCsvBtn.classList.remove("hidden");
-      exportCsvBtn.classList.add("flex");
-      
-      deleteAllStudentsBtn.classList.add("hidden");
-      deleteAllStudentsBtn.classList.remove("flex");
     });
 
     tabStudentsBtn.addEventListener("click", () => {
@@ -1273,15 +1304,6 @@
       studentsSection.classList.remove("hidden");
       studentsSection.classList.add("flex");
       logsSection.classList.add("hidden");
-
-      deleteAllStudentsBtn.classList.remove("hidden");
-      deleteAllStudentsBtn.classList.add("flex");
-
-      deleteAllLogsBtn.classList.add("hidden");
-      deleteAllLogsBtn.classList.remove("flex");
-      
-      exportCsvBtn.classList.add("hidden");
-      exportCsvBtn.classList.remove("flex");
     });
 
     async function loadAdminData() {
