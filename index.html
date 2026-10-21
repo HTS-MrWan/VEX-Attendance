@@ -3,36 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VEX Robotics Attendance</title>
+  <title>Innovation Lab Attendance</title>
   
-  <!-- Red V Favicon -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='15' fill='%23dc2626'/><text x='50' y='55' font-family='sans-serif' font-weight='bold' font-size='70' fill='%23ffffff' text-anchor='middle' dominant-baseline='middle'>V</text></svg>">
+  <!-- Energetic Lightning Bolt Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%234f46e5'/><path d='M55 15 L25 55 L48 55 L42 85 L75 45 L52 45 Z' fill='%23facc15'/></svg>">
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col font-sans select-none relative">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans select-none relative">
 
   <!-- Header -->
-  <header class="bg-gray-800 border-b border-gray-700 px-4 sm:px-6 py-4 flex justify-between items-center relative z-20">
+  <header class="bg-slate-800/90 backdrop-blur border-b border-slate-700/80 px-4 sm:px-6 py-4 flex justify-between items-center relative z-20 shadow-sm">
     <div class="flex items-center space-x-3 relative z-10">
-      <span class="bg-red-600 text-white font-black px-2.5 py-1 rounded text-lg tracking-wider">VEX</span>
-      <h1 class="text-lg font-bold hidden lg:block">Robotics Lab Attendance</h1>
+      <span class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-3 py-1 rounded-lg text-lg tracking-wider shadow-md shadow-indigo-500/20">STEM</span>
+      <h1 class="text-lg font-bold hidden lg:block text-slate-100 tracking-tight">Innovation Lab Attendance</h1>
     </div>
     
     <!-- Top-Middle Attention Grabber -->
-    <div class="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-3 bg-gray-950 border border-gray-600 px-6 py-2 rounded-full shadow-2xl whitespace-nowrap pointer-events-none">
-      <span class="relative flex h-3.5 w-3.5">
-        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-        <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-600"></span>
-      </span>
-      <span class="text-xs sm:text-sm font-black text-gray-100 uppercase tracking-widest">
-        Robotics Lab: Sign In Here With Key Card
+    <div class="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2.5 bg-slate-950/90 border border-amber-500/40 px-6 py-2 rounded-full shadow-2xl whitespace-nowrap pointer-events-none">
+      <span class="text-amber-400 text-base leading-none animate-pulse">⚡</span>
+      <span class="text-xs sm:text-sm font-black text-slate-100 uppercase tracking-widest">
+        Innovation Lab: Sign In With Keycard
       </span>
     </div>
 
-    <button id="toggleViewBtn" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition relative z-10">
-      <i data-lucide="shield" class="w-4 h-4"></i>
+    <button id="toggleViewBtn" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition border border-slate-600/60 relative z-10 shadow-sm">
+      <i data-lucide="shield" class="w-4 h-4 text-indigo-400"></i>
       <span id="toggleViewText" class="hidden sm:inline">Admin Dashboard</span>
     </button>
   </header>
@@ -40,20 +37,20 @@
   <!-- ================= KIOSK VIEW ================= -->
   <main id="kioskView" class="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-xl mx-auto w-full">
     <!-- Confirmation Banner -->
-    <div id="statusBanner" class="hidden w-full mb-6 p-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg transition-all">
+    <div id="statusBanner" class="hidden w-full mb-6 p-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl transition-all">
       <i id="bannerIcon" data-lucide="check-circle" class="w-6 h-6"></i>
       <span id="bannerText"></span>
     </div>
 
     <!-- Scanner Target Display -->
-    <div class="w-full bg-gray-800 border-2 border-dashed border-gray-600 rounded-2xl p-12 flex flex-col items-center gap-5 shadow-xl">
-      <!-- Hidden Test Click Target (Clicking simulates a new card scan) -->
-      <div id="scannerIconCircle" class="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center text-red-500 cursor-pointer active:scale-95 transition-transform select-none hover:bg-gray-650" title="Click or press Alt+T to test new card">
+    <div class="w-full bg-slate-800/90 border-2 border-dashed border-slate-600 hover:border-indigo-400/80 transition-colors rounded-3xl p-12 flex flex-col items-center gap-5 shadow-2xl">
+      <!-- Hidden Test Click Target (Clicking simulates an unregistered card scan) -->
+      <div id="scannerIconCircle" class="w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-blue-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 cursor-pointer active:scale-95 transition-all select-none hover:border-indigo-400 hover:text-indigo-300 shadow-inner" title="Click or press Alt+T to test new card">
         <i data-lucide="scan" class="w-10 h-10 pointer-events-none"></i>
       </div>
       <div>
-        <h2 class="text-2xl font-bold mb-2">Tap Student Badge</h2>
-        <p class="text-gray-400 text-sm">Hold card against the reader to check in.</p>
+        <h2 class="text-2xl font-bold mb-2 text-white tracking-tight">Tap Student Badge</h2>
+        <p class="text-slate-400 text-sm">Hold badge against reader to sign into the lab today.</p>
       </div>
     </div>
   </main>
@@ -65,49 +62,49 @@
   <main id="adminView" class="hidden flex-1 max-w-5xl w-full mx-auto p-6 flex-col gap-6">
     
     <!-- Dynamic Program Selector Bar -->
-    <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-850 p-3 rounded-2xl border border-gray-700">
+    <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-800/80 p-3 rounded-2xl border border-slate-700/80 shadow-md">
       <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-xs uppercase tracking-wider font-semibold text-gray-400 mr-1">Program:</span>
-        <div id="programTabsList" class="flex flex-wrap bg-gray-900 p-1 rounded-xl border border-gray-700 gap-1"></div>
-        <button id="addProgramBtn" class="bg-gray-800 hover:bg-gray-700 border border-gray-600 text-gray-200 px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition">
-          <i data-lucide="plus" class="w-3.5 h-3.5 text-red-400"></i> Add Program
+        <span class="text-xs uppercase tracking-wider font-bold text-slate-400 mr-1">Program:</span>
+        <div id="programTabsList" class="flex flex-wrap bg-slate-900 p-1 rounded-xl border border-slate-700/80 gap-1"></div>
+        <button id="addProgramBtn" class="bg-slate-700 hover:bg-slate-650 border border-slate-600 text-slate-200 px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition">
+          <i data-lucide="plus" class="w-3.5 h-3.5 text-indigo-400"></i> Add Program
         </button>
       </div>
 
       <div class="flex gap-2">
-        <button id="tabLogsBtn" class="bg-red-600 px-4 py-2 rounded-md text-sm font-semibold transition">Attendance Logs</button>
-        <button id="tabStudentsBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md text-sm font-semibold transition">Registered Students</button>
+        <button id="tabLogsBtn" class="bg-indigo-600 px-4 py-2 rounded-lg text-sm font-bold text-white shadow-md shadow-indigo-500/20 transition">Attendance Logs</button>
+        <button id="tabStudentsBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-bold text-slate-300 transition">Registered Students</button>
       </div>
     </div>
 
     <!-- Actions Bar -->
     <div class="flex flex-wrap justify-between items-center gap-4">
-      <div class="text-sm font-medium text-gray-400" id="currentSectionTitle">
+      <div class="text-sm font-semibold text-slate-300 flex items-center gap-2" id="currentSectionTitle">
         Showing Records
       </div>
       <div class="flex gap-2 flex-wrap items-center">
-        <button id="userManualBtn" class="bg-gray-700 hover:bg-gray-600 border border-gray-600 text-gray-200 px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition">
+        <button id="userManualBtn" class="bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 px-3.5 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition">
           <i data-lucide="book-open" class="w-4 h-4 text-amber-400"></i> User Manual
         </button>
-        <button id="manualEntryBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition shadow">
+        <button id="manualEntryBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition shadow-md shadow-indigo-500/20">
           <i data-lucide="user-check" class="w-4 h-4"></i> Manual Check-In
         </button>
 
         <!-- Unified Manage Dropdown -->
         <div class="relative inline-block text-left" id="manageDropdownContainer">
-          <button id="manageDropdownBtn" type="button" class="bg-gray-800 hover:bg-gray-755 border border-gray-600 text-gray-200 px-3.5 py-2 rounded-md text-sm font-semibold flex items-center gap-1.5 transition">
-            <i data-lucide="settings" class="w-4 h-4 text-gray-400"></i>
+          <button id="manageDropdownBtn" type="button" class="bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 px-3.5 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition">
+            <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i>
             <span>Manage</span>
             <i data-lucide="chevron-down" class="w-3.5 h-3.5 ml-0.5"></i>
           </button>
 
-          <div id="manageDropdownMenu" class="hidden absolute right-0 mt-2 w-64 rounded-xl bg-gray-800 border border-gray-700 shadow-2xl z-40 py-1 divide-y divide-gray-700">
+          <div id="manageDropdownMenu" class="hidden absolute right-0 mt-2 w-64 rounded-xl bg-slate-800 border border-slate-700 shadow-2xl z-40 py-1 divide-y divide-slate-700">
             <div class="py-1">
-              <button id="exportCsvBtn" type="button" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-emerald-400 hover:bg-gray-750 hover:text-emerald-300 flex items-center gap-2 transition">
+              <button id="exportCsvBtn" type="button" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-emerald-400 hover:bg-slate-700/60 flex items-center gap-2 transition">
                 <i data-lucide="download" class="w-4 h-4 text-emerald-400"></i>
                 <span id="exportCsvLabel">Export CSV</span>
               </button>
-              <button id="openMergeModalBtn" type="button" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-indigo-400 hover:bg-gray-750 hover:text-indigo-300 flex items-center gap-2 transition">
+              <button id="openMergeModalBtn" type="button" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-indigo-400 hover:bg-slate-700/60 flex items-center gap-2 transition">
                 <i data-lucide="git-merge" class="w-4 h-4 text-indigo-400"></i>
                 <span>Merge Student Profiles</span>
               </button>
@@ -134,45 +131,45 @@
 
     <!-- Tab 1: Logs Section -->
     <div id="logsSection" class="flex flex-col gap-8">
-      <div class="text-center text-gray-400 py-8">Loading attendance records...</div>
+      <div class="text-center text-slate-400 py-8">Loading attendance records...</div>
     </div>
 
     <!-- Tab 2: Students Section -->
     <div id="studentsSection" class="hidden flex-col gap-4">
       
       <!-- At-Risk Attention Banner -->
-      <div id="atRiskAlertBanner" class="hidden bg-red-950/80 border border-red-700/80 text-red-200 p-4 rounded-xl flex items-center justify-between shadow-lg">
+      <div id="atRiskAlertBanner" class="hidden bg-rose-950/70 border border-rose-700/80 text-rose-200 p-4 rounded-xl flex items-center justify-between shadow-lg">
         <div class="flex items-center gap-3">
-          <span class="p-2 bg-red-900/90 rounded-lg text-red-300">
+          <span class="p-2 bg-rose-900/80 rounded-lg text-rose-300">
             <i data-lucide="alert-triangle" class="w-5 h-5"></i>
           </span>
           <div>
             <p class="font-bold text-sm text-white" id="atRiskBannerTitle">Attendance Attention Required</p>
-            <p class="text-xs text-red-300" id="atRiskBannerSubtitle">Students have missed 10 or more consecutive lab meetings.</p>
+            <p class="text-xs text-rose-300" id="atRiskBannerSubtitle">Students have missed 10 or more consecutive lab meetings.</p>
           </div>
         </div>
-        <button id="viewAtRiskQuickBtn" class="bg-red-700 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition whitespace-nowrap">
+        <button id="viewAtRiskQuickBtn" class="bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition whitespace-nowrap shadow-md">
           Filter At-Risk
         </button>
       </div>
 
       <!-- Students Sub-Toolbar (Filter by Activity) -->
-      <div class="flex flex-wrap items-center justify-between gap-3 bg-gray-850 p-2.5 px-4 rounded-xl border border-gray-700">
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-800/80 p-2.5 px-4 rounded-xl border border-slate-700/80">
         <div class="flex items-center gap-2">
-          <span class="text-xs font-semibold text-gray-400 mr-1">Filter Students:</span>
-          <button id="filterAllStudentsBtn" class="px-3 py-1 rounded-lg text-xs font-bold bg-red-600 text-white transition">All Students</button>
-          <button id="filterAtRiskBtn" class="px-3 py-1 rounded-lg text-xs font-bold text-gray-400 hover:text-white transition flex items-center gap-1.5">
+          <span class="text-xs font-bold text-slate-400 mr-1">Filter Students:</span>
+          <button id="filterAllStudentsBtn" class="px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-sm transition">All Students</button>
+          <button id="filterAtRiskBtn" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5">
             <span>⚠️ At-Risk Only (10+ Missed)</span>
-            <span id="atRiskCountBadge" class="hidden px-1.5 py-0.2 rounded-full text-[10px] bg-red-800 text-red-200 font-mono">0</span>
+            <span id="atRiskCountBadge" class="hidden px-1.5 py-0.2 rounded-full text-[10px] bg-rose-800 text-rose-200 font-mono">0</span>
           </button>
         </div>
-        <div id="sessionStatsText" class="text-xs text-gray-400 font-medium"></div>
+        <div id="sessionStatsText" class="text-xs text-slate-400 font-semibold"></div>
       </div>
 
       <!-- Students Table -->
-      <div class="bg-gray-800 rounded-xl overflow-x-auto border border-gray-700">
+      <div class="bg-slate-800/90 rounded-2xl overflow-x-auto border border-slate-700/80 shadow-md">
         <table class="w-full text-left text-sm">
-          <thead class="bg-gray-700 text-gray-300">
+          <thead class="bg-slate-750 text-slate-300 border-b border-slate-700">
             <tr>
               <th class="p-3.5">Student Name (Last, First)</th>
               <th class="p-3.5">Program</th>
@@ -181,8 +178,8 @@
               <th class="p-3.5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody id="studentsTableBody" class="divide-y divide-gray-700">
-            <tr><td colspan="5" class="p-4 text-center text-gray-400">Loading students...</td></tr>
+          <tbody id="studentsTableBody" class="divide-y divide-slate-700/80">
+            <tr><td colspan="5" class="p-4 text-center text-slate-400">Loading students...</td></tr>
           </tbody>
         </table>
       </div>
@@ -191,40 +188,40 @@
 
   <!-- ================= MODAL: MERGE STUDENTS ================= -->
   <div id="mergeModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
-    <div class="bg-gray-800 rounded-2xl max-w-lg w-full p-6 border border-gray-700 shadow-2xl">
+    <div class="bg-slate-800 rounded-2xl max-w-lg w-full p-6 border border-slate-700 shadow-2xl">
       <div class="flex items-center gap-3 mb-2">
-        <div class="p-2 bg-indigo-950 border border-indigo-700 text-indigo-400 rounded-lg">
+        <div class="p-2 bg-indigo-950/80 border border-indigo-700 text-indigo-400 rounded-lg">
           <i data-lucide="git-merge" class="w-5 h-5"></i>
         </div>
         <h3 class="text-xl font-bold text-white">Merge Duplicate Student Cards</h3>
       </div>
-      <p class="text-gray-400 text-sm mb-4">
-        Consolidate multiple keycard IDs belonging to the same student. All attendance records will be combined under the primary profile, and the duplicate card will become a linked alias.
+      <p class="text-slate-400 text-sm mb-4">
+        Consolidate multiple keycard IDs belonging to the same student. All attendance records will combine under the primary profile, and the duplicate card will become a linked alias.
       </p>
 
       <form id="mergeForm" class="flex flex-col gap-4">
         <div>
-          <label class="block text-xs font-semibold text-gray-300 mb-1">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">
             1. Primary Student Profile <span class="text-emerald-400 font-normal">(Keep as main profile & primary ID)</span>
           </label>
-          <select id="mergePrimarySelect" class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-indigo-500 text-white font-semibold text-sm">
+          <select id="mergePrimarySelect" class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white font-semibold text-sm">
           </select>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-gray-300 mb-1">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">
             2. Secondary Profile to Merge <span class="text-indigo-400 font-normal">(Card becomes an alias; attendance merged)</span>
           </label>
-          <select id="mergeSecondarySelect" class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-indigo-500 text-white font-semibold text-sm">
+          <select id="mergeSecondarySelect" class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white font-semibold text-sm">
           </select>
         </div>
 
-        <div class="bg-indigo-950/40 border border-indigo-700/60 p-3.5 rounded-lg text-xs text-indigo-200">
+        <div class="bg-indigo-950/40 border border-indigo-700/60 p-3.5 rounded-xl text-xs text-indigo-200">
           <p class="font-bold text-white mb-1.5 flex items-center gap-1.5">
             <i data-lucide="link" class="w-3.5 h-3.5 text-indigo-400"></i>
             How Linked Aliases Work:
           </p>
-          <ul class="list-disc list-inside space-y-1 text-gray-300">
+          <ul class="list-disc list-inside space-y-1 text-slate-300">
             <li>The secondary card ID is saved as an active alias for the primary student.</li>
             <li><strong>Both physical cards will check in the same student seamlessly</strong> when tapped at the kiosk.</li>
             <li>All past check-in records are consolidated under the primary student profile.</li>
@@ -232,8 +229,8 @@
         </div>
 
         <div class="flex justify-end gap-3 mt-2">
-          <button type="button" id="cancelMergeBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Cancel</button>
-          <button type="submit" id="submitMergeBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+          <button type="button" id="cancelMergeBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-semibold">Cancel</button>
+          <button type="submit" id="submitMergeBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-lg text-sm transition shadow-md shadow-indigo-500/20">
             Confirm & Merge
           </button>
         </div>
@@ -243,68 +240,68 @@
 
   <!-- ================= MODAL: USER MANUAL ================= -->
   <div id="userManualModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-    <div class="bg-gray-800 rounded-2xl max-w-3xl w-full p-6 sm:p-8 border border-gray-700 shadow-2xl flex flex-col max-h-[88vh]">
-      <div class="flex items-center justify-between border-b border-gray-700 pb-4 mb-4">
+    <div class="bg-slate-800 rounded-3xl max-w-3xl w-full p-6 sm:p-8 border border-slate-700 shadow-2xl flex flex-col max-h-[88vh]">
+      <div class="flex items-center justify-between border-b border-slate-700 pb-4 mb-4">
         <div class="flex items-center gap-3">
           <div class="p-2.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-xl">
             <i data-lucide="book-open" class="w-6 h-6"></i>
           </div>
           <div>
-            <h2 class="text-xl font-bold text-white">Teacher & Admin User Manual</h2>
-            <p class="text-xs text-gray-400">Robotics Lab Attendance Application Guide</p>
+            <h2 class="text-xl font-bold text-white">Innovation Lab User Manual</h2>
+            <p class="text-xs text-slate-400">Team Attendance & Multi-Program Operations Guide</p>
           </div>
         </div>
-        <button id="closeUserManualBtn" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-700 transition">
+        <button id="closeUserManualBtn" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <div class="flex-1 overflow-y-auto pr-3 space-y-6 text-sm text-gray-300 leading-relaxed">
-        <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
+      <div class="flex-1 overflow-y-auto pr-3 space-y-6 text-sm text-slate-300 leading-relaxed">
+        <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
-            <i data-lucide="scan" class="w-4 h-4 text-red-500"></i>
+            <i data-lucide="scan" class="w-4 h-4 text-indigo-400"></i>
             1. Kiosk Mode & Badge Scanning
           </h3>
-          <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
+          <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li><strong>Automatic Card Reader:</strong> Plug in any USB keycard scanner. Tapping a student badge registers their check-in instantly with zero clicks required.</li>
             <li><strong>Linked Aliases:</strong> If a student has merged cards, tapping either their primary card or any linked alias card will check them in without issues.</li>
-            <li><strong>Testing Without a Badge:</strong> Click the red scanner target circle in Kiosk view or press <code class="bg-gray-800 px-1.5 py-0.5 rounded text-gray-200">Alt + T</code> to trigger a simulated new badge scan.</li>
+            <li><strong>Testing Without a Badge:</strong> Click the scanner target icon in Kiosk view or press <code class="bg-slate-800 px-1.5 py-0.5 rounded text-amber-300 font-mono">Alt + T</code> to trigger a simulated new badge scan.</li>
             <li><strong>Auto-Focusing:</strong> Clicking anywhere on the screen refocuses the scanner input automatically.</li>
             <li><strong>New Badge Registration:</strong> When an unrecognized keycard is tapped, a registration modal prompts for First Name, Last Name, and Program. Upon submission, it registers the student and immediately logs today's attendance.</li>
-            <li><strong>Full-Screen Lock:</strong> Press <code class="bg-gray-800 px-1.5 py-0.5 rounded text-gray-200">Cmd + Shift + F</code> (Mac) or <code class="bg-gray-800 px-1.5 py-0.5 rounded text-gray-200">F11</code> (Windows) in Chrome to hide the address bar and keep students locked to the kiosk.</li>
+            <li><strong>Full-Screen Lock:</strong> Press <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-200">Cmd + Shift + F</code> (Mac) or <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-200">F11</code> (Windows) in Chrome to hide the address bar and keep students locked to the kiosk.</li>
           </ul>
         </section>
 
-        <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
+        <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="user-check" class="w-4 h-4 text-indigo-400"></i>
             2. Manual Check-In (Forgotten Badges)
           </h3>
-          <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
+          <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li>When a student forgets their badge, click <strong>Manual Check-In</strong> on the Admin Dashboard.</li>
             <li>Choose their program. The dropdown dynamically filters out anyone who has already checked in today, listing only students who still need attendance recorded.</li>
-            <li>Select the student and click <strong>Check In Student</strong> to record their time stamp immediately.</li>
+            <li>Select the student and click <strong>Check In Student</strong> to record their timestamp immediately.</li>
           </ul>
         </section>
 
-        <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
+        <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="folder-plus" class="w-4 h-4 text-emerald-400"></i>
             3. Dynamic Multi-Program Management
           </h3>
-          <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
+          <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li><strong>Organized Program Ordering:</strong> Program tabs always appear in the consistent order of <strong>V5 $\rightarrow$ IQ $\rightarrow$ SRP $\rightarrow$ SRE</strong>, followed chronologically by any new programs added.</li>
             <li><strong>Add Custom Programs:</strong> Teachers can click <strong>"+ Add Program"</strong> to create new programs. Each program receives its own isolated attendance logs and student roster.</li>
             <li><strong>Program Swapping:</strong> In Registered Students, teachers can move any student to another program using <strong>Move Program</strong>. Their profile and all past attendance logs automatically transfer over.</li>
           </ul>
         </section>
 
-        <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
+        <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="git-merge" class="w-4 h-4 text-indigo-400"></i>
             4. Merge Duplicate Student Cards (Linked Aliases)
           </h3>
-          <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
+          <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li>If a student has been issued multiple cards, click <strong>Manage ▾</strong> > <strong>Merge Student Profiles</strong>.</li>
             <li>Select the <strong>Primary Profile</strong> to keep, and the <strong>Secondary Profile</strong> to merge.</li>
             <li>All historical attendance logs from the secondary profile are reassigned to the primary student, and the secondary card ID is stored as a <strong>linked alias</strong>.</li>
@@ -312,61 +309,61 @@
           </ul>
         </section>
 
-        <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
+        <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="calendar" class="w-4 h-4 text-blue-400"></i>
             5. Attendance Records & Edvance Translation
           </h3>
-          <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
+          <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li>Check-ins are grouped by calendar date and sorted newest first.</li>
             <li>Multi-tap detection tracks multiple scans by the same student on the same day without creating duplicate rows.</li>
             <li><strong>Edvance Checkbox:</strong> Check <em>"Attendance Translated to Edvance"</em> once daily logs have been officially recorded in the school SIS. This greys out the day to prevent duplicate entries and persists across all browsers.</li>
           </ul>
         </section>
 
-        <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
+        <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="history" class="w-4 h-4 text-purple-400"></i>
             6. Student Profiles & History Modal
           </h3>
-          <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
+          <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li><strong>Alphabetical Sorting:</strong> Registered students are sorted alphabetically by last name, then first name.</li>
             <li><strong>Attendance History:</strong> Click on any student's name in the table to open their comprehensive attendance breakdown, showing their card ID, linked aliases, total sessions attended, attendance rate, and every logged check-in timestamp.</li>
             <li><strong>Edit Profile:</strong> Click <strong>Edit</strong> in the student table to update their First or Last Name. Changes cascade across the database, automatically updating all past attendance logs.</li>
           </ul>
         </section>
 
-        <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
+        <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
             7. Inactivity & At-Risk Tracking (10+ Lab Days)
           </h3>
-          <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
-            <li><strong>Distinct Lab Meetings:</strong> The app counts unique dates that students actually attended robotics lab sessions, seamlessly skipping holidays, exam weeks, and cancellations.</li>
+          <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
+            <li><strong>Distinct Lab Meetings:</strong> The app counts unique dates that students actually attended lab sessions, seamlessly skipping holidays, exam weeks, and cancellations.</li>
             <li><strong>Status Badges:</strong>
               <ul class="list-circle list-inside ml-4 mt-1 space-y-1">
                 <li><span class="text-emerald-400 font-semibold">Active:</span> Checked in within the last 4 lab sessions.</li>
                 <li><span class="text-amber-400 font-semibold">Absent (5–9):</span> Missed 5 to 9 consecutive lab sessions.</li>
-                <li><span class="text-red-400 font-semibold">⚠️ At-Risk (10+):</span> Pulsing red alert for students missing 10 or more consecutive lab meetings.</li>
+                <li><span class="text-rose-400 font-semibold">⚠️ At-Risk (10+):</span> Pulsing alert for students missing 10 or more consecutive lab meetings.</li>
               </ul>
             </li>
             <li><strong>Quick Filter:</strong> Click <strong>"⚠️ At-Risk Only"</strong> to isolate disengaged students in one click.</li>
           </ul>
         </section>
 
-        <section class="bg-gray-900/60 p-4 rounded-xl border border-gray-750">
+        <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
-            <i data-lucide="settings" class="w-4 h-4 text-gray-400"></i>
+            <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i>
             8. Admin Access & Manage Menu Safeguards
           </h3>
-          <ul class="list-disc list-inside space-y-1.5 text-xs text-gray-300">
+          <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li><strong>Admin Dashboard:</strong> Protected by the admin password.</li>
             <li><strong>Manage Menu:</strong> Consolidates data export, merging, and destructive actions into one location:
               <ul class="list-circle list-inside ml-4 mt-1 space-y-1">
                 <li><strong>Export CSV:</strong> Downloads a formatted spreadsheet of all check-in records for the active program.</li>
                 <li><strong>Merge Student Profiles:</strong> Combines duplicate card entries into one master record with linked aliases.</li>
-                <li><strong>Delete ENTIRE [CODE] Program:</strong> Permanently deletes the program configuration, all students, and all logs. Guarded by typing <code class="bg-gray-800 px-1.5 py-0.5 rounded text-red-300 font-mono">Ronny is the Best!</code>.</li>
-                <li><strong>Delete [CODE] Logs / Delete [CODE] Students:</strong> Guarded by typing <code class="bg-gray-800 px-1.5 py-0.5 rounded text-red-300 font-mono">Ronny is awesome!</code>.</li>
+                <li><strong>Delete ENTIRE [CODE] Program:</strong> Permanently deletes the program configuration, all students, and all logs. Guarded by typing <code class="bg-slate-800 px-1.5 py-0.5 rounded text-rose-300 font-mono">Ronny is the Best!</code>.</li>
+                <li><strong>Delete [CODE] Logs / Delete [CODE] Students:</strong> Guarded by typing <code class="bg-slate-800 px-1.5 py-0.5 rounded text-rose-300 font-mono">Ronny is awesome!</code>.</li>
               </ul>
             </li>
             <li><strong>Individual Student Deletion:</strong> Deleting an individual student cascades to remove their master profile, any card aliases, and all associated attendance logs.</li>
@@ -374,9 +371,9 @@
         </section>
       </div>
 
-      <div class="border-t border-gray-700 pt-4 mt-4 flex justify-between items-center">
-        <span class="text-xs text-gray-500 font-mono">Documentation Version: v1.6.0</span>
-        <button id="closeUserManualFooterBtn" class="bg-gray-700 hover:bg-gray-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
+      <div class="border-t border-slate-700 pt-4 mt-4 flex justify-between items-center">
+        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.6.1</span>
+        <button id="closeUserManualFooterBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           Close Manual
         </button>
       </div>
@@ -385,25 +382,25 @@
 
   <!-- ================= MODAL: ADMIN PASSWORD ================= -->
   <div id="passwordModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
-    <div class="bg-gray-800 rounded-2xl max-w-sm w-full p-6 border border-gray-700 shadow-2xl">
+    <div class="bg-slate-800 rounded-2xl max-w-sm w-full p-6 border border-slate-700 shadow-2xl">
       <div class="flex items-center gap-3 mb-3">
-        <div class="p-2 bg-gray-700 rounded-lg text-red-500">
+        <div class="p-2 bg-slate-700 rounded-lg text-indigo-400">
           <i data-lucide="lock" class="w-5 h-5"></i>
         </div>
-        <h3 class="text-lg font-bold">Admin Access</h3>
+        <h3 class="text-lg font-bold text-white">Admin Access</h3>
       </div>
-      <p class="text-gray-400 text-sm mb-4">Enter password to access records and dashboard:</p>
+      <p class="text-slate-400 text-sm mb-4">Enter password to access records and dashboard:</p>
       
-      <div id="passwordError" class="hidden mb-3 p-2.5 bg-red-950/80 border border-red-700 text-red-300 text-xs rounded-lg">
+      <div id="passwordError" class="hidden mb-3 p-2.5 bg-rose-950/80 border border-rose-700 text-rose-300 text-xs rounded-lg">
         Incorrect password. Try again.
       </div>
 
       <form id="passwordForm">
         <input id="adminPasswordInput" type="password" placeholder="Password" required autocomplete="current-password"
-          class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 mb-4 text-white" />
+          class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 mb-4 text-white" />
         <div class="flex justify-end gap-3">
-          <button type="button" id="cancelPasswordBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Cancel</button>
-          <button type="submit" class="bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-lg text-sm">Unlock</button>
+          <button type="button" id="cancelPasswordBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-semibold">Cancel</button>
+          <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-lg text-sm shadow-md shadow-indigo-500/20">Unlock</button>
         </div>
       </form>
     </div>
@@ -411,34 +408,34 @@
 
   <!-- ================= MODAL: UNREGISTERED CARD ================= -->
   <div id="registerModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
-    <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-gray-700 shadow-2xl">
-      <h3 class="text-xl font-bold mb-1">New Card Detected</h3>
-      <p class="text-gray-400 text-sm mb-4">
-        Card <strong id="modalCardId" class="text-white font-mono"></strong> is not registered.
+    <div class="bg-slate-800 rounded-2xl max-w-md w-full p-6 border border-slate-700 shadow-2xl">
+      <h3 class="text-xl font-bold mb-1 text-white">New Card Detected</h3>
+      <p class="text-slate-400 text-sm mb-4">
+        Card <strong id="modalCardId" class="text-indigo-300 font-mono"></strong> is not registered.
       </p>
       
-      <div id="modalError" class="hidden mb-4 p-3 bg-red-950/80 border border-red-700 text-red-200 text-xs rounded-lg"></div>
+      <div id="modalError" class="hidden mb-4 p-3 bg-rose-950/80 border border-rose-700 text-rose-200 text-xs rounded-lg"></div>
 
       <form id="registerForm" class="flex flex-col gap-3">
         <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1">Program</label>
-          <select id="programSelect" class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white font-semibold">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Select Program</label>
+          <select id="programSelect" class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white font-semibold">
           </select>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1">Student Name</label>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Student Name</label>
           <div class="flex gap-3">
             <input id="firstNameInput" type="text" placeholder="First Name" required autocomplete="off"
-              class="w-1/2 px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white" />
+              class="w-1/2 px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white" />
             <input id="lastNameInput" type="text" placeholder="Last Name" required autocomplete="off"
-              class="w-1/2 px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white" />
+              class="w-1/2 px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white" />
           </div>
         </div>
 
         <div class="flex justify-end gap-3 mt-3">
-          <button type="button" id="cancelRegisterBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Cancel</button>
-          <button type="submit" id="submitRegisterBtn" class="bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-lg text-sm">
+          <button type="button" id="cancelRegisterBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-semibold">Cancel</button>
+          <button type="submit" id="submitRegisterBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-lg text-sm shadow-md shadow-indigo-500/20">
             Register & Check In
           </button>
         </div>
@@ -448,25 +445,25 @@
 
   <!-- ================= MODAL: MANUAL CHECK-IN ================= -->
   <div id="manualEntryModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
-    <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-gray-700 shadow-2xl">
+    <div class="bg-slate-800 rounded-2xl max-w-md w-full p-6 border border-slate-700 shadow-2xl">
       <div class="flex items-center gap-3 mb-2">
-        <div class="p-2 bg-indigo-950 border border-indigo-700 text-indigo-400 rounded-lg">
+        <div class="p-2 bg-indigo-950/80 border border-indigo-700 text-indigo-400 rounded-lg">
           <i data-lucide="user-check" class="w-5 h-5"></i>
         </div>
-        <h3 class="text-xl font-bold">Manual Student Check-In</h3>
+        <h3 class="text-xl font-bold text-white">Manual Student Check-In</h3>
       </div>
-      <p class="text-gray-400 text-sm mb-4">Check in a student who forgot or lost their physical badge today.</p>
+      <p class="text-slate-400 text-sm mb-4">Check in a student who forgot or lost their physical badge today.</p>
 
       <form id="manualEntryForm" class="flex flex-col gap-4">
         <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1">Select Program</label>
-          <select id="manualProgramSelect" class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-indigo-500 text-white font-semibold">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Select Program</label>
+          <select id="manualProgramSelect" class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white font-semibold">
           </select>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1">Select Student (Unchecked Today)</label>
-          <select id="manualStudentSelect" class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-indigo-500 text-white font-semibold">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Select Student (Unchecked Today)</label>
+          <select id="manualStudentSelect" class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white font-semibold">
           </select>
           <p id="noStudentsNotice" class="hidden text-xs text-emerald-400 mt-2 font-medium">
             ✓ All registered students in this program have already checked in today!
@@ -474,8 +471,8 @@
         </div>
 
         <div class="flex justify-end gap-3 mt-2">
-          <button type="button" id="cancelManualEntryBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Cancel</button>
-          <button type="submit" id="submitManualEntryBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-lg text-sm transition">
+          <button type="button" id="cancelManualEntryBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-semibold">Cancel</button>
+          <button type="submit" id="submitManualEntryBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-lg text-sm transition shadow-md shadow-indigo-500/20">
             Check In Student
           </button>
         </div>
@@ -485,26 +482,26 @@
 
   <!-- ================= MODAL: BULK DELETE CONFIRMATION ================= -->
   <div id="bulkDeleteModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-    <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-red-800/80 shadow-2xl">
-      <div class="flex items-center gap-3 mb-3 text-red-500">
+    <div class="bg-slate-800 rounded-2xl max-w-md w-full p-6 border border-rose-800/80 shadow-2xl">
+      <div class="flex items-center gap-3 mb-3 text-rose-500">
         <i data-lucide="alert-triangle" class="w-6 h-6"></i>
         <h3 id="bulkDeleteTitle" class="text-xl font-bold text-white">Permanently Delete?</h3>
       </div>
       
-      <p id="bulkDeleteDescription" class="text-sm text-gray-300 mb-3 leading-relaxed"></p>
+      <p id="bulkDeleteDescription" class="text-sm text-slate-300 mb-3 leading-relaxed"></p>
       
-      <div id="bulkDeleteWarningList" class="text-xs text-gray-400 bg-gray-900/80 p-3 rounded-lg border border-gray-700 mb-4"></div>
+      <div id="bulkDeleteWarningList" class="text-xs text-slate-400 bg-slate-900/90 p-3 rounded-lg border border-slate-700 mb-4"></div>
 
-      <p class="text-xs text-gray-300 font-semibold mb-2">
-        To confirm, type <span class="text-red-400 font-mono select-all">Ronny is awesome!</span> below:
+      <p class="text-xs text-slate-300 font-semibold mb-2">
+        To confirm, type <span class="text-rose-400 font-mono select-all">Ronny is awesome!</span> below:
       </p>
 
       <input id="bulkConfirmPhraseInput" type="text" placeholder="Ronny is awesome!" autocomplete="off"
-        class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 mb-4 text-white font-mono" />
+        class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-rose-500 mb-4 text-white font-mono" />
 
       <div class="flex justify-end gap-3">
-        <button type="button" id="cancelBulkDeleteBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Cancel</button>
-        <button type="button" id="executeBulkDeleteBtn" disabled class="bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-red-500 text-white font-bold px-4 py-2 rounded-lg text-sm transition">
+        <button type="button" id="cancelBulkDeleteBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-semibold">Cancel</button>
+        <button type="button" id="executeBulkDeleteBtn" disabled class="bg-rose-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-rose-500 text-white font-bold px-4 py-2 rounded-lg text-sm transition">
           Confirm Deletion
         </button>
       </div>
@@ -513,30 +510,30 @@
 
   <!-- ================= MODAL: ADD PROGRAM ================= -->
   <div id="addProgramModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
-    <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-gray-700 shadow-2xl">
+    <div class="bg-slate-800 rounded-2xl max-w-md w-full p-6 border border-slate-700 shadow-2xl">
       <div class="flex items-center gap-3 mb-2">
-        <div class="p-2 bg-gray-700 rounded-lg text-red-400">
+        <div class="p-2 bg-indigo-950/80 border border-indigo-700 text-indigo-400 rounded-lg">
           <i data-lucide="folder-plus" class="w-5 h-5"></i>
         </div>
-        <h3 class="text-xl font-bold">Add New Program</h3>
+        <h3 class="text-xl font-bold text-white">Add New Program</h3>
       </div>
-      <p class="text-gray-400 text-sm mb-4">Create a new program to start tracking separate attendance records and students.</p>
+      <p class="text-slate-400 text-sm mb-4">Create a new program to start tracking separate attendance records and students.</p>
 
       <form id="addProgramForm" class="flex flex-col gap-3">
         <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1">Program Full Name</label>
-          <input id="newProgramNameInput" type="text" placeholder="e.g. FIRST Tech Challenge" required
-            class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white" />
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Program Full Name</label>
+          <input id="newProgramNameInput" type="text" placeholder="e.g. STEM Racing Elite" required
+            class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-gray-400 mb-1">Short Code / Badge Label (Max 8 Chars)</label>
-          <input id="newProgramCodeInput" type="text" placeholder="e.g. FTC or SKILLS" maxlength="8" required
-            class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 text-white uppercase font-mono" />
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Short Code / Badge Label (Max 8 Chars)</label>
+          <input id="newProgramCodeInput" type="text" placeholder="e.g. SRE or SKILLS" maxlength="8" required
+            class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white uppercase font-mono" />
         </div>
 
         <div class="flex justify-end gap-3 mt-3">
-          <button type="button" id="cancelAddProgramBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Cancel</button>
-          <button type="submit" id="submitAddProgramBtn" class="bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-2 rounded-lg text-sm">
+          <button type="button" id="cancelAddProgramBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-semibold">Cancel</button>
+          <button type="submit" id="submitAddProgramBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-lg text-sm shadow-md shadow-indigo-500/20">
             Create Program
           </button>
         </div>
@@ -546,31 +543,31 @@
 
   <!-- ================= MODAL: DELETE ENTIRE PROGRAM ================= -->
   <div id="deleteProgramModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-    <div class="bg-gray-800 rounded-2xl max-w-md w-full p-6 border border-red-800/80 shadow-2xl">
-      <div class="flex items-center gap-3 mb-3 text-red-500">
+    <div class="bg-slate-800 rounded-2xl max-w-md w-full p-6 border border-rose-800/80 shadow-2xl">
+      <div class="flex items-center gap-3 mb-3 text-rose-500">
         <i data-lucide="alert-triangle" class="w-6 h-6"></i>
         <h3 class="text-xl font-bold text-white">Permanently Delete Program?</h3>
       </div>
       
-      <p class="text-sm text-gray-300 mb-3 leading-relaxed">
-        You are about to delete <strong id="deleteProgramTargetName" class="text-red-400"></strong>. This will permanently delete:
+      <p class="text-sm text-slate-300 mb-3 leading-relaxed">
+        You are about to delete <strong id="deleteProgramTargetName" class="text-rose-400"></strong>. This will permanently delete:
       </p>
-      <ul class="text-xs text-gray-400 list-disc list-inside space-y-1 mb-4 bg-gray-900/80 p-3 rounded-lg border border-gray-700">
+      <ul class="text-xs text-slate-400 list-disc list-inside space-y-1 mb-4 bg-slate-900/90 p-3 rounded-lg border border-slate-700">
         <li>The program configuration and dashboard tabs</li>
         <li><strong>ALL</strong> registered student profiles in this program</li>
         <li><strong>ALL</strong> attendance check-in logs and Edvance records for this program</li>
       </ul>
 
-      <p class="text-xs text-gray-300 font-semibold mb-2">
-        To confirm, type <span class="text-red-400 font-mono select-all">Ronny is the Best!</span> below:
+      <p class="text-xs text-slate-300 font-semibold mb-2">
+        To confirm, type <span class="text-rose-400 font-mono select-all">Ronny is the Best!</span> below:
       </p>
 
       <input id="confirmPhraseInput" type="text" placeholder="Ronny is the Best!" autocomplete="off"
-        class="w-full px-4 py-2.5 rounded-lg bg-gray-900 border border-gray-600 focus:outline-none focus:border-red-500 mb-4 text-white font-mono" />
+        class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-rose-500 mb-4 text-white font-mono" />
 
       <div class="flex justify-end gap-3">
-        <button type="button" id="cancelDeleteProgramBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Cancel</button>
-        <button type="button" id="executeDeleteProgramBtn" disabled class="bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-red-500 text-white font-bold px-4 py-2 rounded-lg text-sm transition">
+        <button type="button" id="cancelDeleteProgramBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-semibold">Cancel</button>
+        <button type="button" id="executeDeleteProgramBtn" disabled class="bg-rose-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-rose-500 text-white font-bold px-4 py-2 rounded-lg text-sm transition">
           Permanently Delete Program
         </button>
       </div>
@@ -579,29 +576,29 @@
 
   <!-- ================= MODAL: STUDENT ATTENDANCE HISTORY ================= -->
   <div id="historyModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
-    <div class="bg-gray-800 rounded-2xl max-w-lg w-full p-6 border border-gray-700 shadow-2xl flex flex-col max-h-[85vh]">
-      <div class="flex items-start justify-between border-b border-gray-700 pb-4 mb-4">
+    <div class="bg-slate-800 rounded-3xl max-w-lg w-full p-6 border border-slate-700 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex items-start justify-between border-b border-slate-700 pb-4 mb-4">
         <div>
           <div class="flex items-center gap-2 mb-1">
             <h3 id="historyStudentName" class="text-xl font-bold text-white">Student Name</h3>
-            <span id="historyProgramBadge" class="text-xs font-bold px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800">V5</span>
+            <span id="historyProgramBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full">V5</span>
           </div>
-          <div class="text-xs text-gray-400 flex flex-wrap items-center gap-2">
-            <span>Card ID: <strong id="historyCardId" class="font-mono text-gray-300"></strong></span>
+          <div class="text-xs text-slate-400 flex flex-wrap items-center gap-2">
+            <span>Card ID: <strong id="historyCardId" class="font-mono text-slate-300"></strong></span>
             <span>•</span>
             <span id="historyTotalSessions" class="text-emerald-400 font-semibold">0 check-ins total</span>
           </div>
-          <div id="historyRateText" class="text-xs text-amber-400 mt-1 font-medium"></div>
+          <div id="historyRateText" class="text-xs text-amber-400 mt-1 font-semibold"></div>
         </div>
-        <button id="closeHistoryBtn" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-700 transition">
+        <button id="closeHistoryBtn" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <div id="historyListContainer" class="flex-1 overflow-y-auto divide-y divide-gray-700 pr-1"></div>
+      <div id="historyListContainer" class="flex-1 overflow-y-auto divide-y divide-slate-700/80 pr-1"></div>
 
-      <div class="border-t border-gray-700 pt-4 mt-4 flex justify-end">
-        <button id="closeHistoryFooterBtn" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+      <div class="border-t border-slate-700 pt-4 mt-4 flex justify-end">
+        <button id="closeHistoryFooterBtn" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
           Close
         </button>
       </div>
@@ -609,8 +606,8 @@
   </div>
 
   <!-- Version Indicator -->
-  <div class="fixed bottom-3 right-4 text-xs font-mono text-gray-500 bg-gray-800/90 border border-gray-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.6.0
+  <div class="fixed bottom-3 right-4 text-xs font-mono text-slate-500 bg-slate-800/90 border border-slate-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
+    v1.6.1
   </div>
 
   <script type="module">
@@ -774,7 +771,6 @@
       processScan(testCardId);
     }
 
-    // Hidden Test Trigger 1: Clicking the circular scanner icon in Kiosk view
     if (scannerIconCircle) {
       scannerIconCircle.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -782,7 +778,6 @@
       });
     }
 
-    // Hidden Test Trigger 2: Keyboard shortcut Alt + T
     document.addEventListener("keydown", (e) => {
       if (e.altKey && (e.key === "t" || e.key === "T")) {
         e.preventDefault();
@@ -929,8 +924,8 @@
     let bannerTimer = null;
     function showBanner(success, message) {
       clearTimeout(bannerTimer);
-      statusBanner.className = `w-full mb-6 p-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 shadow-lg ${
-        success ? "bg-emerald-700 text-white" : "bg-red-700 text-white"
+      statusBanner.className = `w-full mb-6 p-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl ${
+        success ? "bg-emerald-600 text-white" : "bg-rose-700 text-white"
       }`;
       bannerText.textContent = message;
       statusBanner.classList.remove("hidden");
@@ -1108,7 +1103,9 @@
         return `
           <button onclick="window.switchProgram('${p.code}')" 
             class="px-4 py-1.5 rounded-lg text-sm font-bold transition ${
-              isActive ? 'bg-red-600 text-white shadow' : 'text-gray-400 hover:text-white'
+              isActive 
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' 
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }">
             ${p.code}
           </button>
@@ -1139,7 +1136,7 @@
       const currentProgObj = cachedPrograms.find(p => p.code === selectedProgramFilter);
       const progLabel = currentProgObj ? currentProgObj.name : selectedProgramFilter;
 
-      currentSectionTitle.textContent = `Showing ${progLabel} Records`;
+      currentSectionTitle.innerHTML = `<span class="w-2 h-2 rounded-full bg-indigo-400 inline-block"></span> Showing ${progLabel} Records`;
       
       exportCsvLabel.textContent = `Export ${selectedProgramFilter} CSV`;
       deleteLogsLabel.textContent = `Delete ${selectedProgramFilter} Logs`;
@@ -1552,8 +1549,8 @@
 
     // ================= TAB SWITCHING =================
     tabLogsBtn.addEventListener("click", () => {
-      tabLogsBtn.className = "bg-red-600 px-4 py-2 rounded-md text-sm font-semibold transition";
-      tabStudentsBtn.className = "bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md text-sm font-semibold transition";
+      tabLogsBtn.className = "bg-indigo-600 px-4 py-2 rounded-lg text-sm font-bold text-white shadow-md shadow-indigo-500/20 transition";
+      tabStudentsBtn.className = "bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-bold text-slate-300 transition";
       
       logsSection.classList.remove("hidden");
       studentsSection.classList.add("hidden");
@@ -1561,8 +1558,8 @@
     });
 
     tabStudentsBtn.addEventListener("click", () => {
-      tabStudentsBtn.className = "bg-red-600 px-4 py-2 rounded-md text-sm font-semibold transition";
-      tabLogsBtn.className = "bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-md text-sm font-semibold transition";
+      tabStudentsBtn.className = "bg-indigo-600 px-4 py-2 rounded-lg text-sm font-bold text-white shadow-md shadow-indigo-500/20 transition";
+      tabLogsBtn.className = "bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-bold text-slate-300 transition";
       
       studentsSection.classList.remove("hidden");
       studentsSection.classList.add("flex");
@@ -1639,11 +1636,21 @@
       }
     }
 
+    function getProgramBadgeClass(prog) {
+      switch(prog) {
+        case 'V5': return 'bg-rose-500/20 text-rose-300 border border-rose-500/40';
+        case 'IQ': return 'bg-sky-500/20 text-sky-300 border border-sky-500/40';
+        case 'SRP': return 'bg-amber-500/20 text-amber-300 border border-amber-500/40';
+        case 'SRE': return 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+        default: return 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40';
+      }
+    }
+
     function renderDailyLogs() {
       const currentLogs = cachedLogs.filter(log => (log.program || "V5") === selectedProgramFilter);
 
       if (currentLogs.length === 0) {
-        logsSection.innerHTML = `<div class="p-8 text-center bg-gray-800 rounded-xl text-gray-400 border border-gray-700">No ${selectedProgramFilter} attendance logs found.</div>`;
+        logsSection.innerHTML = `<div class="p-8 text-center bg-slate-800/80 rounded-2xl text-slate-400 border border-slate-700/80">No ${selectedProgramFilter} attendance logs found.</div>`;
         return;
       }
 
@@ -1689,46 +1696,46 @@
 
         const rowsHtml = aggregatedStudents.map(student => {
           const timeDisplay = student.times.length > 1
-            ? `${student.times[student.times.length - 1]} <span class="text-xs text-red-400 font-sans ml-1">(${student.times.length} taps: ${student.times.join(", ")})</span>`
+            ? `${student.times[student.times.length - 1]} <span class="text-xs text-indigo-400 font-sans ml-1">(${student.times.length} taps: ${student.times.join(", ")})</span>`
             : student.times[0];
 
           const escapedLogIds = JSON.stringify(student.logIds).replace(/"/g, '&quot;');
 
           return `
-            <tr class="hover:bg-gray-750 transition-colors">
+            <tr class="hover:bg-slate-750/70 transition-colors">
               <td class="p-3.5 font-semibold text-white">${student.studentName}</td>
-              <td class="p-3.5 font-mono text-gray-400">${student.cardId}</td>
-              <td class="p-3.5 text-gray-300">${timeDisplay}</td>
+              <td class="p-3.5 font-mono text-slate-400">${student.cardId}</td>
+              <td class="p-3.5 text-slate-300">${timeDisplay}</td>
               <td class="p-3.5 text-right">
-                <button onclick="window.deleteDailyStudentLogs('${escapedLogIds}')" class="text-red-400 hover:text-red-300 transition">Delete</button>
+                <button onclick="window.deleteDailyStudentLogs('${escapedLogIds}')" class="text-rose-400 hover:text-rose-300 font-medium transition">Delete</button>
               </td>
             </tr>
           `;
         }).join("");
 
         html += `
-          <div class="rounded-xl overflow-hidden border border-gray-700 bg-gray-800 transition-all duration-300 ${
+          <div class="rounded-2xl overflow-hidden border border-slate-700/80 bg-slate-800/90 shadow-lg transition-all duration-300 ${
             isSynced ? "opacity-50 grayscale" : ""
           }">
-            <div class="bg-gray-750 px-5 py-3.5 flex flex-wrap items-center justify-between gap-4 border-b border-gray-700">
+            <div class="bg-slate-750/80 px-5 py-3.5 flex flex-wrap items-center justify-between gap-4 border-b border-slate-700/80">
               <div class="flex items-center gap-3">
-                <div class="p-1.5 bg-red-600/20 text-red-400 rounded">
+                <div class="p-1.5 bg-indigo-600/20 text-indigo-400 rounded-lg">
                   <i data-lucide="calendar" class="w-4 h-4"></i>
                 </div>
                 <h3 class="font-bold text-base text-white tracking-wide">${formatDateDisplay(dateKey)}</h3>
-                <span class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full font-mono font-medium">
+                <span class="text-xs bg-slate-700/90 text-slate-200 px-2.5 py-0.5 rounded-full font-mono font-semibold">
                   ${aggregatedStudents.length} ${aggregatedStudents.length === 1 ? 'student' : 'students'} (${selectedProgramFilter})
                 </span>
               </div>
 
-              <label class="flex items-center gap-2 cursor-pointer bg-gray-900/60 px-3 py-1.5 rounded-lg border border-gray-600 hover:border-gray-500 transition select-none">
+              <label class="flex items-center gap-2 cursor-pointer bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-600 hover:border-slate-500 transition select-none">
                 <input 
                   type="checkbox" 
                   onchange="window.toggleEdvanceSync('${syncKey}', this.checked)"
                   ${isSynced ? "checked" : ""}
-                  class="w-4 h-4 rounded text-red-600 bg-gray-800 border-gray-600 focus:ring-0 cursor-pointer"
+                  class="w-4 h-4 rounded text-indigo-600 bg-slate-800 border-slate-600 focus:ring-0 cursor-pointer"
                 />
-                <span class="text-xs font-semibold ${isSynced ? 'text-emerald-400 line-through' : 'text-gray-200'}">
+                <span class="text-xs font-semibold ${isSynced ? 'text-emerald-400 line-through' : 'text-slate-200'}">
                   Attendance Translated to Edvance
                 </span>
               </label>
@@ -1736,7 +1743,7 @@
 
             <div class="overflow-x-auto">
               <table class="w-full text-left text-sm">
-                <thead class="bg-gray-700 text-gray-300">
+                <thead class="bg-slate-750 text-slate-300">
                   <tr>
                     <th class="p-3.5">Student Name (Last, First)</th>
                     <th class="p-3.5">Card ID</th>
@@ -1744,7 +1751,7 @@
                     <th class="p-3.5 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-700">
+                <tbody class="divide-y divide-slate-700/80">
                   ${rowsHtml}
                 </tbody>
               </table>
@@ -1862,7 +1869,7 @@
         const msg = filterOnlyAtRisk 
           ? `No at-risk students found in ${selectedProgramFilter}! Everyone is keeping up.` 
           : `No registered ${selectedProgramFilter} students.`;
-        studentsTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400 font-medium">${msg}</td></tr>`;
+        studentsTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400 font-medium">${msg}</td></tr>`;
         return;
       }
 
@@ -1885,12 +1892,12 @@
 
         let statusBadgeHtml = "";
         if (distinctDates.length === 0) {
-          statusBadgeHtml = `<span class="text-xs text-gray-500 font-medium">No lab sessions held yet</span>`;
+          statusBadgeHtml = `<span class="text-xs text-slate-500 font-medium">No lab sessions held yet</span>`;
         } else if (stats.missed >= 10 && distinctDates.length >= 10) {
           const label = stats.neverAttended ? `Never Attended (${stats.missed} sessions)` : `⚠️ ${stats.missed} sessions missed`;
           statusBadgeHtml = `
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-red-950/90 text-red-300 border border-red-700 animate-pulse shadow-sm">
-              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-red-400"></i>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-950/90 text-rose-300 border border-rose-700 animate-pulse shadow-sm">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-rose-400"></i>
               <span>${label}</span>
             </span>
           `;
@@ -1911,31 +1918,33 @@
           `;
         }
 
+        const badgeClass = getProgramBadgeClass(prog);
+
         return `
-          <tr class="hover:bg-gray-750 transition-colors">
+          <tr class="hover:bg-slate-750/70 transition-colors">
             <td class="p-3.5">
               <button onclick="window.viewStudentHistory('${s.cardId}', '${s.name.replace(/'/g, "\\'")}', '${prog}')" 
-                class="font-semibold text-white hover:text-red-400 flex items-center gap-2 group transition text-left">
+                class="font-semibold text-white hover:text-indigo-400 flex items-center gap-2 group transition text-left">
                 <span>${s.name}</span>
-                <i data-lucide="history" class="w-3.5 h-3.5 text-gray-500 group-hover:text-red-400 transition"></i>
+                <i data-lucide="history" class="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 transition"></i>
               </button>
             </td>
             <td class="p-3.5">
-              <span class="text-xs font-bold px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-800">${prog}</span>
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${badgeClass}">${prog}</span>
             </td>
-            <td class="p-3.5 font-mono text-gray-400">
+            <td class="p-3.5 font-mono text-slate-400">
               <span>${s.cardId}</span>
               ${aliasTagHtml}
             </td>
             <td class="p-3.5">${statusBadgeHtml}</td>
             <td class="p-3.5 text-right whitespace-nowrap">
-              <button onclick="window.editStudent('${s.id}')" class="text-blue-400 hover:text-blue-300 font-medium mr-4 transition">
+              <button onclick="window.editStudent('${s.id}')" class="text-blue-400 hover:text-blue-300 font-semibold mr-4 transition">
                 Edit
               </button>
-              <button onclick="window.swapStudentProgram('${s.id}')" class="text-amber-400 hover:text-amber-300 font-medium mr-4 transition">
+              <button onclick="window.swapStudentProgram('${s.id}')" class="text-amber-400 hover:text-amber-300 font-semibold mr-4 transition">
                 ${moveBtnLabel}
               </button>
-              <button onclick="window.deleteStudent('${s.id}')" class="text-red-400 hover:text-red-300 transition">
+              <button onclick="window.deleteStudent('${s.id}')" class="text-rose-400 hover:text-rose-300 font-semibold transition">
                 Delete
               </button>
             </td>
@@ -1966,11 +1975,11 @@
 
     function updateFilterButtonsUI() {
       if (filterOnlyAtRisk) {
-        filterAtRiskBtn.className = "px-3 py-1 rounded-lg text-xs font-bold bg-red-600 text-white transition flex items-center gap-1.5 shadow";
-        filterAllStudentsBtn.className = "px-3 py-1 rounded-lg text-xs font-bold text-gray-400 hover:text-white transition";
+        filterAtRiskBtn.className = "px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white transition flex items-center gap-1.5 shadow-md shadow-indigo-500/20";
+        filterAllStudentsBtn.className = "px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition";
       } else {
-        filterAllStudentsBtn.className = "px-3 py-1 rounded-lg text-xs font-bold bg-red-600 text-white transition shadow";
-        filterAtRiskBtn.className = "px-3 py-1 rounded-lg text-xs font-bold text-gray-400 hover:text-white transition flex items-center gap-1.5";
+        filterAllStudentsBtn.className = "px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white transition shadow-md shadow-indigo-500/20";
+        filterAtRiskBtn.className = "px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5";
       }
     }
 
@@ -1989,12 +1998,13 @@
       }
 
       historyProgramBadge.textContent = prog;
+      historyProgramBadge.className = `text-xs font-bold px-2.5 py-0.5 rounded-full ${getProgramBadgeClass(prog)}`;
 
       if (studentLogs.length === 0) {
         historyTotalSessions.textContent = "0 check-ins total";
         historyRateText.textContent = distinctDates.length > 0 ? `Missed all ${distinctDates.length} sessions held so far` : "";
         historyListContainer.innerHTML = `
-          <div class="py-8 text-center text-gray-400 text-sm">
+          <div class="py-8 text-center text-slate-400 text-sm">
             No check-in logs found for this student.
           </div>
         `;
@@ -2024,16 +2034,16 @@
         historyListContainer.innerHTML = sortedDates.map(dateKey => {
           const times = dateGroups[dateKey];
           const timeText = times.length > 1
-            ? `${times[times.length - 1]} <span class="text-xs text-red-400 font-sans ml-1">(${times.length} taps: ${times.join(", ")})</span>`
+            ? `${times[times.length - 1]} <span class="text-xs text-indigo-400 font-sans ml-1">(${times.length} taps: ${times.join(", ")})</span>`
             : times[0];
 
           return `
             <div class="py-3 flex items-center justify-between">
               <div>
-                <p class="font-semibold text-sm text-gray-200">${formatDateDisplay(dateKey)}</p>
-                <p class="text-xs text-gray-400 mt-0.5">${timeText}</p>
+                <p class="font-semibold text-sm text-slate-200">${formatDateDisplay(dateKey)}</p>
+                <p class="text-xs text-slate-400 mt-0.5">${timeText}</p>
               </div>
-              <span class="text-xs px-2 py-0.5 bg-gray-750 text-gray-300 rounded font-mono">
+              <span class="text-xs px-2.5 py-0.5 bg-slate-700/80 text-slate-300 rounded-full font-mono">
                 ${times.length} tap${times.length === 1 ? '' : 's'}
               </span>
             </div>
@@ -2243,7 +2253,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `vex_${prog.toLowerCase()}_attendance_${new Date().toISOString().split('T')[0]}.csv`;
+      a.download = `innovation_lab_${prog.toLowerCase()}_attendance_${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     });
