@@ -500,7 +500,7 @@
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li>Check-ins are grouped by calendar date and sorted newest first.</li>
-            <li><strong>Clean Check-In Display:</strong> Displays the student's latest check-in timestamp. If they tapped multiple times today, an interactive badge shows the count; hover or click it to see their full chronological tap history.</li>
+            <li><strong>Clean Check-In Display:</strong> Shows an interactive tap count pill for each student. Hovering reveals their check-in times in a tooltip; clicking the pill opens the complete daily timestamps modal.</li>
             <li><strong>Edvance Checkbox:</strong> Check <em>"Attendance Translated to Edvance"</em> once daily logs have been officially recorded in the school SIS. This greys out the day to prevent duplicate entries and persists across all browsers.</li>
           </ul>
         </section>
@@ -556,7 +556,7 @@
       </div>
 
       <div class="border-t border-slate-700 pt-4 mt-4 flex justify-between items-center">
-        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.6.9</span>
+        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.7.0</span>
         <button id="closeUserManualFooterBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           Close Manual
         </button>
@@ -791,7 +791,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-slate-500 bg-slate-800/90 border border-slate-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.6.9
+    v1.7.0
   </div>
 
   <script type="module">
@@ -2043,24 +2043,25 @@
         });
 
         const rowsHtml = aggregatedStudents.map(student => {
-          const latestTime = student.times[student.times.length - 1];
-          let timeDisplay = `<span class="font-medium text-slate-200">${latestTime}</span>`;
-          
-          if (student.times.length > 1) {
-            const escapedTimes = JSON.stringify(student.times).replace(/"/g, '&quot;');
-            const escapedName = student.studentName.replace(/'/g, "\\'");
-            const hoverTooltipText = `All ${student.times.length} taps today:\n` + student.times.map((t, idx) => `• Tap ${idx + 1}: ${t}`).join('\n');
+          const escapedTimes = JSON.stringify(student.times).replace(/"/g, '&quot;');
+          const escapedName = student.studentName.replace(/'/g, "\\'");
+          const tapCount = student.times.length;
+          const tapLabel = tapCount === 1 ? "1 tap" : `${tapCount} taps`;
+          const hoverTooltipText = `Tapped: ` + student.times.join(", ");
 
-            timeDisplay += `
-              <button type="button" 
-                onclick="window.showDailyTaps('${escapedName}', '${formatDateDisplay(dateKey)}', ${escapedTimes})"
-                title="${hoverTooltipText}"
-                class="ml-2.5 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 transition active:scale-95 whitespace-nowrap cursor-pointer">
-                <span>${student.times.length} taps</span>
-                <i data-lucide="chevron-down" class="w-3 h-3"></i>
-              </button>
-            `;
-          }
+          // Pill only display
+          const pillHtml = `
+            <button type="button" 
+              onclick="window.showDailyTaps('${escapedName}', '${formatDateDisplay(dateKey)}', ${escapedTimes})"
+              title="${hoverTooltipText}"
+              class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/20 hover:bg-indigo-500/35 text-indigo-300 border border-indigo-500/40 transition active:scale-95 whitespace-nowrap cursor-pointer shadow-sm">
+              <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <span>${tapLabel}</span>
+            </button>
+          `;
 
           const escapedLogIds = JSON.stringify(student.logIds).replace(/"/g, '&quot;');
 
@@ -2068,9 +2069,19 @@
             <tr class="hover:bg-slate-750/70 transition-colors">
               <td class="p-3.5 font-semibold text-white whitespace-nowrap">${student.studentName}</td>
               <td class="p-3.5 font-mono text-slate-400 whitespace-nowrap">${student.cardId}</td>
-              <td class="p-3.5 text-slate-300 whitespace-nowrap">${timeDisplay}</td>
+              <td class="p-3.5 whitespace-nowrap">${pillHtml}</td>
               <td class="p-3.5 text-right whitespace-nowrap">
-                <button onclick="window.deleteDailyStudentLogs('${escapedLogIds}')" class="text-rose-400 hover:text-rose-300 font-medium transition">Delete</button>
+                <button onclick="window.deleteDailyStudentLogs('${escapedLogIds}')" 
+                  class="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 transition inline-flex items-center justify-center align-middle" 
+                  title="Delete check-in records">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"/>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    <line x1="10" x2="10" y1="11" y2="17"/>
+                    <line x1="14" x2="14" y1="11" y2="17"/>
+                  </svg>
+                </button>
               </td>
             </tr>
           `;
@@ -2110,7 +2121,7 @@
                   <tr>
                     <th class="p-3.5">Student Name (Last, First)</th>
                     <th class="p-3.5">Keycard ID</th>
-                    <th class="p-3.5">Check-in Time</th>
+                    <th class="p-3.5">Check-in Taps</th>
                     <th class="p-3.5 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -2211,6 +2222,7 @@
           return getFirstName(a.name).localeCompare(getFirstName(b.name));
         });
 
+      // Synchronized threshold: At-Risk >= 5 missed sessions
       const atRiskStudents = programStudents.filter(s => s.stats.missed >= 5 && distinctDates.length >= 5);
       
       if (atRiskStudents.length > 0) {
@@ -2295,11 +2307,19 @@
             </td>
             <td class="p-3.5">${statusBadgeHtml}</td>
             <td class="p-3.5 text-right whitespace-nowrap">
-              <button onclick="window.editStudent('${s.id}')" class="text-blue-400 hover:text-blue-300 font-semibold mr-4 transition">
+              <button onclick="window.editStudent('${s.id}')" class="text-blue-400 hover:text-blue-300 font-semibold mr-3 transition">
                 Edit
               </button>
-              <button onclick="window.deleteStudent('${s.id}')" class="text-rose-400 hover:text-rose-300 font-semibold transition">
-                Delete
+              <button onclick="window.deleteStudent('${s.id}')" 
+                class="p-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 transition inline-flex items-center justify-center align-middle" 
+                title="Delete student">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 6h18"/>
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                  <line x1="10" x2="10" y1="11" y2="17"/>
+                  <line x1="14" x2="14" y1="11" y2="17"/>
+                </svg>
               </button>
             </td>
           </tr>
