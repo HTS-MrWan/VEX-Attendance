@@ -15,16 +15,16 @@
     /* Keycard Tapping Animation */
     @keyframes keycardTap {
       0%, 100% {
-        transform: translateY(0px) rotate(-4deg);
+        transform: translateY(0px) rotate(-3deg);
       }
       38% {
-        transform: translateY(26px) rotate(0deg) scale(0.97);
+        transform: translateY(24px) rotate(0deg) scale(0.97);
       }
       46% {
-        transform: translateY(30px) rotate(0deg) scale(0.95);
+        transform: translateY(28px) rotate(0deg) scale(0.95);
       }
       56% {
-        transform: translateY(20px) rotate(-1deg) scale(0.98);
+        transform: translateY(18px) rotate(-1deg) scale(0.98);
       }
     }
 
@@ -39,7 +39,7 @@
       }
       80%, 100% {
         opacity: 0;
-        transform: scale(1.4);
+        transform: scale(1.35);
       }
     }
 
@@ -90,7 +90,7 @@
     </div>
 
     <!-- Scanner Target Display (~25% Larger & Higher Contrast) -->
-    <div class="w-full bg-gradient-to-b from-slate-800/95 via-slate-800/90 to-indigo-950/30 border border-indigo-500/35 rounded-3xl p-10 sm:p-14 flex flex-col items-center gap-8 shadow-[0_0_80px_-15px_rgba(99,102,241,0.3)] relative overflow-hidden backdrop-blur">
+    <div class="w-full bg-gradient-to-b from-slate-800/95 via-slate-800/90 to-indigo-950/30 border border-indigo-500/35 rounded-3xl p-8 sm:p-12 flex flex-col items-center gap-6 shadow-[0_0_80px_-15px_rgba(99,102,241,0.3)] relative overflow-hidden backdrop-blur">
       
       <!-- Top Color Accent Bar -->
       <div class="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-blue-500 via-indigo-400 to-amber-400"></div>
@@ -104,68 +104,62 @@
         Scanner Active • Ready to Check In
       </div>
 
-      <!-- Enlarged Animated Keycard Area (Clicking simulates an unregistered card scan) -->
-      <div id="scannerIconCircle" class="relative flex flex-col items-center justify-center cursor-pointer select-none py-4 group" title="Click or press Alt+T to test new keycard">
+      <!-- Enlarged Animated Keycard Area with Plain Lanyard (Clicking simulates an unregistered card scan) -->
+      <div id="scannerIconCircle" class="relative flex flex-col items-center justify-center cursor-pointer select-none pt-10 pb-4 group" title="Click or press Alt+T to test new keycard">
         
-        <!-- Authentic HTS Student Keycard (~30% larger, no credit card chip) -->
-        <div class="animate-keycard-tap relative w-60 h-36 rounded-2xl bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 p-4 shadow-2xl shadow-indigo-500/40 border border-indigo-400/40 flex flex-col justify-between group-hover:scale-105 transition-transform z-10 overflow-hidden">
+        <!-- Animated Keycard + Lanyard Wrapper -->
+        <div class="animate-keycard-tap relative flex flex-col items-center group-hover:scale-105 transition-transform">
           
-          <!-- Subtle Top Lanyard Slot -->
-          <div class="absolute top-1.5 left-1/2 -translate-x-1/2 w-8 h-1.5 rounded-full bg-slate-950/80 border border-slate-700/60 shadow-inner"></div>
-
-          <!-- Top Row: HTS Hawks Logo & RFID Waves -->
-          <div class="flex items-center justify-between mt-1">
-            <div class="flex items-center gap-2.5">
-              <!-- HTS Logo Container: Auto-loads 'hawks-logo.png' if present, otherwise displays metallic Hawk silhouette -->
-              <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/20 to-blue-500/30 border border-amber-400/40 flex items-center justify-center shadow-inner overflow-hidden p-1">
-                <img id="customHawksLogo" src="hawks-logo.png" alt="HTS Hawks" class="w-full h-full object-contain hidden" 
-                  onload="this.classList.remove('hidden'); document.getElementById('hawkFallbackSvg').classList.add('hidden');" 
-                  onerror="this.remove();" />
-                
-                <svg id="hawkFallbackSvg" class="w-6 h-6 text-amber-400 drop-shadow" viewBox="0 0 24 24" fill="currentColor">
-                  <!-- Dynamic Hawk / Raptor Silhouette -->
-                  <path d="M21.5 5.5c-.8.8-2 1.3-3.2 1.3-.4 0-.8-.1-1.2-.2 1.2 1.7 1.8 3.8 1.6 6-.3 3.6-2.9 6.6-6.5 7.2-2.1.4-4.2-.1-5.9-1.2l1.6-1.6c.9.5 2 .7 3.1.5 2.1-.3 3.7-2 3.9-4.1.2-1.5-.4-2.9-1.5-3.8-.4-.3-.8-.5-1.3-.7.5-.5 1-1.1 1.4-1.8.8-1.4 1-2.9.7-4.4 2.7 1.1 5.3 1.5 7.4.8zM4.5 13.5c1.8-1.8 4.2-2.9 6.8-3.1-1.2 1.6-1.8 3.5-1.6 5.5.2 2 1.2 3.7 2.8 4.8-2.6-.4-4.9-1.9-6.3-4.1-.7-1-.9-2.1-.7-3.1z"/>
-                </svg>
-              </div>
-
-              <div class="text-left">
-                <div class="text-[12px] font-black tracking-wider text-white uppercase leading-none flex items-center gap-1">
-                  <span>HTS HAWKS</span>
-                </div>
-                <div class="text-[8px] font-bold text-amber-400 tracking-widest uppercase mt-0.5">INNOVATION LAB</div>
-              </div>
-            </div>
-
-            <!-- Contactless RFID Signal Waves Icon -->
-            <div class="p-1 rounded-lg bg-indigo-500/10 border border-indigo-400/20 text-indigo-300">
-              <svg class="w-5 h-5 text-indigo-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M8.5 16.5a5 5 0 0 1 0-9"/>
-                <path d="M12 19a8.5 8.5 0 0 0 0-14"/>
-                <path d="M15.5 21.5a12 12 0 0 0 0-19"/>
-              </svg>
-            </div>
+          <!-- Plain Fabric Lanyard Strap (Extending up from the short edge) -->
+          <div class="absolute -top-11 z-0 flex flex-col items-center">
+            <!-- Woven Navy Strap -->
+            <div class="w-7 h-10 bg-gradient-to-b from-slate-900 via-indigo-950 to-indigo-900 border-x border-indigo-500/30 shadow-md"></div>
+            <!-- Metallic Silver Swivel Clasp -->
+            <div class="w-4 h-3 bg-gradient-to-r from-slate-400 via-slate-200 to-slate-400 rounded-sm shadow-sm -mt-0.5 border border-slate-500"></div>
+            <!-- Metal Ring Hook connecting to the card slot -->
+            <div class="w-3 h-3 rounded-full border-2 border-slate-300 -mt-1 bg-transparent"></div>
           </div>
 
-          <!-- Bottom Row: Student Access Subtext & Mock Barcode Lines -->
-          <div class="flex items-end justify-between border-t border-slate-800/80 pt-2">
-            <div class="text-left">
-              <p class="text-[9px] font-extrabold tracking-widest text-slate-200 uppercase">CAMPUS ACCESS PASS</p>
-              <p class="text-[7.5px] font-mono text-indigo-300/80 tracking-wider">TAP TO SIGN IN</p>
+          <!-- Portrait Student Keycard (Attached to short edge) -->
+          <div class="relative w-48 sm:w-52 h-72 sm:h-76 rounded-2xl bg-gradient-to-b from-slate-900 via-slate-950 to-indigo-950 p-4 shadow-2xl shadow-indigo-500/40 border-2 border-indigo-400/40 flex flex-col justify-between items-center text-center z-10 overflow-hidden">
+            
+            <!-- Keycard Punch Slot at Top Short Edge -->
+            <div class="w-8 h-2 rounded-full bg-slate-950 border border-slate-700/80 shadow-inner mb-1"></div>
+
+            <!-- Header Titles -->
+            <div>
+              <h3 class="text-sm sm:text-base font-black tracking-wider text-white uppercase leading-none">HTS HAWKS</h3>
+              <p class="text-[9px] font-bold text-amber-400 tracking-widest uppercase mt-1">INNOVATION LAB</p>
             </div>
-            <!-- Mock Keycard RFID/Barcode Lines -->
-            <div class="flex gap-0.5 items-end h-3.5 opacity-60">
-              <span class="w-0.5 h-3.5 bg-white"></span>
-              <span class="w-1 h-2.5 bg-white"></span>
-              <span class="w-0.5 h-3.5 bg-white"></span>
-              <span class="w-1.5 h-2 bg-white"></span>
-              <span class="w-0.5 h-3.5 bg-white"></span>
-              <span class="w-1 h-3 bg-white"></span>
+
+            <!-- Official HTS Hawk Logo -->
+            <div class="w-36 h-28 flex items-center justify-center my-auto drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
+              <svg viewBox="0 0 530 359" class="w-full h-full object-contain overflow-visible" xmlns="http://www.w3.org/2000/svg">
+                <!-- Gray Outline Base -->
+                <path d="M470 55 C420 10 320 20 260 50 C210 75 160 115 125 165 C105 195 80 230 55 260 C40 280 45 305 60 315 C75 325 105 315 130 290 C155 265 180 250 200 250 C185 270 170 300 160 325 C155 340 165 355 180 355 C205 355 240 330 265 300 C320 280 380 260 450 240 C490 225 525 195 530 160 C530 140 500 135 480 145 C450 160 420 180 395 195 C410 160 440 120 470 85 C485 70 485 60 470 55 Z" fill="#64748b" stroke="#334155" stroke-width="8" stroke-linejoin="round"/>
+                <!-- Dark Navy Head Feathers Body -->
+                <path d="M455 68 C405 28 315 35 260 62 C215 85 170 125 138 172 C115 205 92 238 68 266 C56 282 62 298 75 302 C90 306 115 292 138 272 C165 248 188 238 206 238 C192 258 178 286 170 308 C166 320 174 332 186 332 C206 332 235 312 256 286 C310 266 368 248 435 228 C472 215 502 188 506 158 C506 142 482 140 464 148 C436 162 408 180 385 192 C402 158 430 120 455 88 C465 76 465 70 455 68 Z" fill="#172554"/>
+                <!-- Crimson Red Crest Streaks -->
+                <path d="M435 90 C370 70 290 85 240 115 C195 140 160 175 140 215 C165 175 220 135 290 120 C345 108 400 112 435 90 Z" fill="#dc2626"/>
+                <path d="M430 185 C370 205 300 230 250 255 C225 268 205 272 195 272 C215 262 250 245 295 228 C345 210 395 195 430 185 Z" fill="#dc2626"/>
+                <!-- Golden Yellow Hooked Beaks -->
+                <path d="M140 215 C115 240 90 270 70 295 C82 298 102 288 122 270 C145 250 168 242 185 242 C165 248 145 268 135 285 C145 250 175 230 200 225 C180 220 160 218 140 215 Z" fill="#f59e0b" stroke="#0f172a" stroke-width="4"/>
+                <path d="M175 290 C185 305 200 310 215 305 C205 295 195 285 185 275 C180 280 178 285 175 290 Z" fill="#f59e0b" stroke="#0f172a" stroke-width="3"/>
+                <!-- Fierce Angled White Eye -->
+                <polygon points="160,200 190,175 205,205 175,208" fill="#ffffff" stroke="#000000" stroke-width="5" stroke-linejoin="round"/>
+              </svg>
+            </div>
+
+            <!-- Designation Text (Clean & Plain) -->
+            <div class="w-full border-t border-slate-800/80 pt-2.5 pb-1">
+              <p class="text-xs font-black tracking-widest text-slate-100 uppercase">Student Keycard</p>
+              <p class="text-[9px] font-mono text-indigo-300/80 font-bold tracking-wider mt-0.5">TAP TO SIGN IN</p>
             </div>
           </div>
         </div>
 
         <!-- Glowing Tap Sensor Base Platform -->
-        <div class="relative mt-3 w-64 h-8 flex items-center justify-center">
+        <div class="relative mt-2 w-64 h-8 flex items-center justify-center">
           <div class="w-48 h-3.5 rounded-full bg-indigo-500/30 border border-indigo-400/50 blur-[1px]"></div>
           <!-- Contactless Pulse Ring -->
           <div class="animate-reader-pulse absolute w-60 h-7 rounded-full border-2 border-indigo-400/70 pointer-events-none"></div>
@@ -537,7 +531,7 @@
       </div>
 
       <div class="border-t border-slate-700 pt-4 mt-4 flex justify-between items-center">
-        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.6.6</span>
+        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.6.7</span>
         <button id="closeUserManualFooterBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           Close Manual
         </button>
@@ -772,7 +766,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-slate-500 bg-slate-800/90 border border-slate-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.6.6
+    v1.6.7
   </div>
 
   <script type="module">
