@@ -1,0 +1,30 @@
+name: Weekly Monday Attendance Digest
+
+on:
+  schedule:
+    # 11:00 AM UTC = 7:00 AM EDT (every Monday)
+    - cron: '0 11 * * 1'
+  workflow_dispatch: # Enables manual "Run workflow" test button
+
+jobs:
+  send-summary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install firebase-admin nodemailer
+
+      - name: Generate and Send Digest
+        run: node scripts/send-weekly-summary.mjs
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          RECIPIENT_EMAILS: ${{ secrets.RECIPIENT_EMAILS }}
