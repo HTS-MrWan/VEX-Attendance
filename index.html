@@ -145,7 +145,7 @@
           </span>
           <div>
             <p class="font-bold text-sm text-white" id="atRiskBannerTitle">Attendance Attention Required</p>
-            <p class="text-xs text-rose-300" id="atRiskBannerSubtitle">Students have missed 10 or more consecutive lab meetings.</p>
+            <p class="text-xs text-rose-300" id="atRiskBannerSubtitle">Students have missed 5 or more consecutive lab meetings.</p>
           </div>
         </div>
         <button id="viewAtRiskQuickBtn" class="bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition whitespace-nowrap shadow-md">
@@ -159,7 +159,7 @@
           <span class="text-xs font-bold text-slate-400 mr-1">Filter Students:</span>
           <button id="filterAllStudentsBtn" class="px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white shadow-sm transition">All Students</button>
           <button id="filterAtRiskBtn" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition flex items-center gap-1.5">
-            <span>⚠️ At-Risk Only (10+ Missed)</span>
+            <span>⚠️ At-Risk Only (5+ Missed)</span>
             <span id="atRiskCountBadge" class="hidden px-1.5 py-0.2 rounded-full text-[10px] bg-rose-800 text-rose-200 font-mono">0</span>
           </button>
         </div>
@@ -377,15 +377,15 @@
         <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
-            7. Inactivity & At-Risk Tracking (10+ Lab Days)
+            7. Inactivity & At-Risk Tracking (5+ Lab Days)
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li><strong>Distinct Lab Meetings:</strong> The app counts unique dates that students actually attended lab sessions, seamlessly skipping holidays, exam weeks, and cancellations.</li>
             <li><strong>Status Badges:</strong>
               <ul class="list-circle list-inside ml-4 mt-1 space-y-1">
-                <li><span class="text-emerald-400 font-semibold">Active:</span> Checked in within the last 4 lab sessions.</li>
-                <li><span class="text-amber-400 font-semibold">Absent (5–9):</span> Missed 5 to 9 consecutive lab sessions.</li>
-                <li><span class="text-rose-400 font-semibold">⚠️ At-Risk (10+):</span> Pulsing alert for students missing 10 or more consecutive lab meetings.</li>
+                <li><span class="text-emerald-400 font-semibold">Active:</span> Checked in within the last 2 lab sessions (missed 0–2).</li>
+                <li><span class="text-amber-400 font-semibold">Drifting (3–4):</span> Missed 3 or 4 consecutive lab sessions.</li>
+                <li><span class="text-rose-400 font-semibold">⚠️ At-Risk (5+):</span> Pulsing alert for students missing 5 or more consecutive lab meetings.</li>
               </ul>
             </li>
             <li><strong>Quick Filter:</strong> Click <strong>"⚠️ At-Risk Only"</strong> to isolate disengaged students in one click.</li>
@@ -413,7 +413,7 @@
       </div>
 
       <div class="border-t border-slate-700 pt-4 mt-4 flex justify-between items-center">
-        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.6.2</span>
+        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.6.3</span>
         <button id="closeUserManualFooterBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           Close Manual
         </button>
@@ -648,7 +648,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-slate-500 bg-slate-800/90 border border-slate-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.6.2
+    v1.6.3
   </div>
 
   <script type="module">
@@ -1656,7 +1656,6 @@
       submitEditStudentBtn.textContent = "Saving...";
 
       try {
-        // 1. Update Student Profile in Firestore
         await updateDoc(doc(db, "students", id), {
           firstName: trimmedFirst,
           lastName: trimmedLast,
@@ -1664,7 +1663,6 @@
           program: newProg
         });
 
-        // 2. Cascade Name and/or Program updates across attendance logs
         if (nameChanged || progChanged) {
           const allTargetCards = [student.cardId, ...(student.altCardIds || [])];
 
@@ -1688,7 +1686,6 @@
           });
         }
 
-        // 3. Update local in-memory student record
         student.firstName = trimmedFirst;
         student.lastName = trimmedLast;
         student.name = newFullName;
@@ -2008,11 +2005,12 @@
           return getFirstName(a.name).localeCompare(getFirstName(b.name));
         });
 
-      const atRiskStudents = programStudents.filter(s => s.stats.missed >= 10 && distinctDates.length >= 10);
+      // Align threshold with email digest: At-Risk >= 5 missed sessions
+      const atRiskStudents = programStudents.filter(s => s.stats.missed >= 5 && distinctDates.length >= 5);
       
       if (atRiskStudents.length > 0) {
         atRiskAlertBanner.classList.remove("hidden");
-        atRiskBannerSubtitle.textContent = `${atRiskStudents.length} student${atRiskStudents.length === 1 ? '' : 's'} in ${selectedProgramFilter} have missed 10 or more consecutive lab meetings.`;
+        atRiskBannerSubtitle.textContent = `${atRiskStudents.length} student${atRiskStudents.length === 1 ? '' : 's'} in ${selectedProgramFilter} have missed 5 or more consecutive lab meetings.`;
         atRiskCountBadge.textContent = atRiskStudents.length;
         atRiskCountBadge.classList.remove("hidden");
       } else {
@@ -2047,19 +2045,19 @@
         let statusBadgeHtml = "";
         if (distinctDates.length === 0) {
           statusBadgeHtml = `<span class="text-xs text-slate-500 font-medium">No lab sessions held yet</span>`;
-        } else if (stats.missed >= 10 && distinctDates.length >= 10) {
-          const label = stats.neverAttended ? `Never Attended (${stats.missed} sessions)` : `⚠️ ${stats.missed} sessions missed`;
+        } else if (stats.missed >= 5 && distinctDates.length >= 5) {
+          const label = stats.neverAttended ? `Never Attended (${stats.missed} sessions)` : `⚠️ ${stats.missed} missed (At-Risk)`;
           statusBadgeHtml = `
             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-950/90 text-rose-300 border border-rose-700 animate-pulse shadow-sm">
               <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-rose-400"></i>
               <span>${label}</span>
             </span>
           `;
-        } else if (stats.missed >= 5) {
+        } else if (stats.missed >= 3) {
           statusBadgeHtml = `
             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-950/70 text-amber-300 border border-amber-700/60">
               <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
-              <span>Absent ${stats.missed} sessions</span>
+              <span>Drifting (${stats.missed} missed)</span>
             </span>
           `;
         } else {
