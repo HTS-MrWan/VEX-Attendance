@@ -10,6 +10,47 @@
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Keycard Tapping Animation */
+    @keyframes keycardTap {
+      0%, 100% {
+        transform: translateY(0px) rotate(-4deg);
+      }
+      38% {
+        transform: translateY(22px) rotate(0deg) scale(0.97);
+      }
+      46% {
+        transform: translateY(26px) rotate(0deg) scale(0.95);
+      }
+      56% {
+        transform: translateY(18px) rotate(-1deg) scale(0.98);
+      }
+    }
+
+    /* Contactless Pulse Wave from Reader */
+    @keyframes readerPulse {
+      0%, 35% {
+        opacity: 0;
+        transform: scale(0.7);
+      }
+      45% {
+        opacity: 0.9;
+      }
+      80%, 100% {
+        opacity: 0;
+        transform: scale(1.4);
+      }
+    }
+
+    .animate-keycard-tap {
+      animation: keycardTap 3.2s ease-in-out infinite;
+    }
+
+    .animate-reader-pulse {
+      animation: readerPulse 3.2s ease-out infinite;
+    }
+  </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans select-none relative">
 
@@ -28,8 +69,14 @@
       </span>
     </div>
 
-    <button id="toggleViewBtn" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition border border-slate-600/60 relative z-10 shadow-sm">
-      <i data-lucide="shield" class="w-4 h-4 text-indigo-400"></i>
+    <!-- Permanent Inline-SVG Admin Button -->
+    <button id="toggleViewBtn" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2.5 transition border border-slate-600/60 relative z-10 shadow-sm">
+      <span id="toggleViewIcon" class="flex items-center justify-center">
+        <!-- Shield Icon for Admin -->
+        <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </span>
       <span id="toggleViewText" class="hidden sm:inline">Admin Dashboard</span>
     </button>
   </header>
@@ -42,8 +89,8 @@
       <span id="bannerText"></span>
     </div>
 
-    <!-- Scanner Target Display (Brightened & Energized) -->
-    <div class="w-full bg-gradient-to-b from-slate-800/95 via-slate-800/90 to-indigo-950/30 border border-indigo-500/30 rounded-3xl p-10 sm:p-12 flex flex-col items-center gap-6 shadow-[0_0_60px_-15px_rgba(99,102,241,0.25)] relative overflow-hidden backdrop-blur">
+    <!-- Scanner Target Display -->
+    <div class="w-full bg-gradient-to-b from-slate-800/95 via-slate-800/90 to-indigo-950/30 border border-indigo-500/30 rounded-3xl p-8 sm:p-12 flex flex-col items-center gap-6 shadow-[0_0_60px_-15px_rgba(99,102,241,0.25)] relative overflow-hidden backdrop-blur">
       
       <!-- Top Color Accent Bar -->
       <div class="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-blue-500 via-indigo-400 to-amber-400"></div>
@@ -57,13 +104,45 @@
         Ready to Check In
       </div>
 
-      <!-- Bright Center Scanner Beacon (Clicking simulates an unregistered card scan) -->
-      <div id="scannerIconCircle" class="w-24 h-24 rounded-3xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-blue-500 flex items-center justify-center text-white cursor-pointer active:scale-95 transition-all select-none shadow-xl shadow-indigo-500/35 hover:shadow-indigo-500/50 hover:scale-105 border border-white/20" title="Click or press Alt+T to test new card">
-        <i data-lucide="scan" class="w-12 h-12 pointer-events-none"></i>
+      <!-- Animated Keycard Tap Area (Clicking simulates an unregistered card scan) -->
+      <div id="scannerIconCircle" class="relative flex flex-col items-center justify-center cursor-pointer select-none py-3 group" title="Click or press Alt+T to test new keycard">
+        
+        <!-- Animated Keycard -->
+        <div class="animate-keycard-tap relative w-44 h-28 rounded-2xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-blue-700 p-3 shadow-2xl shadow-indigo-500/40 border border-white/30 flex flex-col justify-between group-hover:scale-105 transition-transform z-10">
+          
+          <!-- Keycard Top Row: Chip & Contactless Waves -->
+          <div class="flex items-center justify-between">
+            <!-- Metallic Gold EMV Chip -->
+            <div class="w-7 h-5 rounded-md bg-gradient-to-br from-amber-200 via-amber-400 to-amber-500 border border-amber-100/60 shadow-inner flex flex-col justify-around p-0.5">
+              <div class="h-0.5 bg-amber-600/40 rounded-full"></div>
+              <div class="h-0.5 bg-amber-600/40 rounded-full"></div>
+            </div>
+
+            <!-- Contactless RFID Signal Waves Icon -->
+            <svg class="w-5 h-5 text-white/90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8.5 16.5a5 5 0 0 1 0-9"/>
+              <path d="M12 19a8.5 8.5 0 0 0 0-14"/>
+              <path d="M15.5 21.5a12 12 0 0 0 0-19"/>
+            </svg>
+          </div>
+
+          <!-- Keycard Bottom Row: Branding & Badge ID -->
+          <div class="text-left">
+            <p class="text-[9px] font-black tracking-widest text-indigo-100 uppercase">INNOVATION LAB</p>
+            <p class="text-[8px] font-mono font-bold text-indigo-200/80 tracking-wider">STUDENT KEYCARD</p>
+          </div>
+        </div>
+
+        <!-- Glowing Tap Reader Platform (Below Card) -->
+        <div class="relative mt-2 w-48 h-6 flex items-center justify-center">
+          <div class="w-36 h-3 rounded-full bg-indigo-500/25 border border-indigo-400/40 blur-[1px]"></div>
+          <!-- Contactless Pulse Ring -->
+          <div class="animate-reader-pulse absolute w-44 h-5 rounded-full border-2 border-indigo-400/60 pointer-events-none"></div>
+        </div>
       </div>
 
       <div>
-        <h2 class="text-3xl font-black text-white tracking-tight mb-2">Tap Student Badge</h2>
+        <h2 class="text-3xl font-black text-white tracking-tight mb-2">Tap Keycard</h2>
         <p class="text-slate-300 text-sm font-medium">Hold your keycard against the reader to sign in.</p>
       </div>
     </div>
@@ -120,7 +199,7 @@
               </button>
               <button id="openMergeModalBtn" type="button" class="w-full text-left px-4 py-2.5 text-xs font-semibold text-indigo-400 hover:bg-slate-700/60 flex items-center gap-2 transition">
                 <i data-lucide="git-merge" class="w-4 h-4 text-indigo-400"></i>
-                <span>Merge Student Profiles</span>
+                <span>Merge Duplicate Keycards</span>
               </button>
             </div>
             
@@ -187,7 +266,7 @@
             <tr>
               <th class="p-3.5">Student Name (Last, First)</th>
               <th class="p-3.5">Program</th>
-              <th class="p-3.5">Assigned Card ID</th>
+              <th class="p-3.5">Assigned Keycard ID</th>
               <th class="p-3.5">Attendance Status</th>
               <th class="p-3.5 text-right">Actions</th>
             </tr>
@@ -249,10 +328,10 @@
         <div class="p-2 bg-indigo-950/80 border border-indigo-700 text-indigo-400 rounded-lg">
           <i data-lucide="git-merge" class="w-5 h-5"></i>
         </div>
-        <h3 class="text-xl font-bold text-white">Merge Duplicate Student Cards</h3>
+        <h3 class="text-xl font-bold text-white">Merge Duplicate Keycards</h3>
       </div>
       <p class="text-slate-400 text-sm mb-4">
-        Consolidate multiple keycard IDs belonging to the same student. All attendance records will combine under the primary profile, and the duplicate card will become a linked alias.
+        Consolidate multiple keycard IDs belonging to the same student. All attendance records will combine under the primary profile, and the duplicate keycard will become a linked alias.
       </p>
 
       <form id="mergeForm" class="flex flex-col gap-4">
@@ -266,7 +345,7 @@
 
         <div>
           <label class="block text-xs font-semibold text-slate-300 mb-1">
-            2. Secondary Profile to Merge <span class="text-indigo-400 font-normal">(Card becomes an alias; attendance merged)</span>
+            2. Secondary Profile to Merge <span class="text-indigo-400 font-normal">(Keycard becomes an alias; attendance merged)</span>
           </label>
           <select id="mergeSecondarySelect" class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white font-semibold text-sm">
           </select>
@@ -278,8 +357,8 @@
             How Linked Aliases Work:
           </p>
           <ul class="list-disc list-inside space-y-1 text-slate-300">
-            <li>The secondary card ID is saved as an active alias for the primary student.</li>
-            <li><strong>Both physical cards will check in the same student seamlessly</strong> when tapped at the kiosk.</li>
+            <li>The secondary keycard ID is saved as an active alias for the primary student.</li>
+            <li><strong>Both physical keycards will check in the same student seamlessly</strong> when tapped at the kiosk.</li>
             <li>All past check-in records are consolidated under the primary student profile.</li>
           </ul>
         </div>
@@ -316,14 +395,14 @@
         <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="scan" class="w-4 h-4 text-indigo-400"></i>
-            1. Kiosk Mode & Badge Scanning
+            1. Kiosk Mode & Keycard Scanning
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
-            <li><strong>Automatic Card Reader:</strong> Plug in any USB keycard scanner. Tapping a student badge registers their check-in instantly with zero clicks required.</li>
-            <li><strong>Linked Aliases:</strong> If a student has merged cards, tapping either their primary card or any linked alias card will check them in without issues.</li>
-            <li><strong>Testing Without a Badge:</strong> Click the scanner target icon in Kiosk view or press <code class="bg-slate-800 px-1.5 py-0.5 rounded text-amber-300 font-mono">Alt + T</code> to trigger a simulated new badge scan.</li>
+            <li><strong>Automatic Keycard Reader:</strong> Plug in any USB keycard scanner. Tapping a student keycard registers their check-in instantly with zero clicks required.</li>
+            <li><strong>Linked Aliases:</strong> If a student has merged keycards, tapping either their primary keycard or any linked alias keycard will check them in without issues.</li>
+            <li><strong>Testing Without a Keycard:</strong> Click the animated keycard in Kiosk view or press <code class="bg-slate-800 px-1.5 py-0.5 rounded text-amber-300 font-mono">Alt + T</code> to trigger a simulated new keycard scan.</li>
             <li><strong>Auto-Focusing:</strong> Clicking anywhere on the screen refocuses the scanner input automatically.</li>
-            <li><strong>New Badge Registration:</strong> When an unrecognized keycard is tapped, a registration modal prompts for First Name, Last Name, and Program. Upon submission, it registers the student and immediately logs today's attendance.</li>
+            <li><strong>New Keycard Registration:</strong> When an unrecognized keycard is tapped, a registration modal prompts for First Name, Last Name, and Program. Upon submission, it registers the student and immediately logs today's attendance.</li>
             <li><strong>Full-Screen Lock:</strong> Press <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-200">Cmd + Shift + F</code> (Mac) or <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-200">F11</code> (Windows) in Chrome to hide the address bar and keep students locked to the kiosk.</li>
           </ul>
         </section>
@@ -331,10 +410,10 @@
         <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="user-check" class="w-4 h-4 text-indigo-400"></i>
-            2. Manual Check-In (Forgotten Badges)
+            2. Manual Check-In (Forgotten Keycards)
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
-            <li>When a student forgets their badge, click <strong>Manual Check-In</strong> on the Admin Dashboard.</li>
+            <li>When a student forgets their keycard, click <strong>Manual Check-In</strong> on the Admin Dashboard.</li>
             <li>Choose their program. The dropdown dynamically filters out anyone who has already checked in today, listing only students who still need attendance recorded.</li>
             <li>Select the student and click <strong>Check In Student</strong> to record their timestamp immediately.</li>
           </ul>
@@ -354,13 +433,13 @@
         <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="git-merge" class="w-4 h-4 text-indigo-400"></i>
-            4. Merge Duplicate Student Cards (Linked Aliases)
+            4. Merge Duplicate Keycards (Linked Aliases)
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
-            <li>If a student has been issued multiple cards, click <strong>Manage ▾</strong> > <strong>Merge Student Profiles</strong>.</li>
+            <li>If a student has been issued multiple keycards, click <strong>Manage ▾</strong> > <strong>Merge Duplicate Keycards</strong>.</li>
             <li>Select the <strong>Primary Profile</strong> to keep, and the <strong>Secondary Profile</strong> to merge.</li>
-            <li>All historical attendance logs from the secondary profile are reassigned to the primary student, and the secondary card ID is stored as a <strong>linked alias</strong>.</li>
-            <li><strong>Both physical cards remain active and will check in the same student seamlessly.</strong></li>
+            <li>All historical attendance logs from the secondary profile are reassigned to the primary student, and the secondary keycard ID is stored as a <strong>linked alias</strong>.</li>
+            <li><strong>Both physical keycards remain active and will check in the same student seamlessly.</strong></li>
           </ul>
         </section>
 
@@ -383,7 +462,7 @@
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li><strong>Alphabetical Sorting:</strong> Registered students are sorted alphabetically by last name, then first name.</li>
-            <li><strong>Attendance History:</strong> Click on any student's name in the table to open their comprehensive attendance breakdown, showing their card ID, linked aliases, total sessions attended, attendance rate, and every logged check-in timestamp.</li>
+            <li><strong>Attendance History:</strong> Click on any student's name in the table to open their comprehensive attendance breakdown, showing their keycard ID, linked aliases, total sessions attended, attendance rate, and every logged check-in timestamp.</li>
             <li><strong>Edit & Program Transfer:</strong> Click <strong>Edit</strong> in the student table to open the profile modal. Update their First Name, Last Name, or choose a new program from the dropdown to transfer the student and their entire history.</li>
           </ul>
         </section>
@@ -416,18 +495,18 @@
             <li><strong>Manage Menu:</strong> Consolidates data export, merging, and destructive actions into one location:
               <ul class="list-circle list-inside ml-4 mt-1 space-y-1">
                 <li><strong>Export CSV:</strong> Downloads a formatted spreadsheet of all check-in records for the active program.</li>
-                <li><strong>Merge Student Profiles:</strong> Combines duplicate card entries into one master record with linked aliases.</li>
+                <li><strong>Merge Duplicate Keycards:</strong> Combines duplicate keycard entries into one master record with linked aliases.</li>
                 <li><strong>Delete ENTIRE [CODE] Program:</strong> Permanently deletes the program configuration, all students, and all logs. Guarded by typing <code class="bg-slate-800 px-1.5 py-0.5 rounded text-rose-300 font-mono">Ronny is the Best!</code>.</li>
                 <li><strong>Delete [CODE] Logs / Delete [CODE] Students:</strong> Guarded by typing <code class="bg-slate-800 px-1.5 py-0.5 rounded text-rose-300 font-mono">Ronny is awesome!</code>.</li>
               </ul>
             </li>
-            <li><strong>Individual Student Deletion:</strong> Deleting an individual student cascades to remove their master profile, any card aliases, and all associated attendance logs.</li>
+            <li><strong>Individual Student Deletion:</strong> Deleting an individual student cascades to remove their master profile, any keycard aliases, and all associated attendance logs.</li>
           </ul>
         </section>
       </div>
 
       <div class="border-t border-slate-700 pt-4 mt-4 flex justify-between items-center">
-        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.6.4</span>
+        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.6.5</span>
         <button id="closeUserManualFooterBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           Close Manual
         </button>
@@ -464,9 +543,9 @@
   <!-- ================= MODAL: UNREGISTERED CARD ================= -->
   <div id="registerModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
     <div class="bg-slate-800 rounded-2xl max-w-md w-full p-6 border border-slate-700 shadow-2xl">
-      <h3 class="text-xl font-bold mb-1 text-white">New Card Detected</h3>
+      <h3 class="text-xl font-bold mb-1 text-white">New Keycard Detected</h3>
       <p class="text-slate-400 text-sm mb-4">
-        Card <strong id="modalCardId" class="text-indigo-300 font-mono"></strong> is not registered.
+        Keycard <strong id="modalCardId" class="text-indigo-300 font-mono"></strong> is not registered.
       </p>
       
       <div id="modalError" class="hidden mb-4 p-3 bg-rose-950/80 border border-rose-700 text-rose-200 text-xs rounded-lg"></div>
@@ -507,7 +586,7 @@
         </div>
         <h3 class="text-xl font-bold text-white">Manual Student Check-In</h3>
       </div>
-      <p class="text-slate-400 text-sm mb-4">Check in a student who forgot or lost their physical badge today.</p>
+      <p class="text-slate-400 text-sm mb-4">Check in a student who forgot or lost their physical keycard today.</p>
 
       <form id="manualEntryForm" class="flex flex-col gap-4">
         <div>
@@ -639,7 +718,7 @@
             <span id="historyProgramBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full">V5</span>
           </div>
           <div class="text-xs text-slate-400 flex flex-wrap items-center gap-2">
-            <span>Card ID: <strong id="historyCardId" class="font-mono text-slate-300"></strong></span>
+            <span>Keycard ID: <strong id="historyCardId" class="font-mono text-slate-300"></strong></span>
             <span>•</span>
             <span id="historyTotalSessions" class="text-emerald-400 font-semibold">0 check-ins total</span>
           </div>
@@ -662,7 +741,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-slate-500 bg-slate-800/90 border border-slate-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.6.4
+    v1.6.5
   </div>
 
   <script type="module">
@@ -705,6 +784,7 @@
     const adminView = document.getElementById("adminView");
     const toggleViewBtn = document.getElementById("toggleViewBtn");
     const toggleViewText = document.getElementById("toggleViewText");
+    const toggleViewIcon = document.getElementById("toggleViewIcon");
     const statusBanner = document.getElementById("statusBanner");
     const bannerText = document.getElementById("bannerText");
     const registerModal = document.getElementById("registerModal");
@@ -824,12 +904,14 @@
     const studentsSection = document.getElementById("studentsSection");
     const studentsTableBody = document.getElementById("studentsTableBody");
 
-    lucide.createIcons();
+    if (window.lucide) {
+      lucide.createIcons();
+    }
 
     // Immediately load programs from database on initial page load
     loadPrograms();
 
-    // Test Trigger: Simulates an unregistered new badge tap
+    // Test Trigger: Simulates an unregistered new keycard tap
     function simulateTestScan() {
       if (isProcessing) return;
       const testCardId = String(Math.floor(100000 + Math.random() * 900000));
@@ -907,7 +989,7 @@
       }
     }
 
-    // Process Card Scan (Checks primary cardId & altCardIds)
+    // Process Keycard Scan (Checks primary cardId & altCardIds)
     async function processScan(cardId) {
       isProcessing = true;
       cardInput.blur();
@@ -1077,6 +1159,11 @@
         adminView.classList.remove("flex");
         kioskView.classList.remove("hidden");
         toggleViewText.textContent = "Admin Dashboard";
+        toggleViewIcon.innerHTML = `
+          <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        `;
         focusScannerInput();
       }
     });
@@ -1091,6 +1178,11 @@
         adminView.classList.remove("hidden");
         adminView.classList.add("flex");
         toggleViewText.textContent = "Kiosk Mode";
+        toggleViewIcon.innerHTML = `
+          <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>
+          </svg>
+        `;
         loadAdminData();
       } else {
         passwordError.classList.remove("hidden");
@@ -1211,7 +1303,7 @@
       
       renderDailyLogs();
       renderStudents();
-      lucide.createIcons();
+      if (window.lucide) lucide.createIcons();
     }
 
     // Modal: Add New Program
@@ -1417,7 +1509,7 @@
       } finally {
         executeBulkDeleteBtn.textContent = "Confirm Deletion";
         executeBulkDeleteBtn.disabled = false;
-        lucide.createIcons();
+        if (window.lucide) lucide.createIcons();
       }
     });
 
@@ -1448,7 +1540,7 @@
         const aliasText = s.altCardIds && s.altCardIds.length ? ` (+${s.altCardIds.length} alias)` : "";
         return `
           <option value="${s.id}" ${s.id === selectedId ? 'selected' : ''}>
-            ${s.name} [${s.program || 'V5'}] (Card: ${s.cardId}${aliasText})
+            ${s.name} [${s.program || 'V5'}] (Keycard: ${s.cardId}${aliasText})
           </option>
         `;
       }).join("");
@@ -1476,8 +1568,8 @@
 
       const confirmMsg = `Are you sure you want to merge "${secondary.name}" into "${primary.name}"?\n\n` +
         `• All attendance logs from ${secondary.name} will be merged under ${primary.name}.\n` +
-        `• Card ID "${secondary.cardId}" will become an active alias for ${primary.name}.\n` +
-        `• Both cards will check in ${primary.name} at the scanner.\n\n` +
+        `• Keycard ID "${secondary.cardId}" will become an active alias for ${primary.name}.\n` +
+        `• Both keycards will check in ${primary.name} at the scanner.\n\n` +
         `This cannot be undone.`;
 
       if (!confirm(confirmMsg)) return;
@@ -1521,7 +1613,7 @@
         cachedStudents = cachedStudents.filter(s => s.id !== secondary.id);
 
         mergeModal.classList.add("hidden");
-        showBanner(true, `Merged! Both cards will now check in ${primary.name}.`);
+        showBanner(true, `Merged! Both keycards will now check in ${primary.name}.`);
         renderDailyLogs();
         renderStudents();
       } catch (err) {
@@ -1579,7 +1671,7 @@
       } else {
         manualStudentSelect.innerHTML = eligibleStudents.map(s => `
           <option value="${s.id}">
-            ${s.name} (Card: ${s.cardId})
+            ${s.name} (Keycard: ${s.cardId})
           </option>
         `).join("");
         manualStudentSelect.classList.remove("hidden");
@@ -1917,7 +2009,7 @@
                 <thead class="bg-slate-750 text-slate-300">
                   <tr>
                     <th class="p-3.5">Student Name (Last, First)</th>
-                    <th class="p-3.5">Card ID</th>
+                    <th class="p-3.5">Keycard ID</th>
                     <th class="p-3.5">Check-in Time</th>
                     <th class="p-3.5 text-right">Actions</th>
                   </tr>
@@ -1932,7 +2024,7 @@
       });
 
       logsSection.innerHTML = html;
-      lucide.createIcons();
+      if (window.lucide) lucide.createIcons();
     }
 
     window.toggleEdvanceSync = async (syncKey, isChecked) => {
@@ -2019,7 +2111,6 @@
           return getFirstName(a.name).localeCompare(getFirstName(b.name));
         });
 
-      // Synchronized threshold: At-Risk >= 5 missed sessions
       const atRiskStudents = programStudents.filter(s => s.stats.missed >= 5 && distinctDates.length >= 5);
       
       if (atRiskStudents.length > 0) {
@@ -2114,7 +2205,7 @@
           </tr>
         `;
       }).join("");
-      lucide.createIcons();
+      if (window.lucide) lucide.createIcons();
     }
 
     // Filter Toggle Controls
@@ -2270,7 +2361,7 @@
     exportCsvBtn.addEventListener("click", () => {
       manageDropdownMenu.classList.add("hidden");
       const prog = selectedProgramFilter;
-      const headers = ["Date", "Program", "Student Name", "Card ID", "Time(s)", "Translated to Edvance"];
+      const headers = ["Date", "Program", "Student Name", "Keycard ID", "Time(s)", "Translated to Edvance"];
       const rows = [];
       const currentLogs = cachedLogs.filter(log => (log.program || "V5") === prog);
 
