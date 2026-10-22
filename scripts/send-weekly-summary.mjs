@@ -22,7 +22,6 @@ try {
 initializeApp({ credential: cert(serviceAccount) });
 const db = getFirestore();
 
-// Helper functions
 function getLastName(fullName = "") {
   const parts = fullName.trim().split(/\s+/);
   return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : parts[0].toLowerCase();
@@ -32,10 +31,20 @@ function getFirstName(fullName = "") {
   return parts[0].toLowerCase();
 }
 
+function formatDateShort(dateStr) {
+  if (!dateStr) return "Never";
+  try {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const d = new Date(year, month - 1, day);
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  } catch (e) {
+    return dateStr;
+  }
+}
+
 async function run() {
   console.log("Fetching attendance data from Firestore...");
 
-  // Fetch Programs, Students, and Attendance Logs
   const [progSnap, stuSnap, logSnap] = await Promise.all([
     db.collection("programs").get(),
     db.collection("students").get(),
@@ -68,15 +77,14 @@ async function run() {
   let programSectionsHtml = "";
   let totalAtRiskCount = 0;
   let totalDriftCount = 0;
+  let totalActiveCount = 0;
 
   for (const prog of programs) {
     const progCode = prog.code;
     const progName = prog.name || progCode;
 
-    // Filter logs for this program
     const progLogs = allLogs.filter(l => (l.program || "V5") === progCode);
 
-    // Get unique distinct lab dates (sorted newest to oldest)
     const distinctDates = [...new Set(progLogs.map(l => l.localDate).filter(Boolean))]
       .sort((a, b) => b.localeCompare(a));
 
@@ -108,92 +116,89 @@ async function run() {
         return comp !== 0 ? comp : getFirstName(a.name).localeCompare(getFirstName(b.name));
       });
 
-    // Buckets
-    const atRisk = students.filter(s => s.missed >= 10 && distinctDates.length >= 10);
-    const drifting = students.filter(s => s.missed >= 3 && s.missed < 10 && distinctDates.length >= 3);
-    const active = students.filter(s => s.missed < 3);
+    // Thresholds:
+    // At-Risk: 5+ missed sessions
+    // Drifting: 3-4 missed sessions
+    // Active: 0-2 missed sessions
+    const atRisk = students.filter(s => s.missed >= 5 && distinctDates.length >= 5);
+    const drifting = students.filter(s => s.missed >= 3 && s.missed < 5 && distinctDates.length >= 3);
+    const needsFollowup = students.filter(s => s.missed >= 3 && distinctDates.length >= 3);
+    const active = students.filter(s => s.missed < 3 || distinctDates.length < 3);
 
     totalAtRiskCount += atRisk.length;
     totalDriftCount += drifting.length;
+    totalActiveCount += active.length;
 
-    const renderTableRows = (list, badgeColor, statusLabel) => {
-      if (list.length === 0) {
-        return `<tr><td colspan="4" style="padding:10px 14px;color:#94a3b8;font-style:italic;font-size:12px;">None</td></tr>`;
-      }
-      return list.map(s => `
-        <tr style="border-bottom:1px solid #334155;">
-          <td style="padding:10px 14px;color:#f8fafc;font-weight:600;font-size:13px;">${s.name}</td>
-          <td style="padding:10px 14px;font-family:monospace;color:#94a3b8;font-size:12px;">${s.cardId}</td>
-          <td style="padding:10px 14px;color:#cbd5e1;font-size:12px;">
-            ${s.lastDate ? s.lastDate : '<span style="color:#64748b;">Never</span>'}
-          </td>
-          <td style="padding:10px 14px;text-align:right;">
-            <span style="display:inline-block;padding:3px 8px;border-radius:9999px;font-size:11px;font-weight:700;${badgeColor}">
-              ${s.missed} missed (${statusLabel})
-            </span>
-          </td>
-        </tr>
-      `).join("");
-    };
+    let bodyContentHtml = "";
+
+    if (needsFollowup.length === 0) {
+      bodyContentHtml = `
+        <div style="padding:14px 18px;background:#0b1322;border-radius:10px;color:#10b981;font-size:13px;font-weight:600;">
+          All ${students.length} students in regular attendance
+        </div>
+      `;
+    } else {
+      // Sort: highest missed first in the table
+      const sortedFollowup = [...needsFollowup].sort((a, b) => b.missed - a.missed);
+
+      const rowsHtml = sortedFollowup.map(s => {
+        const isAtRisk = s.missed >= 5;
+        const badgeStyle = isAtRisk
+          ? "background:#4c0519;color:#fda4af;border:1px solid #e11d48;"
+          : "background:#451a03;color:#fde68a;border:1px solid #d97706;";
+        const statusLabel = isAtRisk
+          ? `${s.missed} missed (At-Risk)`
+          : `${s.missed} missed (Drifting)`;
+
+        return `
+          <tr style="border-bottom:1px solid #243044;">
+            <td style="padding:10px 14px;color:#f8fafc;font-weight:600;font-size:13px;">${s.name}</td>
+            <td style="padding:10px 14px;color:#94a3b8;font-size:12px;">Last: ${formatDateShort(s.lastDate)}</td>
+            <td style="padding:10px 14px;text-align:right;">
+              <span style="display:inline-block;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:700;${badgeStyle}">
+                ${statusLabel}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      bodyContentHtml = `
+        <div style="background:#0b1322;border-radius:10px;overflow:hidden;border:1px solid #1e293b;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <thead>
+              <tr style="background:#131d2e;color:#64748b;font-size:11px;text-align:left;border-bottom:1px solid #1e293b;">
+                <th style="padding:8px 14px;font-weight:700;text-transform:uppercase;">Student</th>
+                <th style="padding:8px 14px;font-weight:700;text-transform:uppercase;">Last Seen</th>
+                <th style="padding:8px 14px;font-weight:700;text-transform:uppercase;text-align:right;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
 
     programSectionsHtml += `
-      <div style="margin-bottom:32px;background:#1e293b;border:1px solid #334155;border-radius:14px;overflow:hidden;">
-        <div style="background:#0f172a;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #334155;">
-          <div>
-            <span style="font-size:16px;font-weight:800;color:#ffffff;letter-spacing:0.5px;">${progName}</span>
-            <span style="margin-left:8px;background:#4f46e5;color:#ffffff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;">${progCode}</span>
-          </div>
-          <span style="font-size:12px;color:#94a3b8;">${distinctDates.length} total lab meetings held</span>
-        </div>
+      <div style="margin-bottom:24px;background:#141e30;border:1px solid #233149;border-radius:14px;overflow:hidden;">
+        <!-- Program Header Row -->
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="padding:14px 18px;border-bottom:1px solid #233149;">
+          <tr>
+            <td style="text-align:left;vertical-align:middle;">
+              <span style="font-size:15px;font-weight:800;color:#ffffff;">${progName}</span>
+              <span style="margin-left:6px;background:#3b82f6;color:#ffffff;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:700;">${progCode}</span>
+            </td>
+            <td style="text-align:right;vertical-align:middle;font-size:12px;color:#94a3b8;">
+              ${distinctDates.length} meetings held • <span style="color:#10b981;font-weight:700;">${active.length} active</span>
+            </td>
+          </tr>
+        </table>
 
-        <div style="padding:16px 18px;">
-          <!-- ⚠️ At-Risk Table -->
-          <div style="margin-bottom:20px;">
-            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#f43f5e;margin-bottom:8px;">
-              ⚠️ Critical: At-Risk (10+ Sessions Missed) — ${atRisk.length}
-            </div>
-            <table style="width:100%;border-collapse:collapse;background:#0f172a;border-radius:8px;overflow:hidden;">
-              <thead>
-                <tr style="background:#1e293b;color:#94a3b8;font-size:11px;text-align:left;border-bottom:1px solid #334155;">
-                  <th style="padding:8px 14px;">Student</th>
-                  <th style="padding:8px 14px;">Card ID</th>
-                  <th style="padding:8px 14px;">Last Seen</th>
-                  <th style="padding:8px 14px;text-align:right;">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${renderTableRows(atRisk, 'background:#4c0519;color:#fda4af;border:1px solid #e11d48;', 'Critical')}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Early Drift Table -->
-          <div style="margin-bottom:20px;">
-            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#f59e0b;margin-bottom:8px;">
-              ⏳ Early Drift Watchlist (Missed 3–9 Sessions) — ${drifting.length}
-            </div>
-            <table style="width:100%;border-collapse:collapse;background:#0f172a;border-radius:8px;overflow:hidden;">
-              <thead>
-                <tr style="background:#1e293b;color:#94a3b8;font-size:11px;text-align:left;border-bottom:1px solid #334155;">
-                  <th style="padding:8px 14px;">Student</th>
-                  <th style="padding:8px 14px;">Card ID</th>
-                  <th style="padding:8px 14px;">Last Seen</th>
-                  <th style="padding:8px 14px;text-align:right;">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${renderTableRows(drifting, 'background:#451a03;color:#fde68a;border:1px solid #d97706;', 'Drifting')}
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Active Students Summary -->
-          <div style="background:#0f172a;padding:12px 14px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:13px;color:#cbd5e1;font-weight:600;">Active & Attending Regularly</span>
-            <span style="background:#064e3b;color:#6ee7b7;padding:3px 10px;border-radius:9999px;font-size:12px;font-weight:700;border:1px solid #059669;">
-              ${active.length} Students Active
-            </span>
-          </div>
+        <!-- Program Content -->
+        <div style="padding:14px 16px;">
+          ${bodyContentHtml}
         </div>
       </div>
     `;
@@ -204,46 +209,48 @@ async function run() {
     <!DOCTYPE html>
     <html>
     <head><meta charset="utf-8" /></head>
-    <body style="margin:0;padding:24px;background:#090d16;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#e2e8f0;">
-      <div style="max-width:680px;margin:0 auto;background:#0f172a;border:1px solid #1e293b;border-radius:20px;overflow:hidden;box-shadow:0 10px 25px rgba(0,0,0,0.5);">
+    <body style="margin:0;padding:24px;background:#090e17;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#e2e8f0;">
+      <div style="max-width:620px;margin:0 auto;background:#0d1522;border:1px solid #1a2536;border-radius:18px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,0.5);">
         
         <!-- Header -->
-        <div style="background:#1e293b;padding:24px 28px;border-bottom:1px solid #334155;">
-          <div style="display:inline-block;background:#4f46e5;color:#ffffff;font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;letter-spacing:1px;margin-bottom:8px;">
-            ⚡ INNOVATION LAB
+        <div style="padding:22px 24px;border-bottom:1px solid #1a2536;background:#111b2b;">
+          <div style="font-size:11px;font-weight:800;letter-spacing:1px;color:#6366f1;text-transform:uppercase;margin-bottom:4px;">
+            INNOVATION LAB
           </div>
-          <h1 style="margin:0;font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">
-            Weekly Attendance & Activity Digest
+          <h1 style="margin:0;font-size:20px;font-weight:800;color:#ffffff;letter-spacing:-0.3px;">
+            Weekly Attendance Digest
           </h1>
-          <p style="margin:4px 0 0 0;font-size:13px;color:#94a3b8;">
-            ${todayStr} • Automated Monday Morning Report
+          <p style="margin:4px 0 0 0;font-size:12px;color:#94a3b8;">
+            ${todayStr}
           </p>
         </div>
 
-        <!-- Metric Highlights -->
-        <div style="display:flex;gap:12px;padding:20px 28px;background:#131c2e;border-bottom:1px solid #1e293b;">
-          <div style="flex:1;background:#0f172a;padding:12px 16px;border-radius:10px;border:1px solid #334155;">
-            <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:700;">Critical At-Risk</div>
-            <div style="font-size:22px;font-weight:800;color:#f43f5e;margin-top:2px;">${totalAtRiskCount}</div>
-          </div>
-          <div style="flex:1;background:#0f172a;padding:12px 16px;border-radius:10px;border:1px solid #334155;">
-            <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:700;">Early Drift Watch</div>
-            <div style="font-size:22px;font-weight:800;color:#f59e0b;margin-top:2px;">${totalDriftCount}</div>
-          </div>
-          <div style="flex:1;background:#0f172a;padding:12px 16px;border-radius:10px;border:1px solid #334155;">
-            <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:700;">Total Students</div>
-            <div style="font-size:22px;font-weight:800;color:#60a5fa;margin-top:2px;">${allStudents.length}</div>
-          </div>
-        </div>
+        <!-- KPI Summary Strip -->
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0b1322;border-bottom:1px solid #1a2536;padding:14px 24px;">
+          <tr>
+            <td width="33%" style="text-align:left;">
+              <div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;">Active Regulars</div>
+              <div style="font-size:20px;font-weight:800;color:#10b981;margin-top:2px;">${totalActiveCount}</div>
+            </td>
+            <td width="33%" style="text-align:center;">
+              <div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;">Drifting (3–4)</div>
+              <div style="font-size:20px;font-weight:800;color:#f59e0b;margin-top:2px;">${totalDriftCount}</div>
+            </td>
+            <td width="33%" style="text-align:right;">
+              <div style="font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;">At-Risk (5+)</div>
+              <div style="font-size:20px;font-weight:800;color:#f43f5e;margin-top:2px;">${totalAtRiskCount}</div>
+            </td>
+          </tr>
+        </table>
 
-        <!-- Body Programs Content -->
-        <div style="padding:24px 28px;">
+        <!-- Body Content -->
+        <div style="padding:20px 20px 4px 20px;">
           ${programSectionsHtml}
         </div>
 
         <!-- Footer -->
-        <div style="background:#090d16;padding:16px 28px;border-top:1px solid #1e293b;text-align:center;font-size:11px;color:#64748b;">
-          Automated weekly report dispatched by Innovation Lab Attendance via GitHub Actions.
+        <div style="padding:14px 24px;border-top:1px solid #1a2536;text-align:center;font-size:11px;color:#475569;">
+          Automated weekly digest dispatched via GitHub Actions
         </div>
       </div>
     </body>
@@ -266,7 +273,7 @@ async function run() {
   await transporter.sendMail({
     from: `"Innovation Lab Attendance" <${EMAIL_USER}>`,
     to: recipients,
-    subject: `⚡ Innovation Lab: Weekly Attendance & Activity Digest (${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})`,
+    subject: `Innovation Lab: Weekly Attendance Digest (${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})`,
     html: emailHtml
   });
 
