@@ -571,6 +571,7 @@
             8. Admin Access & Safeguards
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
+            <li><strong>Auto-Lock to Kiosk (30s Inactivity):</strong> If the admin dashboard is left idle for 30 seconds with no mouse, keyboard, touch, or scroll activity, the screen automatically closes open modals and locks back to Kiosk Mode to prevent unauthorized tampering.</li>
             <li><strong>Export CSV:</strong> Downloads a formatted spreadsheet of attendance records for the active program.</li>
             <li><strong>Delete ENTIRE [CODE] Program:</strong> Guarded by typing <code class="bg-slate-800 px-1.5 py-0.5 rounded text-rose-300 font-mono">Ronny is the Best!</code>. Students enrolled in other programs keep their accounts.</li>
             <li><strong>Delete [CODE] Logs / Students:</strong> Guarded by typing <code class="bg-slate-800 px-1.5 py-0.5 rounded text-rose-300 font-mono">Ronny is awesome!</code>.</li>
@@ -580,7 +581,7 @@
       </div>
 
       <div class="border-t border-slate-700 pt-4 mt-4 flex justify-between items-center">
-        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.8.0</span>
+        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.8.1</span>
         <button id="closeUserManualFooterBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           Close Manual
         </button>
@@ -827,7 +828,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-slate-500 bg-slate-800/90 border border-slate-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.8.0
+    v1.8.1
   </div>
 
   <script type="module">
@@ -865,6 +866,10 @@
     let edvanceStatusMap = {};
     let isProcessing = false;
     let pendingBulkDeleteType = null;
+
+    // Admin Inactivity Timeout State (30 Seconds)
+    let adminInactivityTimer = null;
+    const ADMIN_INACTIVITY_LIMIT_MS = 30000;
 
     // Kiosk Program Selection State
     let pendingKioskStudent = null;
@@ -1030,8 +1035,73 @@
     // Load initial programs from database
     loadPrograms();
 
+    // ================= ADMIN INACTIVITY TIMEOUT ENGINE =================
+    function resetAdminInactivityTimer() {
+      if (currentView !== "admin") return;
+      clearTimeout(adminInactivityTimer);
+      adminInactivityTimer = setTimeout(() => {
+        switchToKioskMode();
+        showBanner(true, "Admin session locked due to 30s of inactivity.");
+      }, ADMIN_INACTIVITY_LIMIT_MS);
+    }
+
+    function stopAdminInactivityTimer() {
+      clearTimeout(adminInactivityTimer);
+      adminInactivityTimer = null;
+    }
+
+    function startAdminInactivityTimer() {
+      resetAdminInactivityTimer();
+    }
+
+    function switchToKioskMode() {
+      stopAdminInactivityTimer();
+
+      // Close open admin modals
+      [
+        editStudentModal,
+        mergeModal,
+        bulkDeleteModal,
+        manualEntryModal,
+        addProgramModal,
+        deleteProgramModal,
+        dailyTapsModal,
+        userManualModal,
+        historyModal
+      ].forEach(m => {
+        if (m && !m.classList.contains("hidden")) {
+          m.classList.add("hidden");
+        }
+      });
+
+      if (manageDropdownMenu && !manageDropdownMenu.classList.contains("hidden")) {
+        manageDropdownMenu.classList.add("hidden");
+      }
+
+      currentView = "kiosk";
+      adminView.classList.add("hidden");
+      adminView.classList.remove("flex");
+      kioskView.classList.remove("hidden");
+      toggleViewText.textContent = "Admin Dashboard";
+      toggleViewIcon.innerHTML = `
+        <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      `;
+      focusScannerInput();
+    }
+
+    // Reset inactivity timer on any user interaction while in admin mode
+    const userActivityEvents = ["mousemove", "mousedown", "keydown", "touchstart", "scroll"];
+    userActivityEvents.forEach(evt => {
+      window.addEventListener(evt, () => {
+        if (currentView === "admin") {
+          resetAdminInactivityTimer();
+        }
+      }, { passive: true });
+    });
+
     // ================= HELPER FUNCTIONS =================
-    // Safely retrieve array of enrolled programs for a student (backward compatible)
     function getStudentPrograms(student) {
       if (!student) return ["V5"];
       if (Array.isArray(student.programs) && student.programs.length > 0) {
@@ -1043,7 +1113,6 @@
       return ["V5"];
     }
 
-    // Helper to render reusable program checkbox cards
     function renderProgramCheckboxes(containerElement, inputName, selectedList = []) {
       if (!containerElement) return;
       containerElement.innerHTML = cachedPrograms.map(p => {
@@ -1166,7 +1235,6 @@
         }
 
         if (!student) {
-          // Unrecognized card -> Open registration
           pendingCardId = cardId;
           modalCardId.textContent = cardId;
           firstNameInput.value = "";
@@ -1184,16 +1252,13 @@
             isProcessing = false;
           }, 150);
         } else {
-          // Registered student found! Check enrolled programs
           const enrolled = getStudentPrograms(student);
 
           if (enrolled.length === 1) {
-            // Student is in 1 program: immediate check-in
             await recordAttendance(student.cardId, student.name, enrolled[0]);
             isProcessing = false;
             focusScannerInput();
           } else {
-            // Student is in multiple programs: prompt selection
             showKioskProgramPrompt(student);
           }
         }
@@ -1228,7 +1293,6 @@
 
       if (window.lucide) lucide.createIcons();
 
-      // Reset auto-dismiss timer
       clearTimeout(kioskPromptTimeout);
       clearInterval(kioskCountdownInterval);
       kioskCountdownSeconds = 20;
@@ -1378,7 +1442,6 @@
           isProcessing = false;
           focusScannerInput();
         } else {
-          // If registered with multiple programs, prompt which one they are attending today!
           showKioskProgramPrompt(newStudentObj);
         }
       } catch (err) {
@@ -1410,17 +1473,7 @@
         passwordModal.classList.remove("hidden");
         adminPasswordInput.focus();
       } else {
-        currentView = "kiosk";
-        adminView.classList.add("hidden");
-        adminView.classList.remove("flex");
-        kioskView.classList.remove("hidden");
-        toggleViewText.textContent = "Admin Dashboard";
-        toggleViewIcon.innerHTML = `
-          <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
-        `;
-        focusScannerInput();
+        switchToKioskMode();
       }
     });
 
@@ -1440,6 +1493,7 @@
           </svg>
         `;
         loadAdminData();
+        startAdminInactivityTimer();
       } else {
         passwordError.classList.remove("hidden");
         adminPasswordInput.value = "";
@@ -1669,17 +1723,14 @@
       executeDeleteProgramBtn.textContent = "Purging Program...";
 
       try {
-        // Handle students associated with deleted program
         const studentsInProg = cachedStudents.filter(s => getStudentPrograms(s).includes(progToDelete));
         
         for (const s of studentsInProg) {
           const remaining = getStudentPrograms(s).filter(p => p !== progToDelete);
           if (remaining.length === 0) {
-            // Student was only in this program -> delete account
             await deleteDoc(doc(db, "students", s.id));
             cachedStudents = cachedStudents.filter(st => st.id !== s.id);
           } else {
-            // Student also enrolled in other programs -> remove program
             await updateDoc(doc(db, "students", s.id), {
               programs: remaining,
               program: remaining[0]
@@ -1689,12 +1740,10 @@
           }
         }
 
-        // Delete logs for this program
         const logsToDelete = cachedLogs.filter(l => (l.program || "V5") === progToDelete);
         await Promise.all(logsToDelete.map(l => deleteDoc(doc(db, "attendance", l.id))));
         cachedLogs = cachedLogs.filter(l => (l.program || "V5") !== progToDelete);
 
-        // Delete program document
         await deleteDoc(doc(db, "programs", progToDelete));
         cachedPrograms = cachedPrograms.filter(p => p.code !== progToDelete);
         sortProgramsList();
@@ -1884,7 +1933,6 @@
         const existingAlt = primary.altCardIds || [];
         const combinedAlt = [...new Set([...existingAlt, ...secondaryCards])].filter(c => c !== primary.cardId);
         
-        // Combine enrolled programs
         const combinedPrograms = [...new Set([...getStudentPrograms(primary), ...getStudentPrograms(secondary)])];
 
         await updateDoc(doc(db, "students", primary.id), {
@@ -1896,7 +1944,6 @@
         primary.programs = combinedPrograms;
         primary.program = combinedPrograms[0];
 
-        // Reassign logs to primary student, preserving the specific program of each log
         for (const card of secondaryCards) {
           const q = query(collection(db, "attendance"), where("cardId", "==", card));
           const snap = await getDocs(q);
@@ -2434,7 +2481,6 @@
       const distinctDates = getDistinctLabDates(selectedProgramFilter);
       sessionStatsText.textContent = `${distinctDates.length} distinct lab session${distinctDates.length === 1 ? '' : 's'} recorded to date`;
 
-      // Filter students who are enrolled in the currently selected program filter
       let programStudents = cachedStudents
         .filter(s => getStudentPrograms(s).includes(selectedProgramFilter))
         .map(s => {
@@ -2605,10 +2651,8 @@
       const studentLogs = cachedLogs.filter(l => allCards.includes(l.cardId));
       const enrolled = getStudentPrograms(studentObj);
 
-      // Collect all programs associated via enrollment OR historical logs
       const allRelevantPrograms = [...new Set([...enrolled, ...studentLogs.map(l => l.program || "V5")])];
       
-      // Sort relevant programs consistently
       allRelevantPrograms.sort((a, b) => {
         const iA = PINNED_PROGRAM_ORDER.indexOf(a);
         const iB = PINNED_PROGRAM_ORDER.indexOf(b);
@@ -2631,7 +2675,6 @@
 
       historyTotalSessions.textContent = `${studentLogs.length} total check-in tap${studentLogs.length === 1 ? '' : 's'}`;
 
-      // Build program filter tabs if multiple programs exist
       if (allRelevantPrograms.length > 1) {
         historyProgramTabsContainer.classList.remove("hidden");
         renderHistoryProgramTabs(allRelevantPrograms, studentLogs);
