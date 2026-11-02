@@ -105,7 +105,7 @@
       </div>
 
       <!-- Keycard Area with Attached Lanyard (Clicking simulates an unregistered card scan) -->
-      <div id="scannerIconCircle" class="relative flex flex-col items-center justify-center cursor-pointer select-none pt-10 pb-4 group" title="Click or press Alt+T to test new keycard">
+      <div id="scannerIconCircle" class="relative flex flex-col items-center justify-center cursor-pointer select-none pt-10 pb-4 group" title="Click or press Alt+T to test keycard scan">
         
         <!-- Animated Keycard + Lanyard Wrapper -->
         <div class="animate-keycard-tap relative flex flex-col items-center group-hover:scale-105 transition-transform">
@@ -135,17 +135,12 @@
             <!-- Official HTS Hawk Logo -->
             <div class="w-36 h-28 flex items-center justify-center my-auto drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
               <svg viewBox="0 0 530 359" class="w-full h-full object-contain overflow-visible" xmlns="http://www.w3.org/2000/svg">
-                <!-- Gray Outline Base -->
                 <path d="M470 55 C420 10 320 20 260 50 C210 75 160 115 125 165 C105 195 80 230 55 260 C40 280 45 305 60 315 C75 325 105 315 130 290 C155 265 180 250 200 250 C185 270 170 300 160 325 C155 340 165 355 180 355 C205 355 240 330 265 300 C320 280 380 260 450 240 C490 225 525 195 530 160 C530 140 500 135 480 145 C450 160 420 180 395 195 C410 160 440 120 470 85 C485 70 485 60 470 55 Z" fill="#64748b" stroke="#334155" stroke-width="8" stroke-linejoin="round"/>
-                <!-- Dark Navy Head Feathers Body -->
                 <path d="M455 68 C405 28 315 35 260 62 C215 85 170 125 138 172 C115 205 92 238 68 266 C56 282 62 298 75 302 C90 306 115 292 138 272 C165 248 188 238 206 238 C192 258 178 286 170 308 C166 320 174 332 186 332 C206 332 235 312 256 286 C310 266 368 248 435 228 C472 215 502 188 506 158 C506 142 482 140 464 148 C436 162 408 180 385 192 C402 158 430 120 455 88 C465 76 465 70 455 68 Z" fill="#172554"/>
-                <!-- Crimson Red Crest Streaks -->
                 <path d="M435 90 C370 70 290 85 240 115 C195 140 160 175 140 215 C165 175 220 135 290 120 C345 108 400 112 435 90 Z" fill="#dc2626"/>
                 <path d="M430 185 C370 205 300 230 250 255 C225 268 205 272 195 272 C215 262 250 245 295 228 C345 210 395 195 430 185 Z" fill="#dc2626"/>
-                <!-- Golden Yellow Hooked Beaks -->
                 <path d="M140 215 C115 240 90 270 70 295 C82 298 102 288 122 270 C145 250 168 242 185 242 C165 248 145 268 135 285 C145 250 175 230 200 225 C180 220 160 218 140 215 Z" fill="#f59e0b" stroke="#0f172a" stroke-width="4"/>
                 <path d="M175 290 C185 305 200 310 215 305 C205 295 195 285 185 275 C180 280 178 285 175 290 Z" fill="#f59e0b" stroke="#0f172a" stroke-width="3"/>
-                <!-- Fierce Angled White Eye -->
                 <polygon points="160,200 190,175 205,205 175,208" fill="#ffffff" stroke="#000000" stroke-width="5" stroke-linejoin="round"/>
               </svg>
             </div>
@@ -175,6 +170,30 @@
 
   <!-- Hidden Scanner Input -->
   <input id="cardInput" type="text" class="fixed -top-96 left-0 opacity-0" autocomplete="off" />
+
+  <!-- ================= MODAL: KIOSK MULTI-PROGRAM SELECTION ================= -->
+  <div id="kioskProgramModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 border border-indigo-500/40 shadow-2xl shadow-indigo-500/20 text-center flex flex-col items-center">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white mb-4 shadow-lg shadow-indigo-500/30">
+        <i data-lucide="layers" class="w-8 h-8"></i>
+      </div>
+      <h3 class="text-2xl font-black text-white tracking-tight mb-1" id="kioskProgramStudentName">Student Name</h3>
+      <p class="text-slate-300 text-sm mb-5 leading-relaxed">
+        You are enrolled in multiple programs.<br><span class="text-indigo-300 font-semibold">Which program are you checking in for today?</span>
+      </p>
+      
+      <div id="kioskProgramButtonsList" class="w-full flex flex-col gap-2.5 mb-4 max-h-64 overflow-y-auto pr-1">
+        <!-- Injected dynamic program selection buttons -->
+      </div>
+
+      <div class="flex items-center justify-between w-full pt-3 border-t border-slate-700/80">
+        <span id="kioskTimeoutCounter" class="text-xs text-slate-400 font-mono">Auto-cancels in 20s</span>
+        <button type="button" id="cancelKioskProgramBtn" class="text-xs text-slate-400 hover:text-rose-400 font-semibold py-1.5 px-3 rounded-lg hover:bg-slate-750 transition">
+          Cancel Check-In
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- ================= ADMIN VIEW ================= -->
   <main id="adminView" class="hidden flex-1 max-w-5xl w-full mx-auto p-6 flex-col gap-6">
@@ -290,7 +309,7 @@
           <thead class="bg-slate-750 text-slate-300 border-b border-slate-700">
             <tr>
               <th class="p-3.5">Student Name (Last, First)</th>
-              <th class="p-3.5">Program</th>
+              <th class="p-3.5">Enrolled Program(s)</th>
               <th class="p-3.5">Assigned Keycard ID</th>
               <th class="p-3.5">Attendance Status</th>
               <th class="p-3.5 text-right">Actions</th>
@@ -329,7 +348,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL: EDIT STUDENT PROFILE & PROGRAM ================= -->
+  <!-- ================= MODAL: EDIT STUDENT PROFILE & PROGRAMS ================= -->
   <div id="editStudentModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
     <div class="bg-slate-800 rounded-2xl max-w-md w-full p-6 border border-slate-700 shadow-2xl">
       <div class="flex items-center gap-3 mb-2">
@@ -339,16 +358,22 @@
         <h3 class="text-xl font-bold text-white">Edit Student Profile</h3>
       </div>
       <p class="text-slate-400 text-sm mb-4">
-        Update name or transfer this student and all past check-in logs to another program.
+        Update name or associate this student with one or multiple programs.
       </p>
 
       <form id="editStudentForm" class="flex flex-col gap-4">
         <input type="hidden" id="editStudentId" />
 
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Enrolled Program</label>
-          <select id="editProgramSelect" class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white font-semibold text-sm">
-          </select>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+            <span>Enrolled Programs</span>
+            <span class="text-indigo-400 font-normal text-[11px]">(Select at least 1)</span>
+          </label>
+          <div id="editProgramsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-900 p-3 rounded-xl border border-slate-700 max-h-48 overflow-y-auto">
+          </div>
+          <div id="editProgramsError" class="hidden text-xs text-rose-400 mt-1 font-semibold">
+            Please select at least one program.
+          </div>
         </div>
 
         <div>
@@ -409,6 +434,7 @@
           <ul class="list-disc list-inside space-y-1 text-slate-300">
             <li>The secondary keycard ID is saved as an active alias for the primary student.</li>
             <li><strong>Both physical keycards will check in the same student seamlessly</strong> when tapped at the kiosk.</li>
+            <li>Enrolled programs from both profiles are merged together.</li>
             <li>All past check-in records are consolidated under the primary student profile.</li>
           </ul>
         </div>
@@ -445,15 +471,17 @@
         <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="scan" class="w-4 h-4 text-indigo-400"></i>
-            1. Kiosk Mode & Keycard Scanning
+            1. Kiosk Mode & Multi-Program Keycard Scanning
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
-            <li><strong>Automatic Keycard Reader:</strong> Plug in any USB keycard scanner. Tapping a student keycard registers their check-in instantly with zero clicks required.</li>
+            <li><strong>Automatic Keycard Reader:</strong> Plug in any USB keycard scanner. Tapping a student keycard registers their check-in.</li>
+            <li><strong>Single-Program Students:</strong> Tapping their keycard immediately logs attendance for their program in one smooth step.</li>
+            <li><strong>Multi-Program Students:</strong> If a student is associated with multiple programs (e.g. V5 and IQ), tapping their keycard displays a prompt asking which program they are attending today. Only the selected program's attendance logs get recorded!</li>
             <li><strong>Linked Aliases:</strong> If a student has merged keycards, tapping either their primary keycard or any linked alias keycard will check them in without issues.</li>
-            <li><strong>Testing Without a Keycard:</strong> Click the animated keycard in Kiosk view or press <code class="bg-slate-800 px-1.5 py-0.5 rounded text-amber-300 font-mono">Alt + T</code> to trigger a simulated new keycard scan.</li>
+            <li><strong>Testing Without a Keycard:</strong> Click the animated keycard in Kiosk view or press <code class="bg-slate-800 px-1.5 py-0.5 rounded text-amber-300 font-mono">Alt + T</code> to trigger a simulated keycard scan.</li>
             <li><strong>Auto-Focusing:</strong> Clicking anywhere on the screen refocuses the scanner input automatically.</li>
-            <li><strong>New Keycard Registration:</strong> When an unrecognized keycard is tapped, a registration modal prompts for First Name, Last Name, and Program. Upon submission, it registers the student and immediately logs today's attendance.</li>
-            <li><strong>Full-Screen Lock:</strong> Press <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-200">Cmd + Shift + F</code> (Mac) or <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-200">F11</code> (Windows) in Chrome to hide the address bar and keep students locked to the kiosk.</li>
+            <li><strong>New Keycard Registration:</strong> When an unrecognized keycard is tapped, a registration modal prompts for First Name, Last Name, and lets you check one or more enrolled programs.</li>
+            <li><strong>Full-Screen Lock:</strong> Press <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-200">Cmd + Shift + F</code> (Mac) or <code class="bg-slate-800 px-1.5 py-0.5 rounded text-slate-200">F11</code> (Windows) in Chrome to keep students locked to the kiosk.</li>
           </ul>
         </section>
 
@@ -464,7 +492,7 @@
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li>When a student forgets their keycard, click <strong>Manual Check-In</strong> on the Admin Dashboard.</li>
-            <li>Choose their program. The dropdown dynamically filters out anyone who has already checked in today, listing only students who still need attendance recorded.</li>
+            <li>Choose the program they are attending today. The student list displays only students enrolled in that program who have not already checked in today.</li>
             <li>Select the student and click <strong>Check In Student</strong> to record their timestamp immediately.</li>
           </ul>
         </section>
@@ -472,11 +500,13 @@
         <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="folder-plus" class="w-4 h-4 text-emerald-400"></i>
-            3. Dynamic Multi-Program Management
+            3. Dynamic Multi-Program Management & Multi-Enrollment
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
-            <li><strong>Organized Program Ordering:</strong> Program tabs always appear in the consistent order of <strong>V5 $\rightarrow$ IQ $\rightarrow$ SRP $\rightarrow$ SRE</strong>, followed chronologically by any new programs added.</li>
-            <li><strong>Add Custom Programs:</strong> Teachers can click <strong>"+ Add Program"</strong> to create new programs. Each program receives its own isolated attendance logs and student roster.</li>
+            <li><strong>Organized Program Ordering:</strong> Program tabs appear in the consistent order of <strong>V5 $\rightarrow$ IQ $\rightarrow$ SRP $\rightarrow$ SRE</strong>, followed chronologically by any new programs added.</li>
+            <li><strong>Multi-Program Association:</strong> Each student can be enrolled in as few as 1 and as many programs as exist in the system.</li>
+            <li><strong>Edit Profile to Add Programs:</strong> Click <strong>Edit</strong> beside any student in the Registered Students table to check/uncheck programs and save.</li>
+            <li><strong>Add Custom Programs:</strong> Teachers can click <strong>"+ Add Program"</strong> to create new programs. Each program receives its own isolated attendance logs.</li>
           </ul>
         </section>
 
@@ -488,8 +518,8 @@
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li>If a student has been issued multiple keycards, click <strong>Manage ▾</strong> > <strong>Merge Duplicate Keycards</strong>.</li>
             <li>Select the <strong>Primary Profile</strong> to keep, and the <strong>Secondary Profile</strong> to merge.</li>
-            <li>All historical attendance logs from the secondary profile are reassigned to the primary student, and the secondary keycard ID is stored as a <strong>linked alias</strong>.</li>
-            <li><strong>Both physical keycards remain active and will check in the same student seamlessly.</strong></li>
+            <li>All historical attendance logs are reassigned to the primary student, enrolled programs are combined, and the secondary keycard ID is stored as a <strong>linked alias</strong>.</li>
+            <li><strong>Both physical keycards remain active and check in the same student seamlessly.</strong></li>
           </ul>
         </section>
 
@@ -499,8 +529,8 @@
             5. Attendance Records & Edvance Translation
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
-            <li>Check-ins are grouped by calendar date and sorted newest first.</li>
-            <li><strong>Clean Check-In Display:</strong> Shows an interactive tap count pill for each student. Hovering reveals their check-in times in a tooltip; clicking the pill opens the complete daily timestamps modal.</li>
+            <li>Check-ins are grouped by calendar date and sorted newest first for the selected active program tab.</li>
+            <li><strong>Clean Check-In Display:</strong> Shows an interactive tap count pill for each student. Hovering reveals their check-in times in a tooltip; clicking opens the complete daily timestamps modal.</li>
             <li><strong>Edvance Checkbox:</strong> Check <em>"Attendance Translated to Edvance"</em> once daily logs have been officially recorded in the school SIS. This greys out the day to prevent duplicate entries and persists across all browsers.</li>
           </ul>
         </section>
@@ -508,12 +538,12 @@
         <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="history" class="w-4 h-4 text-purple-400"></i>
-            6. Student Profiles & History Modal
+            6. Student Attendance History Separated by Program
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li><strong>Alphabetical Sorting:</strong> Registered students are sorted alphabetically by last name, then first name.</li>
-            <li><strong>Attendance History:</strong> Click on any student's name in the table to open their comprehensive attendance breakdown, showing their keycard ID, linked aliases, total sessions attended, attendance rate, and every logged check-in timestamp.</li>
-            <li><strong>Edit & Program Transfer:</strong> Click <strong>Edit</strong> in the student table to open the profile modal. Update their First Name, Last Name, or choose a new program from the dropdown to transfer the student and their entire history.</li>
+            <li><strong>Separated History View:</strong> Clicking on any student's name opens their comprehensive history. If the student participates in multiple programs, check-ins are cleanly separated by program, showing distinct lab sessions attended, attendance rates, and check-in timestamps for each program.</li>
+            <li><strong>Quick Program Filter Tabs:</strong> Inside the history modal, switch between "All Programs" (showing separated sections) and individual program views.</li>
           </ul>
         </section>
 
@@ -523,10 +553,10 @@
             7. Inactivity & At-Risk Tracking (5+ Lab Days)
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
-            <li><strong>Distinct Lab Meetings:</strong> The app counts unique dates that students actually attended lab sessions, seamlessly skipping holidays, exam weeks, and cancellations.</li>
+            <li><strong>Distinct Lab Meetings:</strong> Counts unique dates students actually attended lab sessions for each program, skipping holidays, exams, and cancellations.</li>
             <li><strong>Status Badges:</strong>
               <ul class="list-circle list-inside ml-4 mt-1 space-y-1">
-                <li><span class="text-emerald-400 font-semibold">Active:</span> Checked in within the last 2 lab sessions (missed 0–2).</li>
+                <li><span class="text-emerald-400 font-semibold">Active:</span> Checked in within the last 2 lab sessions.</li>
                 <li><span class="text-amber-400 font-semibold">Drifting (3–4):</span> Missed 3 or 4 consecutive lab sessions.</li>
                 <li><span class="text-rose-400 font-semibold">⚠️ At-Risk (5+):</span> Pulsing alert for students missing 5 or more consecutive lab meetings.</li>
               </ul>
@@ -538,25 +568,19 @@
         <section class="bg-slate-900/70 p-4 rounded-xl border border-slate-700/60">
           <h3 class="text-base font-bold text-white flex items-center gap-2 mb-2">
             <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i>
-            8. Admin Access & Manage Menu Safeguards
+            8. Admin Access & Safeguards
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
-            <li><strong>Admin Dashboard:</strong> Protected by the admin password.</li>
-            <li><strong>Manage Menu:</strong> Consolidates data export, merging, and destructive actions into one location:
-              <ul class="list-circle list-inside ml-4 mt-1 space-y-1">
-                <li><strong>Export CSV:</strong> Downloads a formatted spreadsheet of all check-in records for the active program.</li>
-                <li><strong>Merge Duplicate Keycards:</strong> Combines duplicate keycard entries into one master record with linked aliases.</li>
-                <li><strong>Delete ENTIRE [CODE] Program:</strong> Permanently deletes the program configuration, all students, and all logs. Guarded by typing <code class="bg-slate-800 px-1.5 py-0.5 rounded text-rose-300 font-mono">Ronny is the Best!</code>.</li>
-                <li><strong>Delete [CODE] Logs / Delete [CODE] Students:</strong> Guarded by typing <code class="bg-slate-800 px-1.5 py-0.5 rounded text-rose-300 font-mono">Ronny is awesome!</code>.</li>
-              </ul>
-            </li>
-            <li><strong>Individual Student Deletion:</strong> Deleting an individual student cascades to remove their master profile, any keycard aliases, and all associated attendance logs.</li>
+            <li><strong>Export CSV:</strong> Downloads a formatted spreadsheet of attendance records for the active program.</li>
+            <li><strong>Delete ENTIRE [CODE] Program:</strong> Guarded by typing <code class="bg-slate-800 px-1.5 py-0.5 rounded text-rose-300 font-mono">Ronny is the Best!</code>. Students enrolled in other programs keep their accounts.</li>
+            <li><strong>Delete [CODE] Logs / Students:</strong> Guarded by typing <code class="bg-slate-800 px-1.5 py-0.5 rounded text-rose-300 font-mono">Ronny is awesome!</code>.</li>
+            <li><strong>Individual Student Deletion:</strong> Cascades to remove their master profile, alias cards, and associated attendance logs.</li>
           </ul>
         </section>
       </div>
 
       <div class="border-t border-slate-700 pt-4 mt-4 flex justify-between items-center">
-        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.7.1</span>
+        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.8.0</span>
         <button id="closeUserManualFooterBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           Close Manual
         </button>
@@ -602,9 +626,15 @@
 
       <form id="registerForm" class="flex flex-col gap-3">
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Select Program</label>
-          <select id="programSelect" class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white font-semibold">
-          </select>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+            <span>Enrolled Programs</span>
+            <span class="text-indigo-400 font-normal text-[11px]">(Select 1 or more)</span>
+          </label>
+          <div id="registerProgramsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-900 p-3 rounded-xl border border-slate-700 max-h-44 overflow-y-auto">
+          </div>
+          <div id="registerProgramsError" class="hidden text-xs text-rose-400 mt-1 font-semibold">
+            Please select at least one program.
+          </div>
         </div>
 
         <div>
@@ -620,7 +650,7 @@
         <div class="flex justify-end gap-3 mt-3">
           <button type="button" id="cancelRegisterBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-semibold">Cancel</button>
           <button type="submit" id="submitRegisterBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-lg text-sm shadow-md shadow-indigo-500/20">
-            Register & Check In
+            Register Student
           </button>
         </div>
       </form>
@@ -646,7 +676,7 @@
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Select Student (Unchecked Today)</label>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Select Student (Unchecked in Program Today)</label>
           <select id="manualStudentSelect" class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 text-white font-semibold">
           </select>
           <p id="noStudentsNotice" class="hidden text-xs text-emerald-400 mt-2 font-medium">
@@ -738,7 +768,7 @@
       </p>
       <ul class="text-xs text-slate-400 list-disc list-inside space-y-1 mb-4 bg-slate-900/90 p-3 rounded-lg border border-slate-700">
         <li>The program configuration and dashboard tabs</li>
-        <li><strong>ALL</strong> registered student profiles in this program</li>
+        <li>Student profiles that belong <strong>only</strong> to this program</li>
         <li><strong>ALL</strong> attendance check-in logs and Edvance records for this program</li>
       </ul>
 
@@ -760,28 +790,34 @@
 
   <!-- ================= MODAL: STUDENT ATTENDANCE HISTORY ================= -->
   <div id="historyModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-800 rounded-3xl max-w-lg w-full p-6 border border-slate-700 shadow-2xl flex flex-col max-h-[85vh]">
-      <div class="flex items-start justify-between border-b border-slate-700 pb-4 mb-4">
-        <div>
-          <div class="flex items-center gap-2 mb-1">
+    <div class="bg-slate-800 rounded-3xl max-w-xl w-full p-6 sm:p-7 border border-slate-700 shadow-2xl flex flex-col max-h-[88vh]">
+      <div class="flex items-start justify-between border-b border-slate-700 pb-4 mb-3">
+        <div class="flex-1 mr-3">
+          <div class="flex flex-wrap items-center gap-2 mb-1.5">
             <h3 id="historyStudentName" class="text-xl font-bold text-white">Student Name</h3>
-            <span id="historyProgramBadge" class="text-xs font-bold px-2.5 py-0.5 rounded-full">V5</span>
+            <div id="historyProgramBadges" class="flex flex-wrap gap-1"></div>
           </div>
           <div class="text-xs text-slate-400 flex flex-wrap items-center gap-2">
             <span>Keycard ID: <strong id="historyCardId" class="font-mono text-slate-300"></strong></span>
             <span>•</span>
             <span id="historyTotalSessions" class="text-emerald-400 font-semibold">0 check-ins total</span>
           </div>
-          <div id="historyRateText" class="text-xs text-amber-400 mt-1 font-semibold"></div>
+          <div id="historyRateText" class="text-xs text-slate-400 mt-1 font-medium"></div>
         </div>
         <button id="closeHistoryBtn" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
-      <div id="historyListContainer" class="flex-1 overflow-y-auto divide-y divide-slate-700/80 pr-1"></div>
+      <!-- History Program Filter Tabs (shown when student has multiple programs) -->
+      <div id="historyProgramTabsContainer" class="hidden mb-3">
+        <div class="flex items-center gap-1.5 p-1 bg-slate-900 rounded-xl border border-slate-700 overflow-x-auto text-xs" id="historyProgramTabs">
+        </div>
+      </div>
 
-      <div class="border-t border-slate-700 pt-4 mt-4 flex justify-end">
+      <div id="historyListContainer" class="flex-1 overflow-y-auto pr-1 space-y-4"></div>
+
+      <div class="border-t border-slate-700 pt-3 mt-3 flex justify-end">
         <button id="closeHistoryFooterBtn" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
           Close
         </button>
@@ -791,7 +827,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-slate-500 bg-slate-800/90 border border-slate-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.7.1
+    v1.8.0
   </div>
 
   <script type="module">
@@ -830,6 +866,16 @@
     let isProcessing = false;
     let pendingBulkDeleteType = null;
 
+    // Kiosk Program Selection State
+    let pendingKioskStudent = null;
+    let kioskCountdownSeconds = 20;
+    let kioskCountdownInterval = null;
+    let kioskPromptTimeout = null;
+
+    // History Modal Active Tab State
+    let activeHistoryStudent = null;
+    let activeHistoryTab = "ALL";
+
     const kioskView = document.getElementById("kioskView");
     const adminView = document.getElementById("adminView");
     const toggleViewBtn = document.getElementById("toggleViewBtn");
@@ -837,23 +883,35 @@
     const toggleViewIcon = document.getElementById("toggleViewIcon");
     const statusBanner = document.getElementById("statusBanner");
     const bannerText = document.getElementById("bannerText");
+    const cardInput = document.getElementById("cardInput");
+    const scannerIconCircle = document.getElementById("scannerIconCircle");
+
+    // Kiosk Multi-Program Prompt Elements
+    const kioskProgramModal = document.getElementById("kioskProgramModal");
+    const kioskProgramStudentName = document.getElementById("kioskProgramStudentName");
+    const kioskProgramButtonsList = document.getElementById("kioskProgramButtonsList");
+    const kioskTimeoutCounter = document.getElementById("kioskTimeoutCounter");
+    const cancelKioskProgramBtn = document.getElementById("cancelKioskProgramBtn");
+
+    // Registration Modal Elements
     const registerModal = document.getElementById("registerModal");
     const modalCardId = document.getElementById("modalCardId");
     const modalError = document.getElementById("modalError");
     const registerForm = document.getElementById("registerForm");
-    const programSelect = document.getElementById("programSelect");
+    const registerProgramsContainer = document.getElementById("registerProgramsContainer");
+    const registerProgramsError = document.getElementById("registerProgramsError");
     const firstNameInput = document.getElementById("firstNameInput");
     const lastNameInput = document.getElementById("lastNameInput");
     const cancelRegisterBtn = document.getElementById("cancelRegisterBtn");
     const submitRegisterBtn = document.getElementById("submitRegisterBtn");
+
+    // Admin Password Elements
     const passwordModal = document.getElementById("passwordModal");
     const passwordForm = document.getElementById("passwordForm");
     const adminPasswordInput = document.getElementById("adminPasswordInput");
     const passwordError = document.getElementById("passwordError");
     const cancelPasswordBtn = document.getElementById("cancelPasswordBtn");
-    const cardInput = document.getElementById("cardInput");
-    const scannerIconCircle = document.getElementById("scannerIconCircle");
-    
+
     // User Manual Elements
     const userManualBtn = document.getElementById("userManualBtn");
     const userManualModal = document.getElementById("userManualModal");
@@ -882,7 +940,8 @@
     const editStudentModal = document.getElementById("editStudentModal");
     const editStudentForm = document.getElementById("editStudentForm");
     const editStudentId = document.getElementById("editStudentId");
-    const editProgramSelect = document.getElementById("editProgramSelect");
+    const editProgramsContainer = document.getElementById("editProgramsContainer");
+    const editProgramsError = document.getElementById("editProgramsError");
     const editFirstNameInput = document.getElementById("editFirstNameInput");
     const editLastNameInput = document.getElementById("editLastNameInput");
     const cancelEditStudentBtn = document.getElementById("cancelEditStudentBtn");
@@ -906,7 +965,7 @@
     const newProgramCodeInput = document.getElementById("newProgramCodeInput");
     const cancelAddProgramBtn = document.getElementById("cancelAddProgramBtn");
 
-    // Unified Manage Dropdown
+    // Manage Dropdown Elements
     const manageDropdownContainer = document.getElementById("manageDropdownContainer");
     const manageDropdownBtn = document.getElementById("manageDropdownBtn");
     const manageDropdownMenu = document.getElementById("manageDropdownMenu");
@@ -937,10 +996,12 @@
     // History Modal Elements
     const historyModal = document.getElementById("historyModal");
     const historyStudentName = document.getElementById("historyStudentName");
-    const historyProgramBadge = document.getElementById("historyProgramBadge");
+    const historyProgramBadges = document.getElementById("historyProgramBadges");
     const historyCardId = document.getElementById("historyCardId");
     const historyTotalSessions = document.getElementById("historyTotalSessions");
     const historyRateText = document.getElementById("historyRateText");
+    const historyProgramTabsContainer = document.getElementById("historyProgramTabsContainer");
+    const historyProgramTabs = document.getElementById("historyProgramTabs");
     const historyListContainer = document.getElementById("historyListContainer");
     const closeHistoryBtn = document.getElementById("closeHistoryBtn");
     const closeHistoryFooterBtn = document.getElementById("closeHistoryFooterBtn");
@@ -966,8 +1027,39 @@
       lucide.createIcons();
     }
 
-    // Immediately load programs from database on initial page load
+    // Load initial programs from database
     loadPrograms();
+
+    // ================= HELPER FUNCTIONS =================
+    // Safely retrieve array of enrolled programs for a student (backward compatible)
+    function getStudentPrograms(student) {
+      if (!student) return ["V5"];
+      if (Array.isArray(student.programs) && student.programs.length > 0) {
+        return student.programs;
+      }
+      if (student.program) {
+        return [student.program];
+      }
+      return ["V5"];
+    }
+
+    // Helper to render reusable program checkbox cards
+    function renderProgramCheckboxes(containerElement, inputName, selectedList = []) {
+      if (!containerElement) return;
+      containerElement.innerHTML = cachedPrograms.map(p => {
+        const isChecked = selectedList.includes(p.code);
+        return `
+          <label class="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-750 border border-slate-700/80 cursor-pointer select-none transition">
+            <input type="checkbox" name="${inputName}" value="${p.code}" ${isChecked ? 'checked' : ''}
+              class="w-4 h-4 rounded text-indigo-600 bg-slate-900 border-slate-600 focus:ring-0 cursor-pointer">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="text-xs font-black px-1.5 py-0.5 rounded ${getProgramBadgeClass(p.code)}">${p.code}</span>
+              <span class="text-xs font-semibold text-white truncate" title="${p.name}">${p.name}</span>
+            </div>
+          </label>
+        `;
+      }).join("");
+    }
 
     // Test Trigger: Simulates an unregistered new keycard tap
     function simulateTestScan() {
@@ -1003,7 +1095,8 @@
         mergeModal.classList.contains("hidden") &&
         editStudentModal.classList.contains("hidden") &&
         dailyTapsModal.classList.contains("hidden") &&
-        userManualModal.classList.contains("hidden")
+        userManualModal.classList.contains("hidden") &&
+        kioskProgramModal.classList.contains("hidden")
       ) {
         cardInput.focus();
       }
@@ -1048,7 +1141,7 @@
       }
     }
 
-    // Process Keycard Scan (Checks primary cardId & altCardIds)
+    // ================= KEYCARD SCAN LOGIC & MULTI-PROGRAM ROUTING =================
     async function processScan(cardId) {
       isProcessing = true;
       cardInput.blur();
@@ -1073,15 +1166,17 @@
         }
 
         if (!student) {
+          // Unrecognized card -> Open registration
           pendingCardId = cardId;
           modalCardId.textContent = cardId;
           firstNameInput.value = "";
           lastNameInput.value = "";
+          registerProgramsError.classList.add("hidden");
           
           if (cachedPrograms.length === 0) {
             await loadPrograms();
           }
-          renderProgramSelectDropdown();
+          renderProgramCheckboxes(registerProgramsContainer, "registerProgramCheckbox", [selectedProgramFilter]);
           
           registerModal.classList.remove("hidden");
           setTimeout(() => {
@@ -1089,10 +1184,18 @@
             isProcessing = false;
           }, 150);
         } else {
-          const program = student.program || "V5";
-          await recordAttendance(student.cardId, student.name, program);
-          isProcessing = false;
-          focusScannerInput();
+          // Registered student found! Check enrolled programs
+          const enrolled = getStudentPrograms(student);
+
+          if (enrolled.length === 1) {
+            // Student is in 1 program: immediate check-in
+            await recordAttendance(student.cardId, student.name, enrolled[0]);
+            isProcessing = false;
+            focusScannerInput();
+          } else {
+            // Student is in multiple programs: prompt selection
+            showKioskProgramPrompt(student);
+          }
         }
       } catch (err) {
         console.error("Firestore read error:", err);
@@ -1101,6 +1204,81 @@
         focusScannerInput();
       }
     }
+
+    // ================= KIOSK MULTI-PROGRAM SELECTION MODAL =================
+    function showKioskProgramPrompt(student) {
+      pendingKioskStudent = student;
+      kioskProgramStudentName.textContent = student.name;
+      const enrolled = getStudentPrograms(student);
+
+      kioskProgramButtonsList.innerHTML = enrolled.map(pCode => {
+        const progObj = cachedPrograms.find(p => p.code === pCode);
+        const progName = progObj ? progObj.name : pCode;
+        return `
+          <button type="button" onclick="window.selectKioskProgram('${pCode}')"
+            class="w-full p-4 rounded-2xl bg-slate-750 hover:bg-indigo-600/90 border border-slate-700 hover:border-indigo-500 text-left flex items-center justify-between transition-all group shadow-sm active:scale-98">
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-black px-2.5 py-1 rounded-lg ${getProgramBadgeClass(pCode)}">${pCode}</span>
+              <span class="font-bold text-white text-base">${progName}</span>
+            </div>
+            <i data-lucide="check" class="w-5 h-5 text-indigo-400 group-hover:text-white transition"></i>
+          </button>
+        `;
+      }).join("");
+
+      if (window.lucide) lucide.createIcons();
+
+      // Reset auto-dismiss timer
+      clearTimeout(kioskPromptTimeout);
+      clearInterval(kioskCountdownInterval);
+      kioskCountdownSeconds = 20;
+      kioskTimeoutCounter.textContent = `Auto-cancels in ${kioskCountdownSeconds}s`;
+
+      kioskCountdownInterval = setInterval(() => {
+        kioskCountdownSeconds--;
+        kioskTimeoutCounter.textContent = `Auto-cancels in ${kioskCountdownSeconds}s`;
+        if (kioskCountdownSeconds <= 0) {
+          dismissKioskProgramPrompt();
+        }
+      }, 1000);
+
+      kioskPromptTimeout = setTimeout(() => {
+        dismissKioskProgramPrompt();
+      }, 20000);
+
+      kioskProgramModal.classList.remove("hidden");
+    }
+
+    function dismissKioskProgramPrompt() {
+      clearTimeout(kioskPromptTimeout);
+      clearInterval(kioskCountdownInterval);
+      kioskProgramModal.classList.add("hidden");
+      pendingKioskStudent = null;
+      isProcessing = false;
+      focusScannerInput();
+    }
+
+    window.selectKioskProgram = async (chosenProgram) => {
+      if (!pendingKioskStudent) return;
+      const student = pendingKioskStudent;
+      clearTimeout(kioskPromptTimeout);
+      clearInterval(kioskCountdownInterval);
+      kioskProgramModal.classList.add("hidden");
+
+      try {
+        await recordAttendance(student.cardId, student.name, chosenProgram);
+      } catch (err) {
+        showBanner(false, `Check-in error: ${err.message}`);
+      } finally {
+        pendingKioskStudent = null;
+        isProcessing = false;
+        focusScannerInput();
+      }
+    };
+
+    cancelKioskProgramBtn.addEventListener("click", () => {
+      dismissKioskProgramPrompt();
+    });
 
     async function recordAttendance(cardId, name, program) {
       const now = new Date();
@@ -1142,14 +1320,23 @@
       }, 3000);
     }
 
+    // ================= REGISTER UNRECOGNIZED KEYCARD =================
     registerForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const fName = firstNameInput.value.trim();
       const lName = lastNameInput.value.trim();
-      const prog = programSelect.value;
       const card = pendingCardId;
+
+      const checkedBoxes = Array.from(document.querySelectorAll('input[name="registerProgramCheckbox"]:checked'));
+      const selectedProgs = checkedBoxes.map(cb => cb.value);
       
       if (!fName || !lName || !card) return;
+
+      if (selectedProgs.length === 0) {
+        registerProgramsError.classList.remove("hidden");
+        return;
+      }
+      registerProgramsError.classList.add("hidden");
 
       const fullName = `${fName} ${lName}`;
 
@@ -1164,41 +1351,50 @@
           firstName: fName,
           lastName: lName,
           name: fullName,
-          program: prog,
+          programs: selectedProgs,
+          program: selectedProgs[0],
           registeredAt: serverTimestamp()
         });
 
-        cachedStudents.push({
+        const newStudentObj = {
           id: studentDoc.id,
           cardId: card,
           altCardIds: [],
           firstName: fName,
           lastName: lName,
           name: fullName,
-          program: prog
-        });
+          programs: selectedProgs,
+          program: selectedProgs[0]
+        };
 
-        await recordAttendance(card, fullName, prog);
-        
+        cachedStudents.push(newStudentObj);
         registerModal.classList.add("hidden");
         firstNameInput.value = "";
         lastNameInput.value = "";
         pendingCardId = null;
-        isProcessing = false;
-        focusScannerInput();
+
+        if (selectedProgs.length === 1) {
+          await recordAttendance(card, fullName, selectedProgs[0]);
+          isProcessing = false;
+          focusScannerInput();
+        } else {
+          // If registered with multiple programs, prompt which one they are attending today!
+          showKioskProgramPrompt(newStudentObj);
+        }
       } catch (err) {
         console.error("Registration write error:", err);
         modalError.textContent = `Database Error: ${err.message}`;
         modalError.classList.remove("hidden");
       } finally {
         submitRegisterBtn.disabled = false;
-        submitRegisterBtn.textContent = "Register & Check In";
+        submitRegisterBtn.textContent = "Register Student";
       }
     });
 
     cancelRegisterBtn.addEventListener("click", () => {
       registerModal.classList.add("hidden");
       modalError.classList.add("hidden");
+      registerProgramsError.classList.add("hidden");
       firstNameInput.value = "";
       lastNameInput.value = "";
       pendingCardId = null;
@@ -1206,6 +1402,7 @@
       focusScannerInput();
     });
 
+    // ================= VIEW TOGGLING =================
     toggleViewBtn.addEventListener("click", () => {
       if (currentView === "kiosk") {
         passwordError.classList.add("hidden");
@@ -1297,7 +1494,7 @@
       });
     }
 
-    // ================= DYNAMIC PROGRAMS SYSTEM & SORTING =================
+    // ================= DYNAMIC PROGRAMS SYSTEM =================
     function sortProgramsList() {
       cachedPrograms.sort((a, b) => {
         const indexA = PINNED_PROGRAM_ORDER.indexOf(a.code);
@@ -1363,7 +1560,6 @@
         </option>
       `).join("");
 
-      programSelect.innerHTML = optionsHtml;
       manualProgramSelect.innerHTML = optionsHtml;
     }
 
@@ -1473,20 +1669,32 @@
       executeDeleteProgramBtn.textContent = "Purging Program...";
 
       try {
-        const studentsToDelete = cachedStudents.filter(s => (s.program || "V5") === progToDelete);
-        const cardIds = new Set();
-        studentsToDelete.forEach(s => {
-          if (s.cardId) cardIds.add(s.cardId);
-          if (s.altCardIds) s.altCardIds.forEach(c => cardIds.add(c));
-        });
+        // Handle students associated with deleted program
+        const studentsInProg = cachedStudents.filter(s => getStudentPrograms(s).includes(progToDelete));
+        
+        for (const s of studentsInProg) {
+          const remaining = getStudentPrograms(s).filter(p => p !== progToDelete);
+          if (remaining.length === 0) {
+            // Student was only in this program -> delete account
+            await deleteDoc(doc(db, "students", s.id));
+            cachedStudents = cachedStudents.filter(st => st.id !== s.id);
+          } else {
+            // Student also enrolled in other programs -> remove program
+            await updateDoc(doc(db, "students", s.id), {
+              programs: remaining,
+              program: remaining[0]
+            });
+            s.programs = remaining;
+            s.program = remaining[0];
+          }
+        }
 
-        await Promise.all(studentsToDelete.map(d => deleteDoc(doc(db, "students", d.id))));
-        cachedStudents = cachedStudents.filter(s => (s.program || "V5") !== progToDelete);
-
-        const logsToDelete = cachedLogs.filter(l => cardIds.has(l.cardId) || (l.program || "V5") === progToDelete);
+        // Delete logs for this program
+        const logsToDelete = cachedLogs.filter(l => (l.program || "V5") === progToDelete);
         await Promise.all(logsToDelete.map(l => deleteDoc(doc(db, "attendance", l.id))));
-        cachedLogs = cachedLogs.filter(l => !cardIds.has(l.cardId) && (l.program || "V5") !== progToDelete);
+        cachedLogs = cachedLogs.filter(l => (l.program || "V5") !== progToDelete);
 
+        // Delete program document
         await deleteDoc(doc(db, "programs", progToDelete));
         cachedPrograms = cachedPrograms.filter(p => p.code !== progToDelete);
         sortProgramsList();
@@ -1531,12 +1739,12 @@
       const prog = selectedProgramFilter;
       pendingBulkDeleteType = "students";
       bulkDeleteTitle.textContent = `Delete All ${prog} Students?`;
-      bulkDeleteDescription.innerHTML = `You are about to permanently delete all registered student profiles in <strong>${prog}</strong> and their check-in history.`;
+      bulkDeleteDescription.innerHTML = `You are about to permanently delete student profiles and history for <strong>${prog}</strong>.`;
       bulkDeleteWarningList.innerHTML = `
         <ul class="list-disc list-inside space-y-1">
-          <li><strong>ALL</strong> registered student accounts for ${prog} will be deleted.</li>
-          <li><strong>ALL</strong> associated attendance check-in logs for those students will be permanently wiped.</li>
-          <li>This action cannot be undone.</li>
+          <li>Students enrolled <strong>only</strong> in ${prog} will be permanently deleted.</li>
+          <li>Students enrolled in multiple programs will have ${prog} removed from their profile.</li>
+          <li><strong>ALL</strong> associated check-in logs for ${prog} will be permanently wiped.</li>
         </ul>
       `;
       bulkConfirmPhraseInput.value = "";
@@ -1569,19 +1777,26 @@
           renderDailyLogs();
           renderStudents();
         } else if (pendingBulkDeleteType === "students") {
-          const studentsToDelete = cachedStudents.filter(s => (s.program || "V5") === prog);
-          const cardIdsToDelete = new Set();
-          studentsToDelete.forEach(s => {
-            if (s.cardId) cardIdsToDelete.add(s.cardId);
-            if (s.altCardIds) s.altCardIds.forEach(c => cardIdsToDelete.add(c));
-          });
+          const studentsInProg = cachedStudents.filter(s => getStudentPrograms(s).includes(prog));
+          
+          for (const s of studentsInProg) {
+            const remaining = getStudentPrograms(s).filter(p => p !== prog);
+            if (remaining.length === 0) {
+              await deleteDoc(doc(db, "students", s.id));
+              cachedStudents = cachedStudents.filter(st => st.id !== s.id);
+            } else {
+              await updateDoc(doc(db, "students", s.id), {
+                programs: remaining,
+                program: remaining[0]
+              });
+              s.programs = remaining;
+              s.program = remaining[0];
+            }
+          }
 
-          await Promise.all(studentsToDelete.map(d => deleteDoc(doc(db, "students", d.id))));
-          cachedStudents = cachedStudents.filter(s => (s.program || "V5") !== prog);
-
-          const logsToDelete = cachedLogs.filter(l => cardIdsToDelete.has(l.cardId) || (l.program || "V5") === prog);
+          const logsToDelete = cachedLogs.filter(l => (l.program || "V5") === prog);
           await Promise.all(logsToDelete.map(l => deleteDoc(doc(db, "attendance", l.id))));
-          cachedLogs = cachedLogs.filter(l => !cardIdsToDelete.has(l.cardId) && (l.program || "V5") !== prog);
+          cachedLogs = cachedLogs.filter(l => (l.program || "V5") !== prog);
 
           renderStudents();
           renderDailyLogs();
@@ -1598,7 +1813,7 @@
       }
     });
 
-    // ================= MERGE STUDENT SYSTEM (LINKED ALIASES) =================
+    // ================= MERGE STUDENTS (LINKED ALIASES & COMBINED PROGRAMS) =================
     openMergeModalBtn.addEventListener("click", () => {
       manageDropdownMenu.classList.add("hidden");
       populateMergeDropdowns();
@@ -1623,9 +1838,10 @@
 
       const buildOptions = (selectedId) => sorted.map(s => {
         const aliasText = s.altCardIds && s.altCardIds.length ? ` (+${s.altCardIds.length} alias)` : "";
+        const progsText = getStudentPrograms(s).join(", ");
         return `
           <option value="${s.id}" ${s.id === selectedId ? 'selected' : ''}>
-            ${s.name} [${s.program || 'V5'}] (Keycard: ${s.cardId}${aliasText})
+            ${s.name} [${progsText}] (Keycard: ${s.cardId}${aliasText})
           </option>
         `;
       }).join("");
@@ -1653,6 +1869,7 @@
 
       const confirmMsg = `Are you sure you want to merge "${secondary.name}" into "${primary.name}"?\n\n` +
         `• All attendance logs from ${secondary.name} will be merged under ${primary.name}.\n` +
+        `• Enrolled programs will be combined.\n` +
         `• Keycard ID "${secondary.cardId}" will become an active alias for ${primary.name}.\n` +
         `• Both keycards will check in ${primary.name} at the scanner.\n\n` +
         `This cannot be undone.`;
@@ -1666,12 +1883,20 @@
         const secondaryCards = [secondary.cardId, ...(secondary.altCardIds || [])];
         const existingAlt = primary.altCardIds || [];
         const combinedAlt = [...new Set([...existingAlt, ...secondaryCards])].filter(c => c !== primary.cardId);
+        
+        // Combine enrolled programs
+        const combinedPrograms = [...new Set([...getStudentPrograms(primary), ...getStudentPrograms(secondary)])];
 
         await updateDoc(doc(db, "students", primary.id), {
-          altCardIds: combinedAlt
+          altCardIds: combinedAlt,
+          programs: combinedPrograms,
+          program: combinedPrograms[0]
         });
         primary.altCardIds = combinedAlt;
+        primary.programs = combinedPrograms;
+        primary.program = combinedPrograms[0];
 
+        // Reassign logs to primary student, preserving the specific program of each log
         for (const card of secondaryCards) {
           const q = query(collection(db, "attendance"), where("cardId", "==", card));
           const snap = await getDocs(q);
@@ -1679,8 +1904,7 @@
           if (!snap.empty) {
             await Promise.all(snap.docs.map(d => updateDoc(doc(db, "attendance", d.id), {
               cardId: primary.cardId,
-              studentName: primary.name,
-              program: primary.program || "V5"
+              studentName: primary.name
             })));
           }
         }
@@ -1691,7 +1915,6 @@
           if (secondaryCards.includes(l.cardId)) {
             l.cardId = primary.cardId;
             l.studentName = primary.name;
-            l.program = primary.program || "V5";
           }
         });
 
@@ -1737,7 +1960,7 @@
 
       const eligibleStudents = cachedStudents
         .filter(s => {
-          if ((s.program || "V5") !== prog) return false;
+          if (!getStudentPrograms(s).includes(prog)) return false;
           if (checkedInTodayCards.has(s.cardId)) return false;
           if (s.altCardIds && s.altCardIds.some(c => checkedInTodayCards.has(c))) return false;
           return true;
@@ -1790,7 +2013,7 @@
       }
     });
 
-    // ================= EDIT STUDENT MODAL =================
+    // ================= EDIT STUDENT MODAL (ADD/REMOVE PROGRAMS) =================
     window.editStudent = (id) => {
       const student = cachedStudents.find(s => s.id === id);
       if (!student) return;
@@ -1798,13 +2021,10 @@
       editStudentId.value = id;
       editFirstNameInput.value = student.firstName || (student.name ? student.name.split(" ")[0] : "");
       editLastNameInput.value = student.lastName || (student.name ? student.name.split(" ").slice(1).join(" ") : "");
+      editProgramsError.classList.add("hidden");
 
-      const currentProg = student.program || "V5";
-      editProgramSelect.innerHTML = cachedPrograms.map(p => `
-        <option value="${p.code}" ${p.code === currentProg ? 'selected' : ''}>
-          ${p.name} (${p.code})
-        </option>
-      `).join("");
+      const studentPrograms = getStudentPrograms(student);
+      renderProgramCheckboxes(editProgramsContainer, "editStudentProgramCheckbox", studentPrograms);
 
       editStudentModal.classList.remove("hidden");
       setTimeout(() => {
@@ -1814,12 +2034,14 @@
 
     cancelEditStudentBtn.addEventListener("click", () => {
       editStudentModal.classList.add("hidden");
+      editProgramsError.classList.add("hidden");
       focusScannerInput();
     });
 
     editStudentModal.addEventListener("click", (e) => {
       if (e.target === editStudentModal) {
         editStudentModal.classList.add("hidden");
+        editProgramsError.classList.add("hidden");
         focusScannerInput();
       }
     });
@@ -1832,16 +2054,23 @@
 
       const trimmedFirst = editFirstNameInput.value.trim();
       const trimmedLast = editLastNameInput.value.trim();
-      const newProg = editProgramSelect.value;
+
+      const checkedBoxes = Array.from(document.querySelectorAll('input[name="editStudentProgramCheckbox"]:checked'));
+      const selectedProgs = checkedBoxes.map(cb => cb.value);
 
       if (!trimmedFirst || !trimmedLast) {
         alert("Both First Name and Last Name are required.");
         return;
       }
 
+      if (selectedProgs.length === 0) {
+        editProgramsError.classList.remove("hidden");
+        return;
+      }
+      editProgramsError.classList.add("hidden");
+
       const newFullName = `${trimmedFirst} ${trimmedLast}`;
       const nameChanged = (trimmedFirst !== student.firstName || trimmedLast !== student.lastName);
-      const progChanged = (newProg !== (student.program || "V5"));
 
       submitEditStudentBtn.disabled = true;
       submitEditStudentBtn.textContent = "Saving...";
@@ -1851,28 +2080,23 @@
           firstName: trimmedFirst,
           lastName: trimmedLast,
           name: newFullName,
-          program: newProg
+          programs: selectedProgs,
+          program: selectedProgs[0]
         });
 
-        if (nameChanged || progChanged) {
+        if (nameChanged) {
           const allTargetCards = [student.cardId, ...(student.altCardIds || [])];
-
           for (const card of allTargetCards) {
             const q = query(collection(db, "attendance"), where("cardId", "==", card));
             const snap = await getDocs(q);
-
             if (!snap.empty) {
-              const updates = {};
-              if (nameChanged) updates.studentName = newFullName;
-              if (progChanged) updates.program = newProg;
-              await Promise.all(snap.docs.map(d => updateDoc(doc(db, "attendance", d.id), updates)));
+              await Promise.all(snap.docs.map(d => updateDoc(doc(db, "attendance", d.id), { studentName: newFullName })));
             }
           }
 
           cachedLogs.forEach(l => {
             if (allTargetCards.includes(l.cardId)) {
-              if (nameChanged) l.studentName = newFullName;
-              if (progChanged) l.program = newProg;
+              l.studentName = newFullName;
             }
           });
         }
@@ -1880,10 +2104,11 @@
         student.firstName = trimmedFirst;
         student.lastName = trimmedLast;
         student.name = newFullName;
-        student.program = newProg;
+        student.programs = selectedProgs;
+        student.program = selectedProgs[0];
 
         editStudentModal.classList.add("hidden");
-        showBanner(true, `Updated ${newFullName}'s profile!`);
+        showBanner(true, `Updated ${newFullName}'s profile & programs!`);
         renderStudents();
         renderDailyLogs();
       } catch (err) {
@@ -1994,6 +2219,7 @@
       }
     }
 
+    // ================= RENDER LOGS TAB =================
     function renderDailyLogs() {
       const currentLogs = cachedLogs.filter(log => (log.program || "V5") === selectedProgramFilter);
 
@@ -2049,7 +2275,6 @@
           const tapLabel = tapCount === 1 ? "1 tap" : `${tapCount} taps`;
           const hoverTooltipText = `Tapped: ` + student.times.join(", ");
 
-          // Pill only display
           const pillHtml = `
             <button type="button" 
               onclick="window.showDailyTaps('${escapedName}', '${formatDateDisplay(dateKey)}', ${escapedTimes})"
@@ -2181,8 +2406,9 @@
       )].sort((a, b) => b.localeCompare(a));
     }
 
-    function calculateStudentMissedSessions(cardId, distinctDates) {
-      const studentLogs = cachedLogs.filter(l => l.cardId === cardId && (l.program || "V5") === selectedProgramFilter);
+    function calculateStudentMissedSessions(student, distinctDates) {
+      const cardIds = [student.cardId, ...(student.altCardIds || [])];
+      const studentLogs = cachedLogs.filter(l => cardIds.includes(l.cardId) && (l.program || "V5") === selectedProgramFilter);
       if (studentLogs.length === 0) {
         return {
           missed: distinctDates.length,
@@ -2208,10 +2434,11 @@
       const distinctDates = getDistinctLabDates(selectedProgramFilter);
       sessionStatsText.textContent = `${distinctDates.length} distinct lab session${distinctDates.length === 1 ? '' : 's'} recorded to date`;
 
+      // Filter students who are enrolled in the currently selected program filter
       let programStudents = cachedStudents
-        .filter(s => (s.program || "V5") === selectedProgramFilter)
+        .filter(s => getStudentPrograms(s).includes(selectedProgramFilter))
         .map(s => {
-          const stats = calculateStudentMissedSessions(s.cardId, distinctDates);
+          const stats = calculateStudentMissedSessions(s, distinctDates);
           return { ...s, stats };
         })
         .sort((a, b) => {
@@ -2222,7 +2449,6 @@
           return getFirstName(a.name).localeCompare(getFirstName(b.name));
         });
 
-      // Synchronized threshold: At-Risk >= 5 missed sessions
       const atRiskStudents = programStudents.filter(s => s.stats.missed >= 5 && distinctDates.length >= 5);
       
       if (atRiskStudents.length > 0) {
@@ -2249,8 +2475,14 @@
       }
 
       studentsTableBody.innerHTML = displayedStudents.map(s => {
-        const prog = s.program || "V5";
         const stats = s.stats;
+        const enrolled = getStudentPrograms(s);
+
+        const progBadgesHtml = enrolled.map(p => `
+          <span class="text-[11px] font-bold px-2 py-0.5 rounded-md ${getProgramBadgeClass(p)} ${p === selectedProgramFilter ? 'ring-1 ring-white/50' : 'opacity-80'}">
+            ${p}
+          </span>
+        `).join("");
 
         const aliasCount = (s.altCardIds && s.altCardIds.length) ? s.altCardIds.length : 0;
         const aliasTagHtml = aliasCount > 0 
@@ -2287,19 +2519,19 @@
           `;
         }
 
-        const badgeClass = getProgramBadgeClass(prog);
-
         return `
           <tr class="hover:bg-slate-750/70 transition-colors">
             <td class="p-3.5">
-              <button onclick="window.viewStudentHistory('${s.cardId}', '${s.name.replace(/'/g, "\\'")}', '${prog}')" 
+              <button onclick="window.viewStudentHistory('${s.id}')" 
                 class="font-semibold text-white hover:text-indigo-400 flex items-center gap-2 group transition text-left">
                 <span>${s.name}</span>
                 <i data-lucide="history" class="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 transition"></i>
               </button>
             </td>
             <td class="p-3.5">
-              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${badgeClass}">${prog}</span>
+              <div class="flex flex-wrap gap-1 items-center">
+                ${progBadgesHtml}
+              </div>
             </td>
             <td class="p-3.5 font-mono text-slate-400">
               <span>${s.cardId}</span>
@@ -2357,79 +2589,201 @@
       }
     }
 
-    // View Student History
-    window.viewStudentHistory = (cardId, studentName, prog) => {
-      const studentObj = cachedStudents.find(s => s.cardId === cardId);
-      const studentLogs = cachedLogs.filter(l => l.cardId === cardId);
-      const distinctDates = getDistinctLabDates(prog);
+    // ================= STUDENT ATTENDANCE HISTORY (SEPARATED BY PROGRAM) =================
+    window.viewStudentHistory = (studentIdentifier) => {
+      const studentObj = cachedStudents.find(s => 
+        s.id === studentIdentifier || 
+        s.cardId === studentIdentifier || 
+        (s.altCardIds && s.altCardIds.includes(studentIdentifier))
+      );
 
-      historyStudentName.textContent = studentName;
+      if (!studentObj) return;
+      activeHistoryStudent = studentObj;
+      activeHistoryTab = "ALL";
+
+      const allCards = [studentObj.cardId, ...(studentObj.altCardIds || [])];
+      const studentLogs = cachedLogs.filter(l => allCards.includes(l.cardId));
+      const enrolled = getStudentPrograms(studentObj);
+
+      // Collect all programs associated via enrollment OR historical logs
+      const allRelevantPrograms = [...new Set([...enrolled, ...studentLogs.map(l => l.program || "V5")])];
       
-      if (studentObj && studentObj.altCardIds && studentObj.altCardIds.length > 0) {
-        historyCardId.innerHTML = `${cardId} <span class="text-xs text-indigo-400 font-sans ml-1 font-normal">(Aliases: ${studentObj.altCardIds.join(", ")})</span>`;
+      // Sort relevant programs consistently
+      allRelevantPrograms.sort((a, b) => {
+        const iA = PINNED_PROGRAM_ORDER.indexOf(a);
+        const iB = PINNED_PROGRAM_ORDER.indexOf(b);
+        if (iA !== -1 && iB !== -1) return iA - iB;
+        if (iA !== -1) return -1;
+        if (iB !== -1) return 1;
+        return a.localeCompare(b);
+      });
+
+      historyStudentName.textContent = studentObj.name;
+      historyProgramBadges.innerHTML = enrolled.map(p => `
+        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${getProgramBadgeClass(p)}">${p}</span>
+      `).join(" ");
+
+      if (studentObj.altCardIds && studentObj.altCardIds.length > 0) {
+        historyCardId.innerHTML = `${studentObj.cardId} <span class="text-xs text-indigo-400 font-sans ml-1 font-normal">(Aliases: ${studentObj.altCardIds.join(", ")})</span>`;
       } else {
-        historyCardId.textContent = cardId;
+        historyCardId.textContent = studentObj.cardId;
       }
 
-      historyProgramBadge.textContent = prog;
-      historyProgramBadge.className = `text-xs font-bold px-2.5 py-0.5 rounded-full ${getProgramBadgeClass(prog)}`;
+      historyTotalSessions.textContent = `${studentLogs.length} total check-in tap${studentLogs.length === 1 ? '' : 's'}`;
+
+      // Build program filter tabs if multiple programs exist
+      if (allRelevantPrograms.length > 1) {
+        historyProgramTabsContainer.classList.remove("hidden");
+        renderHistoryProgramTabs(allRelevantPrograms, studentLogs);
+      } else {
+        historyProgramTabsContainer.classList.add("hidden");
+      }
+
+      renderHistorySections(allRelevantPrograms, studentLogs);
+      historyModal.classList.remove("hidden");
+      if (window.lucide) lucide.createIcons();
+    };
+
+    function renderHistoryProgramTabs(programsList, studentLogs) {
+      const allCount = studentLogs.length;
+      let tabsHtml = `
+        <button type="button" onclick="window.switchHistoryTab('ALL')" 
+          class="px-3 py-1 rounded-lg font-bold transition whitespace-nowrap ${
+            activeHistoryTab === 'ALL' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+          }">
+          All Programs (${allCount})
+        </button>
+      `;
+
+      programsList.forEach(pCode => {
+        const pCount = studentLogs.filter(l => (l.program || "V5") === pCode).length;
+        const isActive = activeHistoryTab === pCode;
+        tabsHtml += `
+          <button type="button" onclick="window.switchHistoryTab('${pCode}')" 
+            class="px-3 py-1 rounded-lg font-bold transition whitespace-nowrap ${
+              isActive ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }">
+            ${pCode} (${pCount})
+          </button>
+        `;
+      });
+
+      historyProgramTabs.innerHTML = tabsHtml;
+    }
+
+    window.switchHistoryTab = (tab) => {
+      activeHistoryTab = tab;
+      if (!activeHistoryStudent) return;
+      const allCards = [activeHistoryStudent.cardId, ...(activeHistoryStudent.altCardIds || [])];
+      const studentLogs = cachedLogs.filter(l => allCards.includes(l.cardId));
+      const enrolled = getStudentPrograms(activeHistoryStudent);
+      const allRelevantPrograms = [...new Set([...enrolled, ...studentLogs.map(l => l.program || "V5")])];
+
+      renderHistoryProgramTabs(allRelevantPrograms, studentLogs);
+      renderHistorySections(allRelevantPrograms, studentLogs);
+      if (window.lucide) lucide.createIcons();
+    };
+
+    function renderHistorySections(programsList, studentLogs) {
+      const targetPrograms = activeHistoryTab === "ALL" ? programsList : [activeHistoryTab];
 
       if (studentLogs.length === 0) {
-        historyTotalSessions.textContent = "0 check-ins total";
-        historyRateText.textContent = distinctDates.length > 0 ? `Missed all ${distinctDates.length} sessions held so far` : "";
+        historyRateText.textContent = "No attendance records recorded yet.";
         historyListContainer.innerHTML = `
-          <div class="py-8 text-center text-slate-400 text-sm">
+          <div class="py-10 text-center text-slate-400 text-sm bg-slate-850/50 rounded-2xl border border-slate-750">
             No check-in logs found for this student.
           </div>
         `;
-      } else {
+        return;
+      }
+
+      historyRateText.textContent = `Tap-ins separated by program selection:`;
+
+      let html = "";
+      targetPrograms.forEach(pCode => {
+        const progObj = cachedPrograms.find(p => p.code === pCode);
+        const progName = progObj ? progObj.name : pCode;
+        const pLogs = studentLogs.filter(l => (l.program || "V5") === pCode);
+        const distinctDates = getDistinctLabDates(pCode);
+
         const dateGroups = {};
-        studentLogs.forEach(l => {
+        pLogs.forEach(l => {
           const d = l.localDate || "Unknown Date";
           if (!dateGroups[d]) dateGroups[d] = [];
           dateGroups[d].push(l.localTime);
         });
 
         const sortedDates = Object.keys(dateGroups).sort((a, b) => b.localeCompare(a));
-        const attendedCount = sortedDates.length;
+        const attendedDaysCount = sortedDates.length;
         const totalHeld = distinctDates.length;
 
-        historyTotalSessions.textContent = `${attendedCount} ${attendedCount === 1 ? 'day' : 'days'} attended (${studentLogs.length} total tap${studentLogs.length === 1 ? '' : 's'})`;
-
-        const mostRecentDate = sortedDates[0];
-        const missedSince = distinctDates.filter(d => d > mostRecentDate).length;
-        
-        let rateSummary = `Attended ${attendedCount} of ${totalHeld} recorded lab sessions`;
-        if (missedSince > 0) {
-          rateSummary += ` • Missed the last ${missedSince} session${missedSince === 1 ? '' : 's'}`;
+        let rateNote = `${attendedDaysCount} of ${totalHeld} session${totalHeld === 1 ? '' : 's'} attended`;
+        if (attendedDaysCount > 0 && totalHeld > 0) {
+          const ratePct = Math.round((attendedDaysCount / totalHeld) * 100);
+          rateNote += ` (${ratePct}%)`;
         }
-        historyRateText.textContent = rateSummary;
 
-        historyListContainer.innerHTML = sortedDates.map(dateKey => {
-          const times = dateGroups[dateKey];
-          const timeText = times.length > 1
-            ? `${times[times.length - 1]} <span class="text-xs text-indigo-400 font-sans ml-1">(${times.length} taps: ${times.join(", ")})</span>`
-            : times[0];
-
-          return `
-            <div class="py-3 flex items-center justify-between">
-              <div>
-                <p class="font-semibold text-sm text-slate-200">${formatDateDisplay(dateKey)}</p>
-                <p class="text-xs text-slate-400 mt-0.5">${timeText}</p>
+        html += `
+          <div class="bg-slate-850 rounded-2xl border border-slate-700/80 overflow-hidden shadow-sm">
+            <!-- Program Header -->
+            <div class="bg-slate-750/90 px-4 py-3 flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/80">
+              <div class="flex items-center gap-2.5">
+                <span class="text-xs font-black px-2.5 py-0.5 rounded-full ${getProgramBadgeClass(pCode)}">${pCode}</span>
+                <span class="font-bold text-white text-sm">${progName}</span>
               </div>
-              <span class="text-xs px-2.5 py-0.5 bg-slate-700/80 text-slate-300 rounded-full font-mono">
-                ${times.length} tap${times.length === 1 ? '' : 's'}
-              </span>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-indigo-300 font-semibold bg-indigo-950/60 border border-indigo-700/50 px-2 py-0.5 rounded-md">
+                  ${rateNote}
+                </span>
+                <span class="text-xs text-slate-400 font-mono">
+                  ${pLogs.length} tap${pLogs.length === 1 ? '' : 's'}
+                </span>
+              </div>
+            </div>
+
+            <!-- Program Logs List -->
+            <div class="p-3 divide-y divide-slate-750/60 max-h-64 overflow-y-auto">
+        `;
+
+        if (sortedDates.length === 0) {
+          html += `
+            <div class="py-4 text-center text-xs text-slate-500 italic">
+              No check-ins logged for ${progName} yet.
             </div>
           `;
-        }).join("");
-      }
+        } else {
+          sortedDates.forEach(dateKey => {
+            const times = dateGroups[dateKey];
+            const timeText = times.length > 1
+              ? `${times[times.length - 1]} <span class="text-[11px] text-indigo-400 font-sans ml-1">(${times.length} taps: ${times.join(", ")})</span>`
+              : times[0];
 
-      historyModal.classList.remove("hidden");
-    };
+            html += `
+              <div class="py-2.5 flex items-center justify-between text-xs">
+                <div>
+                  <p class="font-bold text-slate-200">${formatDateDisplay(dateKey)}</p>
+                  <p class="text-[11px] text-slate-400 mt-0.5">${timeText}</p>
+                </div>
+                <span class="px-2 py-0.5 bg-slate-750 text-indigo-300 rounded-md font-mono border border-slate-700">
+                  ${times.length} tap${times.length === 1 ? '' : 's'}
+                </span>
+              </div>
+            `;
+          });
+        }
+
+        html += `
+            </div>
+          </div>
+        `;
+      });
+
+      historyListContainer.innerHTML = html;
+    }
 
     function closeHistoryModal() {
       historyModal.classList.add("hidden");
+      activeHistoryStudent = null;
       focusScannerInput();
     }
     closeHistoryBtn.addEventListener("click", closeHistoryModal);
@@ -2438,7 +2792,7 @@
       if (e.target === historyModal) closeHistoryModal();
     });
 
-    // Delete Single Student Profile + Cascade (Including all Aliases)
+    // ================= DELETE SINGLE STUDENT PROFILE =================
     window.deleteStudent = async (id) => {
       const student = cachedStudents.find(s => s.id === id);
       const studentName = student ? student.name : "this student";
@@ -2477,7 +2831,7 @@
       }
     };
 
-    // CSV Download
+    // ================= CSV DOWNLOAD =================
     exportCsvBtn.addEventListener("click", () => {
       manageDropdownMenu.classList.add("hidden");
       const prog = selectedProgramFilter;
