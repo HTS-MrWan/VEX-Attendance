@@ -845,7 +845,7 @@
       query, where, orderBy, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
     import {
-      getAuth, signInWithPopup, GoogleAuthProvider, signOut
+      getAuth, signInWithPopup, GoogleAuthProvider, signOut, browserPopupRedirectResolver
     } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -1544,7 +1544,7 @@
       googleSignInBtnText.textContent = "Connecting to Google...";
 
       try {
-        const result = await signInWithPopup(auth, googleProvider);
+        const result = await signInWithPopup(auth, googleProvider, browserPopupRedirectResolver);
         const email = (result.user.email || "").toLowerCase().trim();
 
         if (ADMIN_EMAILS.includes(email)) {
