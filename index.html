@@ -503,7 +503,7 @@
             3. Dynamic Multi-Program Management & Multi-Enrollment
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
-            <li><strong>Organized Program Ordering:</strong> Program tabs appear in the consistent order of <strong>V5 $\rightarrow$ IQ $\rightarrow$ SRP $\rightarrow$ SRE</strong>, followed chronologically by any new programs added.</li>
+            <li><strong>Organized Program Ordering:</strong> Program tabs appear in the consistent order of <strong>V5 &rarr; IQ &rarr; SRP &rarr; SRE</strong>, followed chronologically by any new programs added.</li>
             <li><strong>Multi-Program Association:</strong> Each student can be enrolled in as few as 1 and as many programs as exist in the system.</li>
             <li><strong>Edit Profile to Add Programs:</strong> Click <strong>Edit</strong> beside any student in the Registered Students table to check/uncheck programs and save.</li>
             <li><strong>Add Custom Programs:</strong> Teachers can click <strong>"+ Add Program"</strong> to create new programs. Each program receives its own isolated attendance logs.</li>
@@ -571,7 +571,8 @@
             8. Admin Access & Safeguards
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
-            <li><strong>Auto-Lock to Kiosk (30s Inactivity):</strong> If the admin dashboard is left idle for 30 seconds with no mouse, keyboard, touch, or scroll activity, the screen automatically closes open modals and locks back to Kiosk Mode to prevent unauthorized tampering.</li>
+            <li><strong>Google SSO & Faculty Whitelist:</strong> Only verified faculty Google accounts from the approved HTS whitelist can access administrative features.</li>
+            <li><strong>Auto-Lock to Kiosk (30s Inactivity):</strong> If the admin dashboard is left idle for 30 seconds with no mouse, keyboard, touch, or scroll activity, the screen automatically signs out, closes open modals, and locks back to Kiosk Mode to prevent student tampering.</li>
             <li><strong>Export CSV:</strong> Downloads a formatted spreadsheet of attendance records for the active program.</li>
             <li><strong>Delete ENTIRE [CODE] Program:</strong> Guarded by typing <code class="bg-slate-800 px-1.5 py-0.5 rounded text-rose-300 font-mono">Ronny is the Best!</code>. Students enrolled in other programs keep their accounts.</li>
             <li><strong>Delete [CODE] Logs / Students:</strong> Guarded by typing <code class="bg-slate-800 px-1.5 py-0.5 rounded text-rose-300 font-mono">Ronny is awesome!</code>.</li>
@@ -581,7 +582,7 @@
       </div>
 
       <div class="border-t border-slate-700 pt-4 mt-4 flex justify-between items-center">
-        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.8.1</span>
+        <span class="text-xs text-slate-500 font-mono">Documentation Version: v1.9.0</span>
         <button id="closeUserManualFooterBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           Close Manual
         </button>
@@ -589,29 +590,35 @@
     </div>
   </div>
 
-  <!-- ================= MODAL: ADMIN PASSWORD ================= -->
-  <div id="passwordModal" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50">
-    <div class="bg-slate-800 rounded-2xl max-w-sm w-full p-6 border border-slate-700 shadow-2xl">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="p-2 bg-slate-700 rounded-lg text-indigo-400">
-          <i data-lucide="lock" class="w-5 h-5"></i>
-        </div>
-        <h3 class="text-lg font-bold text-white">Admin Access</h3>
+  <!-- ================= MODAL: ADMIN GOOGLE SSO ================= -->
+  <div id="adminAuthModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-800 rounded-3xl max-w-sm w-full p-6 sm:p-7 border border-slate-700 shadow-2xl text-center flex flex-col items-center">
+      <div class="w-14 h-14 rounded-2xl bg-indigo-950/80 border border-indigo-700/60 flex items-center justify-center text-indigo-400 mb-3 shadow-md">
+        <svg class="w-7 h-7 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
       </div>
-      <p class="text-slate-400 text-sm mb-4">Enter password to access records and dashboard:</p>
-      
-      <div id="passwordError" class="hidden mb-3 p-2.5 bg-rose-950/80 border border-rose-700 text-rose-300 text-xs rounded-lg">
-        Incorrect password. Try again.
+      <h3 class="text-xl font-bold text-white mb-1">HTS Admin Access</h3>
+      <p class="text-slate-400 text-xs mb-5 leading-relaxed">
+        Sign in with an authorized <strong class="text-slate-300">@hts.on.ca</strong> faculty Google account to access attendance records.
+      </p>
+
+      <div id="authError" class="hidden w-full mb-4 p-3 bg-rose-950/80 border border-rose-700 text-rose-300 text-xs rounded-xl font-semibold text-left leading-relaxed">
       </div>
 
-      <form id="passwordForm">
-        <input id="adminPasswordInput" type="password" placeholder="Password" required autocomplete="current-password"
-          class="w-full px-4 py-2.5 rounded-lg bg-slate-900 border border-slate-600 focus:outline-none focus:border-indigo-500 mb-4 text-white" />
-        <div class="flex justify-end gap-3">
-          <button type="button" id="cancelPasswordBtn" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-semibold">Cancel</button>
-          <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-lg text-sm shadow-md shadow-indigo-500/20">Unlock</button>
-        </div>
-      </form>
+      <button id="googleSignInBtn" type="button" class="w-full bg-white hover:bg-slate-100 text-slate-800 font-bold px-4 py-3 rounded-xl text-sm flex items-center justify-center gap-3 transition shadow-lg active:scale-98">
+        <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
+          <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+          <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+        </svg>
+        <span id="googleSignInBtnText">Sign In with HTS Google</span>
+      </button>
+
+      <button type="button" id="cancelAuthBtn" class="mt-3 text-xs text-slate-400 hover:text-white font-semibold py-1.5 px-3 rounded-lg hover:bg-slate-750 transition">
+        Cancel
+      </button>
     </div>
   </div>
 
@@ -828,7 +835,7 @@
 
   <!-- Version Indicator -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-slate-500 bg-slate-800/90 border border-slate-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v1.8.1
+    v1.9.0
   </div>
 
   <script type="module">
@@ -837,6 +844,9 @@
       getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, setDoc,
       query, where, orderBy, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    import {
+      getAuth, signInWithPopup, GoogleAuthProvider, signOut
+    } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBp5weR493oNyMAqqVJ29ephpOE6ZuOGEE",
@@ -848,13 +858,27 @@
       measurementId: "G-SPCRBPF386"
     };
 
-    const ADMIN_PASSWORD = "awesomelawson";
+    // Authorized Faculty Admin Whitelist
+    const ADMIN_EMAILS = [
+      "rwan@hts.on.ca",
+      "jclarey@hts.on.ca",
+      "dcarr@hts.on.ca",
+      "jdickinson@hts.on.ca"
+    ].map(e => e.toLowerCase().trim());
+
     const PROGRAM_DELETE_CONFIRM_PHRASE = "Ronny is the Best!";
     const BULK_DELETE_CONFIRM_PHRASE = "Ronny is awesome!";
     const PINNED_PROGRAM_ORDER = ["V5", "IQ", "SRP", "SRE"];
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({
+      hd: "hts.on.ca",
+      prompt: "select_account"
+    });
 
     let currentView = "kiosk";
     let selectedProgramFilter = "V5";
@@ -910,12 +934,12 @@
     const cancelRegisterBtn = document.getElementById("cancelRegisterBtn");
     const submitRegisterBtn = document.getElementById("submitRegisterBtn");
 
-    // Admin Password Elements
-    const passwordModal = document.getElementById("passwordModal");
-    const passwordForm = document.getElementById("passwordForm");
-    const adminPasswordInput = document.getElementById("adminPasswordInput");
-    const passwordError = document.getElementById("passwordError");
-    const cancelPasswordBtn = document.getElementById("cancelPasswordBtn");
+    // Admin Google SSO Modal Elements
+    const adminAuthModal = document.getElementById("adminAuthModal");
+    const googleSignInBtn = document.getElementById("googleSignInBtn");
+    const googleSignInBtnText = document.getElementById("googleSignInBtnText");
+    const authError = document.getElementById("authError");
+    const cancelAuthBtn = document.getElementById("cancelAuthBtn");
 
     // User Manual Elements
     const userManualBtn = document.getElementById("userManualBtn");
@@ -1040,8 +1064,7 @@
       if (currentView !== "admin") return;
       clearTimeout(adminInactivityTimer);
       adminInactivityTimer = setTimeout(() => {
-        switchToKioskMode();
-        showBanner(true, "Admin session locked due to 30s of inactivity.");
+        switchToKioskMode(true);
       }, ADMIN_INACTIVITY_LIMIT_MS);
     }
 
@@ -1054,11 +1077,15 @@
       resetAdminInactivityTimer();
     }
 
-    function switchToKioskMode() {
+    function switchToKioskMode(isTimeout = false) {
       stopAdminInactivityTimer();
+
+      // Sign out from Firebase Auth to ensure shared kiosk device is locked
+      signOut(auth).catch(() => {});
 
       // Close open admin modals
       [
+        adminAuthModal,
         editStudentModal,
         mergeModal,
         bulkDeleteModal,
@@ -1088,7 +1115,29 @@
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
         </svg>
       `;
+
+      if (isTimeout) {
+        showBanner(true, "Admin session locked due to 30s of inactivity.");
+      }
       focusScannerInput();
+    }
+
+    function switchToAdminMode(user) {
+      currentView = "admin";
+      kioskView.classList.add("hidden");
+      adminView.classList.remove("hidden");
+      adminView.classList.add("flex");
+      toggleViewText.textContent = "Kiosk Mode";
+      toggleViewIcon.innerHTML = `
+        <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>
+        </svg>
+      `;
+
+      loadAdminData();
+      startAdminInactivityTimer();
+      const displayName = user.displayName || user.email;
+      showBanner(true, `Signed in as ${displayName}`);
     }
 
     // Reset inactivity timer on any user interaction while in admin mode
@@ -1155,7 +1204,7 @@
       if (
         currentView === "kiosk" &&
         registerModal.classList.contains("hidden") &&
-        passwordModal.classList.contains("hidden") &&
+        adminAuthModal.classList.contains("hidden") &&
         historyModal.classList.contains("hidden") &&
         addProgramModal.classList.contains("hidden") &&
         deleteProgramModal.classList.contains("hidden") &&
@@ -1465,46 +1514,58 @@
       focusScannerInput();
     });
 
-    // ================= VIEW TOGGLING =================
+    // ================= ADMIN GOOGLE SSO AUTHENTICATION =================
     toggleViewBtn.addEventListener("click", () => {
       if (currentView === "kiosk") {
-        passwordError.classList.add("hidden");
-        adminPasswordInput.value = "";
-        passwordModal.classList.remove("hidden");
-        adminPasswordInput.focus();
+        authError.classList.add("hidden");
+        adminAuthModal.classList.remove("hidden");
       } else {
-        switchToKioskMode();
+        switchToKioskMode(false);
       }
     });
 
-    passwordForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      if (adminPasswordInput.value === ADMIN_PASSWORD) {
-        passwordModal.classList.add("hidden");
-        adminPasswordInput.value = "";
-        currentView = "admin";
-        kioskView.classList.add("hidden");
-        adminView.classList.remove("hidden");
-        adminView.classList.add("flex");
-        toggleViewText.textContent = "Kiosk Mode";
-        toggleViewIcon.innerHTML = `
-          <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>
-          </svg>
-        `;
-        loadAdminData();
-        startAdminInactivityTimer();
-      } else {
-        passwordError.classList.remove("hidden");
-        adminPasswordInput.value = "";
-        adminPasswordInput.focus();
-      }
-    });
-
-    cancelPasswordBtn.addEventListener("click", () => {
-      passwordModal.classList.add("hidden");
-      adminPasswordInput.value = "";
+    cancelAuthBtn.addEventListener("click", () => {
+      adminAuthModal.classList.add("hidden");
+      authError.classList.add("hidden");
       focusScannerInput();
+    });
+
+    adminAuthModal.addEventListener("click", (e) => {
+      if (e.target === adminAuthModal) {
+        adminAuthModal.classList.add("hidden");
+        authError.classList.add("hidden");
+        focusScannerInput();
+      }
+    });
+
+    googleSignInBtn.addEventListener("click", async () => {
+      authError.classList.add("hidden");
+      googleSignInBtn.disabled = true;
+      googleSignInBtnText.textContent = "Connecting to Google...";
+
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const email = (result.user.email || "").toLowerCase().trim();
+
+        if (ADMIN_EMAILS.includes(email)) {
+          // Whitelisted faculty email: Grant access
+          adminAuthModal.classList.add("hidden");
+          switchToAdminMode(result.user);
+        } else {
+          // Unauthorized email (e.g. student account): Reject & Sign out immediately
+          await signOut(auth);
+          authError.innerHTML = `Access Denied: <strong class="text-white">${email}</strong> is not an authorized faculty administrator.`;
+          authError.classList.remove("hidden");
+        }
+      } catch (err) {
+        if (err.code !== "auth/popup-closed-by-user" && err.code !== "auth/cancelled-popup-request") {
+          authError.textContent = `Sign-In Error: ${err.message}`;
+          authError.classList.remove("hidden");
+        }
+      } finally {
+        googleSignInBtn.disabled = false;
+        googleSignInBtnText.textContent = "Sign In with HTS Google";
+      }
     });
 
     // ================= USER MANUAL MODAL =================
