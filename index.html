@@ -2986,7 +2986,7 @@
       }
     }
     
-    window.createGmailDraft = async (studentId) => {
+    window.createGmailDraft = async (studentId) => {window.createGmailDraft = async (studentId) => {
       const btn = document.getElementById(`draftBtn_${studentId}`);
       const student = cachedStudents.find(s => s.id === studentId);
       if (!student) return;
@@ -3011,24 +3011,24 @@
 
       const firstName = student.firstName || (student.name ? student.name.split(" ")[0] : student.name);
 
-      const subject = `Important Update: Innovation Lab Attendance & Team Standing – ${student.name} (${prog})`;
+      const subject = `Checking In: Innovation Lab & VEX Robotics (${prog}) – ${student.name}`;
 
       try {
         // 1. Fetch user signature from Gmail settings API
         const userSignatureHtml = await fetchUserGmailSignature(currentGoogleAccessToken);
 
-        // 2. Build HTML formatted body
+        // 2. Build lighter, encouraging HTML formatted body
         const htmlBody = `
           <div style="font-family: Arial, sans-serif; font-size: 14px; color: #1f2937; line-height: 1.6;">
             <p>Dear ${firstName},</p>
 
-            <p>I wanted to reach out and check in with you regarding your attendance in the Innovation Lab for VEX Robotics (${prog}). We've noticed you’ve missed <strong>${stats.missed} consecutive lab sessions</strong>, and your team has really missed having you there!</p>
+            <p>I wanted to reach out and check in with you regarding your attendance in the Innovation Lab for VEX Robotics (${prog}). We've noticed you’ve missed quite a few lab sessions, and your team has really missed having you there!</p>
 
             <p>Here is a quick look at your attendance record:<br>
             • <strong>Last Attended Lab Session:</strong> ${lastAttendedText}<br>
             • <strong>Weekly Team Commitment:</strong> 2 hours per week</p>
 
-            <p>VEX is a true team effort-building, coding, driving, and notebook milestones move fast, and the lab is always at its best when the whole crew is working together. Your teammates rely on your ideas and presence, and consistent time in the lab is essential for the team to stay on track for upcoming competitions.</p>
+            <p>VEX is a true team effort—building, coding, driving, and notebook milestones move fast, and the lab is always at its best when the whole crew is working together. Your teammates rely on your ideas and presence, and consistent time in the lab is essential for the team to stay on track for upcoming competitions.</p>
 
             <p>We know that HTS academics and other co-curriculars can get demanding, but to maintain your active spot on the roster, it’s important to meet the 2-hour weekly commitment you signed up for.</p>
 
