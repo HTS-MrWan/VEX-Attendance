@@ -3010,7 +3010,14 @@
 
       const prog = selectedProgramFilter;
       const firstName = student.firstName || (student.name ? student.name.split(" ")[0] : student.name);
-      const subject = `Checking In: Innovation Lab & VEX Robotics (${prog}) – ${student.name}`;
+
+      const distinctDates = getDistinctLabDates(selectedProgramFilter);
+      const stats = calculateStudentMissedSessions(student, distinctDates);
+      const lastAttendedText = stats.neverAttended || !stats.lastDate
+        ? "never recorded this season"
+        : formatDateDisplay(stats.lastDate);
+
+      const subject = `Checking In: Innovation Lab & VEX Robotics ${prog}`;
 
       try {
         // 1. Fetch user signature from Gmail settings API
@@ -3021,11 +3028,11 @@
           <div style="font-family: Arial, sans-serif; font-size: 14px; color: #1f2937; line-height: 1.6;">
             <p>Hi ${firstName},</p>
 
-            <p>I wanted to reach out for a quick check-in regarding your attendance in the Innovation Lab for VEX Robotics (${prog}).</p>
+            <p>I wanted to reach out for a quick check-in regarding your attendance in the Innovation Lab for VEX Robotics ${prog}.</p>
 
-            <p>Our attendance records indicate that you haven't been meeting the 2-hour weekly commitment, which is a requirement for all members to remain active on the team. Your teammates rely on your regular presence to keep builds, coding, and team deadlines on track.</p>
+            <p>Our attendance records indicate that you haven't been meeting the 2-hour weekly commitment, which is a requirement for all members to remain active on the team. Your last recorded attendance date is ${lastAttendedText}. Your teammates rely on your regular presence to keep builds, coding, and team deadlines on track.</p>
 
-            <p>If you are running into any scheduling conflicts or workload hurdles, just reply to this email or drop by to chat so we can help you work it out!</p>
+            <p>If you are running into any scheduling conflicts or workload hurdles, just reply to this email or drop by to chat so we can help you work it out! If your priorities have changed and you can no longer be a part of the VEX team, just let us know!</p>
             <br>
             ${userSignatureHtml ? `<div class="gmail_signature">${userSignatureHtml}</div>` : ""}
           </div>
