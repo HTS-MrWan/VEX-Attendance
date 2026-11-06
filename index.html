@@ -184,7 +184,7 @@
 
       <div class="flex items-center justify-between w-full pt-3 border-t border-slate-700/80">
         <span id="kioskTimeoutCounter" class="text-xs text-slate-400 font-mono">Auto-cancels in 20s</span>
-        <button type="button" id="cancelKioskProgramBtn" class="text-xs text-slate-400 hover:text-rose-400 font-semibold py-1.5 px-3 rounded-lg hover:bg-slate-750 transition">
+        <button type="button" id="cancelKioskProgramBtn" class="text-xs text-slate-400 hover:text-rose-400 font-semibold py-1.5 px-3 rounded-lg hover:bg-slate-755 transition">
           Cancel Check-In
         </button>
       </div>
@@ -223,7 +223,7 @@
           <i data-lucide="user-check" class="w-4 h-4"></i> Manual Check-In
         </button>
 
-        <!-- Unified Manage Dropdown (CSV Export decommissioned) -->
+        <!-- Unified Manage Dropdown -->
         <div class="relative inline-block text-left" id="manageDropdownContainer">
           <button id="manageDropdownBtn" type="button" class="bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 px-3.5 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 transition">
             <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i>
@@ -554,6 +554,7 @@
                 <li><span class="text-rose-400 font-semibold">⚠️ At-Risk (5+):</span> Pulsing alert for students missing 5 or more consecutive lab meetings.</li>
               </ul>
             </li>
+            <li><strong>Direct Gmail Drafts:</strong> At-risk students display a "Draft Email" action that uses the connected HTS faculty Google account to compose a friendly, clear reminder email directly in Gmail draft storage.</li>
             <li><strong>Quick Filter:</strong> Click <strong>"⚠️ At-Risk Only"</strong> to isolate disengaged students in one click.</li>
           </ul>
         </section>
@@ -565,7 +566,7 @@
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li><strong>Google SSO & Faculty Whitelist:</strong> Only verified faculty Google accounts from the approved HTS whitelist can access administrative features.</li>
-            <li><strong>Auto-Lock to Kiosk (30s Inactivity):</strong> If the admin dashboard is left idle for 30 seconds with no mouse, keyboard, touch, or scroll activity, the screen automatically signs out, closes open modals, and locks back to Kiosk Mode to prevent student tampering.</li>
+            <li><strong>Persistent Faculty Session:</strong> Once signed in via HTS Google SSO, the admin dashboard stays open during your session without timing out. Simply click <strong>"Kiosk Mode"</strong> in the top header whenever you wish to lock the screen back to student check-ins.</li>
             <li><strong>Delete ENTIRE [CODE] Program:</strong> Guarded by typing <code class="bg-slate-800 px-1.5 py-0.5 rounded text-rose-300 font-mono">Ronny is the Best!</code>. Students enrolled in other programs keep their accounts.</li>
             <li><strong>Delete [CODE] Logs / Students:</strong> Guarded by typing <code class="bg-slate-800 px-1.5 py-0.5 rounded text-rose-300 font-mono">Ronny is awesome!</code>.</li>
             <li><strong>Individual Student Deletion:</strong> Cascades to remove their master profile, alias cards, and associated attendance logs.</li>
@@ -574,7 +575,7 @@
       </div>
 
       <div class="border-t border-slate-700 pt-4 mt-4 flex justify-between items-center">
-        <span class="text-xs text-slate-500 font-mono">Documentation Version: v2.0.0</span>
+        <span class="text-xs text-slate-500 font-mono">Documentation Version: v2.1.0</span>
         <button id="closeUserManualFooterBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           Close Manual
         </button>
@@ -827,7 +828,7 @@
 
   <!-- ================= [SECTION: FOOTER & VERSION BADGE] ================= -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-slate-500 bg-slate-800/90 border border-slate-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v2.0.0
+    v2.1.0
   </div>
 
   <!-- ================= [SECTION: JAVASCRIPT APPLICATION CORE] ================= -->
@@ -890,10 +891,6 @@
     let edvanceStatusMap = {};
     let isProcessing = false;
     let pendingBulkDeleteType = null;
-
-    // Admin Inactivity Timeout State (30 Seconds)
-    let adminInactivityTimer = null;
-    const ADMIN_INACTIVITY_LIMIT_MS = 30000;
 
     // Kiosk Program Selection State
     let pendingKioskStudent = null;
@@ -1058,26 +1055,8 @@
     // Load initial programs from database
     loadPrograms();
 
-    // ================= [JS-SECTION: ADMIN INACTIVITY AUTO-LOCK ENGINE] =================
-    function resetAdminInactivityTimer() {
-      if (currentView !== "admin") return;
-      clearTimeout(adminInactivityTimer);
-      adminInactivityTimer = setTimeout(() => {
-        switchToKioskMode(true);
-      }, ADMIN_INACTIVITY_LIMIT_MS);
-    }
-
-    function stopAdminInactivityTimer() {
-      clearTimeout(adminInactivityTimer);
-      adminInactivityTimer = null;
-    }
-
-    function startAdminInactivityTimer() {
-      resetAdminInactivityTimer();
-    }
-
-    function switchToKioskMode(isTimeout = false) {
-      stopAdminInactivityTimer();
+    // ================= [JS-SECTION: VIEW SWITCHING CONTROLLERS] =================
+    function switchToKioskMode() {
       currentGoogleAccessToken = null; // Clear Gmail API token
 
       signOut(auth).catch(() => {});
@@ -1115,9 +1094,6 @@
         </svg>
       `;
 
-      if (isTimeout) {
-        showBanner(true, "Admin session locked due to 30s of inactivity.");
-      }
       focusScannerInput();
     }
 
@@ -1134,20 +1110,9 @@
       `;
 
       loadAdminData();
-      startAdminInactivityTimer();
       const displayName = user.displayName || user.email;
       showBanner(true, `Signed in as ${displayName}`);
     }
-
-    // Reset inactivity timer on any user interaction while in admin mode
-    const userActivityEvents = ["mousemove", "mousedown", "keydown", "touchstart", "scroll"];
-    userActivityEvents.forEach(evt => {
-      window.addEventListener(evt, () => {
-        if (currentView === "admin") {
-          resetAdminInactivityTimer();
-        }
-      }, { passive: true });
-    });
 
     // ================= [JS-SECTION: HELPER UTILITIES & UI RENDERERS] =================
     function getStudentPrograms(student) {
@@ -1524,7 +1489,7 @@
         authError.classList.add("hidden");
         adminAuthModal.classList.remove("hidden");
       } else {
-        switchToKioskMode(false);
+        switchToKioskMode();
       }
     });
 
@@ -2133,7 +2098,6 @@
       submitManualEntryBtn.textContent = "Logging Check-In...";
 
       try {
-        // Tagged with isManual = true
         await recordAttendance(student.cardId, student.name, prog, true);
         manualEntryModal.classList.add("hidden");
         renderDailyLogs();
@@ -3044,43 +3008,24 @@
         btn.innerHTML = `<span class="animate-spin inline-block mr-1">⏳</span> Creating...`;
       }
 
-      const distinctDates = getDistinctLabDates(selectedProgramFilter);
-      const stats = calculateStudentMissedSessions(student, distinctDates);
       const prog = selectedProgramFilter;
-
-      const lastAttendedText = stats.neverAttended || !stats.lastDate
-        ? "No recorded attendance this season"
-        : formatDateDisplay(stats.lastDate);
-
       const firstName = student.firstName || (student.name ? student.name.split(" ")[0] : student.name);
-
       const subject = `Checking In: Innovation Lab & VEX Robotics (${prog}) – ${student.name}`;
 
       try {
         // 1. Fetch user signature from Gmail settings API
         const userSignatureHtml = await fetchUserGmailSignature(currentGoogleAccessToken);
 
-        // 2. Build lighter, encouraging HTML formatted body
+        // 2. Build HTML formatted body matching requested template
         const htmlBody = `
           <div style="font-family: Arial, sans-serif; font-size: 14px; color: #1f2937; line-height: 1.6;">
-            <p>Dear ${firstName},</p>
+            <p>Hi ${firstName},</p>
 
-            <p>I wanted to reach out and check in with you regarding your attendance in the Innovation Lab for VEX Robotics (${prog}). We've noticed you’ve missed quite a few lab sessions, and your team has really missed having you there!</p>
+            <p>I wanted to reach out for a quick check-in regarding your attendance in the Innovation Lab for VEX Robotics (${prog}).</p>
 
-            <p>Here is a quick look at your attendance record:<br>
-            • <strong>Last Attended Lab Session:</strong> ${lastAttendedText}<br>
-            • <strong>Weekly Team Commitment:</strong> 2 hours per week</p>
+            <p>Our attendance records indicate that you haven't been meeting the 2-hour weekly commitment, which is a requirement for all members to remain active on the team. Your teammates rely on your regular presence to keep builds, coding, and team deadlines on track.</p>
 
-            <p>VEX is a true team effort—building, coding, driving, and notebook milestones move fast, and the lab is always at its best when the whole crew is working together. Your teammates rely on your ideas and presence, and consistent time in the lab is essential for the team to stay on track for upcoming competitions.</p>
-
-            <p>We know that HTS academics and other co-curriculars can get demanding, but to maintain your active spot on the roster, it’s important to meet the 2-hour weekly commitment you signed up for.</p>
-
-            <p>We would love to see you jump back in and get building with your team starting at our next scheduled session. If you've been running into scheduling conflicts, heavy workloads, or any other hurdles, please reply to this email or drop by to chat with a mentor so we can figure out a plan together.</p>
-
-            <p>If we don't hear from you or see you back in the lab starting next session, we will unfortunately have to adjust our team rosters for the remainder of the season so teams can plan their competition roles accordingly.</p>
-
-            <p>We really want to see you succeed and have a great robotics season with your team. We hope to see you back in the lab this week!</p>
-
+            <p>If you are running into any scheduling conflicts or workload hurdles, just reply to this email or drop by to chat so we can help you work it out!</p>
             <br>
             ${userSignatureHtml ? `<div class="gmail_signature">${userSignatureHtml}</div>` : ""}
           </div>
