@@ -6,140 +6,7 @@
   <title>Innovation Lab Attendance</title>
   
   <!-- Mini Transparent Keycard Favicon with HTS Hawk Logo -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='12' r='7.5' fill='none' stroke='%23cbd5e1' stroke-width='3'/><circle cx='50' cy='12' r='5' fill='none' stroke='%23475569' stroke-width='1.5'/><rect x='16' y='15' width='68' height='81' rx='10' fill='%230b1120' stroke='%2338bdf8' stroke-width='3.5'/><rect x='42' y='21' width='16' height='3.5' rx='1.75' fill='%23020617' stroke='%23334155' stroke-width='1'/><g transform='translate(20, 39) scale(0.105)'><path d='M470 55 C420 10 320 20 260 50 C210 75 160 115 125 165 C105 195 80 230 55 260 C40 280 45 305 60 315 C75 325 105 315 130 290 C155 265 180 250 200 250 C185 270 170 300 160 325 C155 340 165 355 180 355 C205 355 240 330 265 300 C320 280 380 260 450 240 C490 225 525 195 530 160 C530 140 500 135 480 145 C450 160 420 180 395 195 C410 160 440 120 470 85 C485 70 485 60 470 55 Z' fill='%2394a3b8' stroke='%2364748b' stroke-width='14'/><path d='M455 68 C405 28 315 35 260 62 C215 85 170 125 138 172 C115 205 92 238 68 266 C56 282 62 298 75 302 C90 306 115 292 138 272 C165 248 188 238 206 238 C192 258 178 286 170 308 C166 320 174 332 186 332 C206 332 235 312 256 286 C310 266 368 248 435 228 C472 215 502 188 506 158 C506 142 482 140 464 148 C436 162 408 180 385 192 C402 158 430 120 455 88 C465 76 465 70 455 68 Z' fill='%231e3a8a'/><path d='M435 90 C370 70 290 85 240 115 C195 140 160 175 140 215 C165 175 220 135 290 120 C345 108 400 112 435 90 Z' fill='%23ef4444'/><path d='M430 185 C370 205 300 230 250 255 C225 268 205 272 195 272 C215 262 250 245 295 228 C345 210 395 195 430 185 Z' fill='%23ef4444'/><path d='M140 215 C115 240 90 270 70 295 C82 298 102 288 122 270 C145 250 168 242 185 242 C165 248 145 268 135 285 C145 250 175 230 200 225 C180 220 160 218 140 215 Z' fill='%23f59e0b' stroke='%230f172a' stroke-width='6'/><path d='M175 290 C185 305 200 310 215 305 C205 295 195 285 185 275 C180 280 178 285 175 290 Z' fill='%23f59e0b' stroke='%230f172a' stroke-width='4'/><polygon points='160,200 190,175 205,205 175,208' fill='%23ffffff' stroke='%23000000' stroke-width='6'/></g></svg>">
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- ================= [SECTION: CUSTOM CSS ANIMATIONS] ================= -->
-  <style>
-    /* Keycard Tapping Animation */
-    @keyframes keycardTap {
-      0%, 100% {
-        transform: translateY(0px) rotate(-3deg);
-      }
-      38% {
-        transform: translateY(22px) rotate(0deg) scale(0.97);
-      }
-      46% {
-        transform: translateY(26px) rotate(0deg) scale(0.95);
-      }
-      56% {
-        transform: translateY(16px) rotate(-1deg) scale(0.98);
-      }
-    }
-
-    /* Contactless Pulse Wave from Reader */
-    @keyframes readerPulse {
-      0%, 35% {
-        opacity: 0;
-        transform: scale(0.7);
-      }
-      45% {
-        opacity: 0.95;
-      }
-      80%, 100% {
-        opacity: 0;
-        transform: scale(1.35);
-      }
-    }
-
-    .animate-keycard-tap {
-      animation: keycardTap 3.2s ease-in-out infinite;
-    }
-
-    .animate-reader-pulse {
-      animation: readerPulse 3.2s ease-out infinite;
-    }
-  </style>
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans select-none relative">
-
-  <!-- ================= [SECTION: HEADER & NAV] ================= -->
-  <header class="bg-slate-800/90 backdrop-blur border-b border-slate-700/80 px-4 sm:px-6 py-4 flex justify-between items-center relative z-20 shadow-sm">
-    <div class="flex items-center space-x-3 relative z-10">
-      <span class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-3 py-1 rounded-lg text-lg tracking-wider shadow-md shadow-indigo-500/20">STEM</span>
-      <h1 class="text-lg font-bold hidden lg:block text-slate-100 tracking-tight">Innovation Lab Attendance</h1>
-    </div>
-    
-    <!-- Top-Middle Attention Grabber -->
-    <div class="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2.5 bg-slate-950/90 border border-amber-500/40 px-6 py-2 rounded-full shadow-2xl whitespace-nowrap pointer-events-none">
-      <span class="text-amber-400 text-base leading-none animate-pulse">⚡</span>
-      <span class="text-xs sm:text-sm font-black text-slate-100 uppercase tracking-widest">
-        Innovation Lab: Sign In With Keycard
-      </span>
-    </div>
-
-    <!-- Permanent Inline-SVG Admin Button -->
-    <button id="toggleViewBtn" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2.5 transition border border-slate-600/60 relative z-10 shadow-sm">
-      <span id="toggleViewIcon" class="flex items-center justify-center">
-        <!-- Shield Icon for Admin -->
-        <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>
-      </span>
-      <span id="toggleViewText" class="hidden sm:inline">Admin Dashboard</span>
-    </button>
-  </header>
-
-  <!-- ================= [SECTION: KIOSK SCANNER VIEW] ================= -->
-  <main id="kioskView" class="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-2xl mx-auto w-full">
-    <!-- Confirmation Banner -->
-    <div id="statusBanner" class="hidden w-full mb-6 p-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 shadow-xl transition-all">
-      <i id="bannerIcon" data-lucide="check-circle" class="w-6 h-6"></i>
-      <span id="bannerText"></span>
-    </div>
-
-    <!-- Scanner Target Display -->
-    <div class="w-full bg-gradient-to-b from-slate-800/95 via-slate-800/90 to-indigo-950/30 border border-indigo-500/35 rounded-3xl p-8 sm:p-12 flex flex-col items-center gap-6 shadow-[0_0_80px_-15px_rgba(99,102,241,0.3)] relative overflow-hidden backdrop-blur">
-      
-      <!-- Top Color Accent Bar -->
-      <div class="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-blue-500 via-indigo-400 to-amber-400"></div>
-
-      <!-- Live Active Pill Badge -->
-      <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-200 border border-indigo-500/40 tracking-wider uppercase shadow-inner">
-        <span class="relative flex h-2.5 w-2.5">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-80"></span>
-          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
-        </span>
-        Scanner Active • Ready to Check In
-      </div>
-
-      <!-- Keycard Area with Attached Lanyard -->
-      <div id="scannerIconCircle" class="relative flex flex-col items-center justify-center cursor-pointer select-none pt-10 pb-4 group" title="Click or press Alt+T to test keycard scan">
-        
-        <!-- Animated Keycard + Lanyard Wrapper -->
-        <div class="animate-keycard-tap relative flex flex-col items-center group-hover:scale-105 transition-transform">
-          
-          <!-- Plain Fabric Lanyard Strap -->
-          <div class="absolute -top-11 z-0 flex flex-col items-center">
-            <div class="w-7 h-10 bg-gradient-to-b from-slate-900 via-indigo-950 to-indigo-900 border-x border-indigo-500/30 shadow-md"></div>
-            <div class="w-4 h-3 bg-gradient-to-r from-slate-400 via-slate-200 to-slate-400 rounded-sm shadow-sm -mt-0.5 border border-slate-500"></div>
-            <div class="w-3 h-3 rounded-full border-2 border-slate-300 -mt-1 bg-transparent"></div>
-          </div>
-
-          <!-- Portrait Student Keycard -->
-          <div class="relative w-48 sm:w-52 h-72 sm:h-76 rounded-2xl bg-gradient-to-b from-slate-900 via-slate-950 to-indigo-950 p-4 shadow-2xl shadow-indigo-500/40 border-2 border-indigo-400/40 flex flex-col justify-between items-center text-center z-10 overflow-hidden">
-            
-            <!-- Keycard Punch Slot -->
-            <div class="w-8 h-2 rounded-full bg-slate-950 border border-slate-700/80 shadow-inner mb-1"></div>
-
-            <!-- Header Titles -->
-            <div>
-              <h3 class="text-sm sm:text-base font-black tracking-wider text-white uppercase leading-none">HTS HAWKS</h3>
-              <p class="text-[9px] font-bold text-amber-400 tracking-widest uppercase mt-1">INNOVATION LAB</p>
-            </div>
-
-            <!-- Official HTS Hawk Logo -->
-            <div class="w-36 h-28 flex items-center justify-center my-auto drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
-              <svg viewBox="0 0 530 359" class="w-full h-full object-contain overflow-visible" xmlns="http://www.w3.org/2000/svg">
-                <path d="M470 55 C420 10 320 20 260 50 C210 75 160 115 125 165 C105 195 80 230 55 260 C40 280 45 305 60 315 C75 325 105 315 130 290 C155 265 180 250 200 250 C185 270 170 300 160 325 C155 340 165 355 180 355 C205 355 240 330 265 300 C320 280 380 260 450 240 C490 225 525 195 530 160 C530 140 500 135 480 145 C450 160 420 180 395 195 C410 160 440 120 470 85 C485 70 485 60 470 55 Z" fill="#64748b" stroke="#334155" stroke-width="8" stroke-linejoin="round"/>
-                <path d="M455 68 C405 28 315 35 260 62 C215 85 170 125 138 172 C115 205 92 238 68 266 C56 282 62 298 75 302 C90 306 115 292 138 272 C165 248 188 238 206 238 C192 258 178 286 170 308 C166 320 174 332 186 332 C206 332 235 312 256 286 C310 266 368 248 435 228 C472 215 502 188 506 158 C506 142 482 140 464 148 C436 162 408 180 385 192 C402 158 430 120 455 88 C465 76 465 70 455 68 Z" fill="#172554"/>
-                <path d="M435 90 C370 70 290 85 240 115 C195 140 160 175 140 215 C165 175 220 135 290 120 C345 108 400 112 435 90 Z" fill="#dc2626"/>
-                <path d="M430 185 C370 205 300 230 250 255 C225 268 205 272 195 272 C215 262 250 245 295 228 C345 210 395 195 430 185 Z" fill="#dc2626"/>
-                <path d="M140 215 C115 240 90 270 70 295 C82 298 102 288 122 270 C145 250 168 242 185 242 C165 248 145 268 135 285 C145 250 175 230 200 225 C180 220 160 218 140 215 Z" fill="#f59e0b" stroke="#0f172a" stroke-width="4"/>
-                <path d="M175 290 C185 305 200 310 215 305 C205 295 195 285 185 275 C180 280 178 285 175 290 Z" fill="#f59e0b" stroke="#0f172a" stroke-width="3"/>
-                <polygon points="160,200 190,175 205,205 175,208" fill="#ffffff" stroke="#000000" stroke-width="5" stroke-linejoin="round"/>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='12' r='7.5' fill='none' stroke='%23cbd5e1' stroke-width='3'/><circle cx='50' cy='12' r='5' fill='none' stroke='%23475569' stroke-width='1.5'/><rect x='16' y='15' width='68' height='81' rx='10' fill='%230b1120' stroke='%2338bdf8' stroke-width='3.5'/><rect x='42' y='21' width='16' height='3.5' rx='1.75' fill='%23020617' stroke='%23334155' stroke-width='1'/><g transform='translate(20, 39) scale(0.105)'><path d='M470 55 C420 10 320 20 260 50 C210 75 160 115 125 165 C105 195 80 230 55 260 C40 280 45 305 60 315 C75 325 105 315 130 290 C155 265 180 250 200 250 C185 270 170 300 160 325 C155 340 165 355 180 355 C205 355 240 330 265 300 C320 280 380 260 450 240 C490 225 525 195 530 160 C530 140 500 135 480 145 C450 160 420 180 395 195 C410 160 440 120 470 85 C485 70 485 60 470 55 Z' fill='%2394a3b8' stroke='%2364748b' stroke-width='14'/><path d='M455 68 C405 28 315 35 260 62 C215 85 170 125 138 172 C115 205 92 238 68 266 C56 282 62 298 75 302 C90 306 115 292 138 272 C165 248 188 238 206 238 C192 258 178 286 170 308 C166 320 174 332 186 332 C206 332 235 312 256 286 C310 266 368 248 435 228 C472 215 502 188 506 158 C506 142 482 140 464 148 C436 162 408 180 385 192 C402 158 430 120 455 88 C465 76 465 70 455 68 Z' fill='%231e3a8a'/><path d='M435 90 C370 70 290 85 240 115 C195 140 160 175 140 215 C165 175 220 135 290 120 C345 108 400 112 435 90 Z' fill='%23ef4444'/><path d='M430 185 C370 205 300 230 250 255 C225 268 205 272 195 272 C215 262 250 245 295 228 C345 210 395 195 430 185 Z' fill='%23ef4444'/><path d='M140 215 C115 240 90 270 70 295 C82 298 102 288 122 270 C145 250 168 242 185 242 C165 248 145 268 135 285 C145 250 175 230 200 225 C180 220 160 218 140 215 Z' fill='%23f59e0b' stroke='%230f172a' stroke-width='4'/><path d='M175 290 C185 305 200 310 215 305 C205 295 195 285 185 275 C180 280 178 285 175 290 Z' fill='%23f59e0b' stroke='%230f172a' stroke-width='3'/><polygon points='160,200 190,175 205,205 175,208' fill='%23ffffff' stroke='%23000000' stroke-width='5' stroke-linejoin="round"/>
               </svg>
             </div>
 
@@ -266,7 +133,7 @@
     <!-- Tab 2: Students Section -->
     <div id="studentsSection" class="hidden flex-col gap-4">
       
-      <!-- At-Risk Attention Banner (Now 6+ sessions) -->
+      <!-- At-Risk Attention Banner (6+ sessions) -->
       <div id="atRiskAlertBanner" class="hidden bg-rose-950/70 border border-rose-700/80 text-rose-200 p-4 rounded-xl flex items-center justify-between shadow-lg">
         <div class="flex items-center gap-3">
           <span class="p-2 bg-rose-900/80 rounded-lg text-rose-300">
@@ -301,14 +168,13 @@
           <thead class="bg-slate-750 text-slate-300 border-b border-slate-700">
             <tr>
               <th class="p-3.5">Student Name (Last, First)</th>
-              <th class="p-3.5">Enrolled Program(s)</th>
-              <th class="p-3.5">Assigned Keycard ID</th>
+              <th class="p-3.5">Status</th>
               <th class="p-3.5">Attendance Rate</th>
               <th class="p-3.5 text-right">Actions</th>
             </tr>
           </thead>
           <tbody id="studentsTableBody" class="divide-y divide-slate-700/80">
-            <tr><td colspan="5" class="p-4 text-center text-slate-400">Loading students...</td></tr>
+            <tr><td colspan="4" class="p-4 text-center text-slate-400">Loading students...</td></tr>
           </tbody>
         </table>
       </div>
@@ -547,8 +413,8 @@
           </h3>
           <ul class="list-disc list-inside space-y-1.5 text-xs text-slate-300">
             <li><strong>Distinct Lab Meetings:</strong> Counts unique dates students actually attended lab sessions for each program, skipping holidays, exams, and cancellations.</li>
-            <li><strong>Attendance Rate:</strong> The Registered Students view clearly displays each student's cumulative percentage alongside the exact count of sessions attended versus total meetings held to date.</li>
-            <li><strong>At-Risk Threshold (6+ Sessions):</strong> Students missing 6 or more consecutive program meetings trigger the Attention Required alert banner and unlock direct Gmail outreach.</li>
+            <li><strong>Status & Attendance Rate:</strong> Registered students show their engagement status (Active with last attended date, Drifting with missed sessions, or At-Risk) alongside their cumulative attendance rate.</li>
+            <li><strong>At-Risk Threshold (6+ Sessions):</strong> Students missing 6 or more consecutive program meetings trigger the alert banner and unlock direct Gmail outreach.</li>
             <li><strong>Draft Tracking:</strong> Creating a reminder draft automatically logs the date to the student's profile. This prevents duplicate outreach across multiple faculty members.</li>
             <li><strong>Quick Filter:</strong> Click <strong>"⚠️ At-Risk Only (6+ Missed)"</strong> to isolate disengaged students in one click.</li>
           </ul>
@@ -570,7 +436,7 @@
       </div>
 
       <div class="border-t border-slate-700 pt-4 mt-4 flex justify-between items-center">
-        <span class="text-xs text-slate-500 font-mono">Documentation Version: v2.2.0</span>
+        <span class="text-xs text-slate-500 font-mono">Documentation Version: v2.2.1</span>
         <button id="closeUserManualFooterBtn" class="bg-slate-700 hover:bg-slate-600 text-white font-semibold px-5 py-2 rounded-lg text-sm transition">
           Close Manual
         </button>
@@ -823,7 +689,7 @@
 
   <!-- ================= [SECTION: FOOTER & VERSION BADGE] ================= -->
   <div class="fixed bottom-3 right-4 text-xs font-mono text-slate-500 bg-slate-800/90 border border-slate-700/70 px-2.5 py-1 rounded-md shadow pointer-events-none select-none z-40">
-    v2.2.0
+    v2.2.1
   </div>
 
   <!-- ================= [SECTION: JAVASCRIPT APPLICATION CORE] ================= -->
@@ -2583,26 +2449,12 @@
         const msg = filterOnlyAtRisk 
           ? `No at-risk students found in ${selectedProgramFilter}! Everyone is keeping up.` 
           : `No registered ${selectedProgramFilter} students.`;
-        studentsTableBody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400 font-medium">${msg}</td></tr>`;
+        studentsTableBody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400 font-medium">${msg}</td></tr>`;
         return;
       }
 
       studentsTableBody.innerHTML = displayedStudents.map(s => {
         const stats = s.stats;
-        const enrolled = getStudentPrograms(s);
-
-        const progBadgesHtml = enrolled.map(p => `
-          <span class="text-[11px] font-bold px-2 py-0.5 rounded-md ${getProgramBadgeClass(p)} ${p === selectedProgramFilter ? 'ring-1 ring-white/50' : 'opacity-80'}">
-            ${p}
-          </span>
-        `).join("");
-
-        const aliasCount = (s.altCardIds && s.altCardIds.length) ? s.altCardIds.length : 0;
-        const aliasTagHtml = aliasCount > 0 
-          ? `<span class="block text-[11px] text-indigo-400 font-sans mt-0.5" title="Aliases: ${s.altCardIds.join(', ')}">
-               +${aliasCount} linked alias${aliasCount === 1 ? '' : 'es'}
-             </span>` 
-          : "";
 
         // Cumulative Attendance Rate Display (Option A Stacked Layout)
         const totalHeld = distinctDates.length;
@@ -2622,8 +2474,37 @@
           `;
         }
 
-        // Check if student meets the 6+ consecutive missed meetings threshold
+        // Dedicated Status Column: Active (Last date), Drifting (consecutive missed), At-Risk (consecutive missed or never attended)
+        let statusBadgeHtml = "";
         const isAtRisk = (stats.missed >= 6 && distinctDates.length >= 6);
+
+        if (totalHeld === 0) {
+          statusBadgeHtml = `<span class="text-xs text-slate-500 font-medium">No sessions held</span>`;
+        } else if (isAtRisk) {
+          const detail = stats.neverAttended ? "Never attended" : `${stats.missed} missed`;
+          statusBadgeHtml = `
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-950/90 text-rose-300 border border-rose-700 animate-pulse shadow-sm">
+              <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-rose-400"></i>
+              <span>At-Risk (${detail})</span>
+            </span>
+          `;
+        } else if (stats.missed >= 3) {
+          const detail = stats.neverAttended ? "Never attended" : `${stats.missed} missed`;
+          statusBadgeHtml = `
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-950/70 text-amber-300 border border-amber-700/60">
+              <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Drifting (${detail})</span>
+            </span>
+          `;
+        } else {
+          const lastDateStr = stats.lastDate ? `Last: ${formatDateShort(stats.lastDate)}` : "No check-ins yet";
+          statusBadgeHtml = `
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-950/60 text-emerald-300 border border-emerald-700/60">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span>Active (${lastDateStr})</span>
+            </span>
+          `;
+        }
 
         // Fetch draft history timestamp for current program
         const draftsMap = (typeof s.lastDrafted === 'object' && s.lastDrafted !== null) 
@@ -2656,15 +2537,7 @@
                 <i data-lucide="history" class="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 transition"></i>
               </button>
             </td>
-            <td class="p-3.5">
-              <div class="flex flex-wrap gap-1 items-center">
-                ${progBadgesHtml}
-              </div>
-            </td>
-            <td class="p-3.5 font-mono text-slate-400">
-              <span>${s.cardId}</span>
-              ${aliasTagHtml}
-            </td>
+            <td class="p-3.5">${statusBadgeHtml}</td>
             <td class="p-3.5">${attendanceRateHtml}</td>
             <td class="p-3.5 text-right whitespace-nowrap">
               ${draftBtnHtml}
